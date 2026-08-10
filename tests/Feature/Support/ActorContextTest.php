@@ -31,27 +31,28 @@ function readActorSettings(): array
 }
 
 it('applies HTTP actor settings only inside the request transaction', function (): void {
-    $user = User::factory()->create();
+    $user = new User;
+    $user->forceFill([
+        'id' => 42,
+        'name' => 'Test Kullanıcısı',
+        'email' => 'test@example.invalid',
+    ]);
 
-    try {
-        Route::middleware('web')->get('/_test/actor-context', function (): array {
-            return readActorSettings();
-        });
+    Route::middleware('web')->get('/_test/actor-context', function (): array {
+        return readActorSettings();
+    });
 
-        actingAs($user);
-        $response = get('/_test/actor-context');
+    actingAs($user);
+    $response = get('/_test/actor-context');
 
-        $response->assertOk()
-            ->assertJsonPath('actor_id', (string) $user->getKey())
-            ->assertJsonPath('source', 'user');
+    $response->assertOk()
+        ->assertJsonPath('actor_id', (string) $user->getKey())
+        ->assertJsonPath('source', 'user');
 
-        $outside = readActorSettings();
+    $outside = readActorSettings();
 
-        expect($outside['actor_id'])->toBeEmpty();
-        expect($outside['session_id'])->toBeEmpty();
-        expect($outside['client_ip'])->toBeEmpty();
-        expect($outside['source'])->toBeEmpty();
-    } finally {
-        $user->delete();
-    }
+    expect($outside['actor_id'])->toBeEmpty();
+    expect($outside['session_id'])->toBeEmpty();
+    expect($outside['client_ip'])->toBeEmpty();
+    expect($outside['source'])->toBeEmpty();
 });
