@@ -8,10 +8,22 @@ auth.json
 # --- Geçici kurulum dizini ---
 .laravel-tmp/
 
+# --- Laravel uygulaması ---
+*.log
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+/.phpunit.cache
+/.phpunit.result.cache
+
 # --- OS / editör ---
 .DS_Store
 Thumbs.db
-*.log
 .phpactor.json
 _ide_helper.php
 
@@ -28,5 +40,8 @@ docker/**/data/
 /.zed
 
 # --- Yerel agent / araç oturum dizinleri (projeye ait değil) ---
-/.claude/
+# .claude: yalnızca settings.local.json (kişisel) yoksayılır; proje geneli
+# settings.json varsa paylaşılır.
+/.claude/*
+!/.claude/settings.json
 /.zcode/
