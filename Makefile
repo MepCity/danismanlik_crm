@@ -20,7 +20,8 @@ GROUP_ID    ?= $(shell id -g)
 
 .PHONY: help up down restart build rebuild logs ps shell \
         artisan composer php tinker migrate fresh test \
-        minio-bucket clean
+        minio-bucket clean \
+        lint lint-fix analyse test test-coverage
 
 help: ## Bu yardımı göster
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -85,6 +86,14 @@ fresh: ## Tam sıfırdan kurulum: down -v → up --build → key → migrate
 	@echo "Veritabanı ve önbellek sıfırlandı, migrate bekleniyor..."
 	$(COMPOSE) exec $(APP) php artisan key:generate --ansi || true
 	$(COMPOSE) exec $(APP) php artisan migrate --force
+
+# --- Kalite / test ---
+
+lint: ## Pint biçim kontrolü (düzeltmez)
+	$(COMPOSE) exec $(APP) vendor/bin/pint --test
+
+lint-fix: ## Pint biçim düzeltmesi (dosyaları değiştirir)
+	$(COMPOSE) exec $(APP) vendor/bin/pint
 
 minio-bucket: ## MinIO bucket'ını elle oluştur (normalde minio-init yapar)
 	$(COMPOSE) run --rm minio-init
