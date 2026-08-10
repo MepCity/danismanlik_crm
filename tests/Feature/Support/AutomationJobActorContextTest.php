@@ -10,14 +10,20 @@ it('applies the automation actor source to queue jobs', function (): void {
     {
         public ?string $source = null;
 
+        public ?int $transactionLevel = null;
+
         protected function execute(): void
         {
-            $this->source = (string) DB::scalar("select current_setting('app.source', true)");
+            $this->transactionLevel = DB::transactionLevel();
+            $this->source = DB::transaction(
+                fn (): string => (string) DB::scalar("select current_setting('app.source', true)"),
+            );
         }
     };
 
     app()->call([$job, 'handle']);
 
+    expect($job->transactionLevel)->toBe(0);
     expect($job->source)->toBe('automation');
     expect((string) DB::scalar("select current_setting('app.source', true)"))->toBeEmpty();
 });

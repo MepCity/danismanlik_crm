@@ -30,7 +30,7 @@ function readActorSettings(): array
     ];
 }
 
-it('applies HTTP actor settings only inside the request transaction', function (): void {
+it('applies HTTP actor settings only inside an explicit transaction', function (): void {
     $user = new User;
     $user->forceFill([
         'id' => 42,
@@ -38,9 +38,10 @@ it('applies HTTP actor settings only inside the request transaction', function (
         'email' => 'test@example.invalid',
     ]);
 
-    Route::middleware('web')->get('/_test/actor-context', function (): array {
-        return readActorSettings();
-    });
+    Route::middleware('web')->get(
+        '/_test/actor-context',
+        fn (): array => DB::transaction(fn (): array => readActorSettings()),
+    );
 
     actingAs($user);
     $response = get('/_test/actor-context');
@@ -55,4 +56,78 @@ it('applies HTTP actor settings only inside the request transaction', function (
     expect($outside['session_id'])->toBeEmpty();
     expect($outside['client_ip'])->toBeEmpty();
     expect($outside['source'])->toBeEmpty();
+});
+
+it('does not open a transaction for a GET request', function (): void {
+    Route::middleware('web')->get('/_test/transaction-level', fn (): array => [
+        'transaction_level' => DB::transactionLevel(),
+    ]);
+
+    get('/_test/transaction-level')
+        ->assertOk()
+        ->assertJsonPath('transaction_level', 0);
+});
+
+it('applies actor settings to explicit writes and leaves outside writes unknown', function (): void {
+    $user = new User;
+    $user->forceFill([
+        'id' => 42,
+        'name' => 'Test Kullanıcısı',
+        'email' => 'test@example.invalid',
+    ]);
+
+    Route::middleware('web')->get('/_test/actor-write-context', function (): array {
+        DB::statement(<<<'SQL'
+            create temporary table actor_context_probe (
+                phase text not null,
+                actor_id text,
+                source text
+            ) on commit preserve rows
+            SQL);
+
+        try {
+            DB::transaction(function (): void {
+                DB::insert(<<<'SQL'
+                    insert into actor_context_probe (phase, actor_id, source)
+                    values (
+                        'inside',
+                        current_setting('app.actor_id', true),
+                        current_setting('app.source', true)
+                    )
+                    SQL);
+            });
+
+            DB::insert(<<<'SQL'
+                insert into actor_context_probe (phase, actor_id, source)
+                values (
+                    'outside',
+                    current_setting('app.actor_id', true),
+                    current_setting('app.source', true)
+                )
+                SQL);
+
+            return DB::table('actor_context_probe')
+                ->orderBy('phase')
+                ->get()
+                ->map(fn (object $row): array => (array) $row)
+                ->all();
+        } finally {
+            DB::statement('drop table if exists actor_context_probe');
+        }
+    });
+
+    actingAs($user);
+
+    get('/_test/actor-write-context')
+        ->assertOk()
+        ->assertJsonFragment([
+            'phase' => 'inside',
+            'actor_id' => '42',
+            'source' => 'user',
+        ])
+        ->assertJsonFragment([
+            'phase' => 'outside',
+            'actor_id' => '',
+            'source' => '',
+        ]);
 });
