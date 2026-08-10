@@ -133,6 +133,28 @@ services:
       "
     restart: "no"
 
+  db-init:
+    # Tek seferlik: geliştirme sunucusunda ayrı test veritabanı oluştur.
+    # Testler gerçek PostgreSQL'e karşı koşar (SQLite değil); geliştirme
+    # verisi tesvik_crm'de kalır, testler tesvik_crm_test'te izole çalışır.
+    image: postgres:17-alpine
+    container_name: tesvik-crm-db-init
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGUSER: ${DB_USERNAME:-tesvik}
+      PGDATABASE: ${DB_DATABASE:-tesvik_crm}
+      PGHOST: db
+      PGPASSWORD: ${DB_PASSWORD:-tesvik}
+    entrypoint: >
+      /bin/sh -c "
+      psql -tc \"SELECT 1 FROM pg_database WHERE datname = '${DB_DATABASE_TEST:-tesvik_crm_test}'\" | grep -q 1 ||
+      psql -c \"CREATE DATABASE ${DB_DATABASE_TEST:-tesvik_crm_test}\" &&
+      echo 'test veritabanı hazır: ${DB_DATABASE_TEST:-tesvik_crm_test}'
+      "
+    restart: "no"
+
   mailpit:
     image: axllent/mailpit:latest
     container_name: tesvik-crm-mailpit

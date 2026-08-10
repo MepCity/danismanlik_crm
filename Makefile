@@ -77,8 +77,11 @@ tinker: ## Laravel tinker
 migrate: ## migrate
 	$(COMPOSE) exec $(APP) php artisan migrate
 
-test: ## Pest/PHPUnit testleri
+test: ## Pest testleri (PostgreSQL test veritabanına karşı)
 	$(COMPOSE) exec $(APP) php artisan test
+
+test-coverage: ## Pest kod kapsama raporu (coverage/*.clover)
+	$(COMPOSE) exec $(APP) php artisan test --coverage --coverage-html=coverage --min=0
 
 fresh: ## Tam sıfırdan kurulum: down -v → up --build → key → migrate
 	$(COMPOSE) down -v

@@ -18,6 +18,7 @@ auth.json
 /storage/*.key
 /storage/pail
 /vendor
+/coverage
 /.phpunit.cache
 /.phpunit.result.cache
 /.phpstan
