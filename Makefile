@@ -78,9 +78,11 @@ migrate: ## migrate
 	$(COMPOSE) exec $(APP) php artisan migrate
 
 test: ## Pest testleri (PostgreSQL test veritabanına karşı)
+	$(COMPOSE) run --rm db-init
 	$(COMPOSE) exec $(APP) php artisan test
 
 test-coverage: ## Pest kod kapsama raporu (coverage/*.clover)
+	$(COMPOSE) run --rm db-init
 	$(COMPOSE) exec $(APP) php artisan test --coverage --coverage-html=coverage --min=0
 
 fresh: ## Tam sıfırdan kurulum: down -v → up --build → key → migrate

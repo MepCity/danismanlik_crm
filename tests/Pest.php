@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Tests\TestCase;
+
 /*
 |--------------------------------------------------------------------------
 | Test Bootstrapping
@@ -13,4 +15,4 @@ declare(strict_types=1);
 |
 */
 
-uses(\Tests\TestCase::class)->in('Feature', 'Unit');
+uses(TestCase::class)->in('Feature');

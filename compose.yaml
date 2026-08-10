@@ -149,6 +149,8 @@ services:
       PGPASSWORD: ${DB_PASSWORD:-tesvik}
     entrypoint: >
       /bin/sh -c "
+      test '${DB_DATABASE_TEST:-tesvik_crm_test}' != '${DB_DATABASE:-tesvik_crm}' ||
+      { echo 'HATA: test ve geliştirme veritabanı adları aynı olamaz'; exit 1; };
       psql -tc \"SELECT 1 FROM pg_database WHERE datname = '${DB_DATABASE_TEST:-tesvik_crm_test}'\" | grep -q 1 ||
       psql -c \"CREATE DATABASE ${DB_DATABASE_TEST:-tesvik_crm_test}\" &&
       echo 'test veritabanı hazır: ${DB_DATABASE_TEST:-tesvik_crm_test}'
