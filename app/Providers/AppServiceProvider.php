@@ -18,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->register(SupportServiceProvider::class);
         $this->app->register(AccessServiceProvider::class);
         $this->app->register(CrmServiceProvider::class);
         $this->app->register(DealServiceProvider::class);
