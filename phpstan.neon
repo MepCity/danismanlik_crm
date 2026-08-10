@@ -1,0 +1,19 @@
+parameters:
+    # Level 6'dan başlıyoruz, hedef 8.
+    #
+    # Neden 6: kod tabanı sıfırken level 6 "bedelsiz" geçer — eksik/yanlış
+    # return ve property tipleri, union yanlış kullanımı gibi katı kontroller
+    # baştan doğru yazılır. Level 7-8 (generic array shape'ler, katı karşılaştırma
+    # kenar durumları) ek tip annotasyon yükü getirir; kod büyüdükçe kademeli
+    # yükseltilecek (phpstan.neon'a not bırakıldıkça).
+    #
+    # Baseline YOK: bu noktada teknik borç meşrulaştırmak istemiyoruz; kod sıfır,
+    # ihlal de sıfır olmalı.
+    level: 6
+
+    paths:
+        - app/
+        - database/
+        - tests/
+
+    tmpDir: .phpstan

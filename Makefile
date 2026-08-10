@@ -95,6 +95,9 @@ lint: ## Pint biçim kontrolü (düzeltmez)
 lint-fix: ## Pint biçim düzeltmesi (dosyaları değiştirir)
 	$(COMPOSE) exec $(APP) vendor/bin/pint
 
+analyse: ## Larastan (PHPStan) statik analiz — level 6
+	$(COMPOSE) exec $(APP) vendor/bin/phpstan analyse --memory-limit=512M
+
 minio-bucket: ## MinIO bucket'ını elle oluştur (normalde minio-init yapar)
 	$(COMPOSE) run --rm minio-init
 
