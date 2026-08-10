@@ -86,8 +86,12 @@ services:
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redisdata:/data
-    ports:
-      - "${PUBLISH_HOST:-127.0.0.1}:${PUBLISH_REDIS_PORT:-6379}:6379"
+    # Host'a yayınlanmaz: uygulama compose ağı üzerinden `redis` servis adıyla
+    # bağlanır. Bu makinede 6379 hostta yerel redis-server'da kullanımda olduğu
+    # için çakışmayı önlemek amacıyla da yayınlanmaz. Gerekirse host erişimi
+    # için PUBLISH_REDIS_PORT açıp aşağıdaki satırı açın.
+    # ports:
+    #   - "${PUBLISH_HOST:-127.0.0.1}:${PUBLISH_REDIS_PORT:-6379}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

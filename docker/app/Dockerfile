@@ -66,12 +66,26 @@ FROM base AS dev
 
 # Host UID/GID'sini build-args ile al; app kullanıcısını bu id'yle oluştur,
 # php-fpm worker'ları da bu kullanıcıyla çalışsın. Default 1000:1000.
+# macOS'ta host GID genelde düşüktür (staff=20) ve imaj içinde çakışabilir;
+# bu yüzden GID/UID zaten varsa yeniden kullan, hata verme.
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
-RUN groupadd -g "${GROUP_ID}" app \
-    && useradd -u "${USER_ID}" -g app -m -s /bin/bash app \
-    && sed -i -E "s|^user = .*|user = app|" /usr/local/etc/php-fpm.d/www.conf \
+RUN set -eux; \
+    if getent group "${GROUP_ID}" >/dev/null; then \
+        existing_group="$(getent group "${GROUP_ID}" | cut -d: -f1)"; \
+        groupmod -n app "${existing_group}"; \
+    else \
+        groupadd -g "${GROUP_ID}" app; \
+    fi; \
+    if id -u "${USER_ID}" >/dev/null 2>&1; then \
+        existing_user="$(getent passwd "${USER_ID}" | cut -d: -f1)"; \
+        usermod -l app -d /home/app -m "${existing_user}"; \
+        usermod -g app app; \
+    else \
+        useradd -u "${USER_ID}" -g app -m -s /bin/bash app; \
+    fi; \
+    sed -i -E "s|^user = .*|user = app|" /usr/local/etc/php-fpm.d/www.conf \
     && sed -i -E "s|^group = .*|group = app|" /usr/local/etc/php-fpm.d/www.conf
 
 # Geliştirme opcache ayarları: dosya değişikliği anında yeniden okunur.
@@ -91,9 +105,21 @@ FROM base AS prod
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
-RUN groupadd -g "${GROUP_ID}" app \
-    && useradd -u "${USER_ID}" -g app -m -s /bin/bash app \
-    && sed -i -E "s|^user = .*|user = app|" /usr/local/etc/php-fpm.d/www.conf \
+RUN set -eux; \
+    if getent group "${GROUP_ID}" >/dev/null; then \
+        existing_group="$(getent group "${GROUP_ID}" | cut -d: -f1)"; \
+        groupmod -n app "${existing_group}"; \
+    else \
+        groupadd -g "${GROUP_ID}" app; \
+    fi; \
+    if id -u "${USER_ID}" >/dev/null 2>&1; then \
+        existing_user="$(getent passwd "${USER_ID}" | cut -d: -f1)"; \
+        usermod -l app -d /home/app -m "${existing_user}"; \
+        usermod -g app app; \
+    else \
+        useradd -u "${USER_ID}" -g app -m -s /bin/bash app; \
+    fi; \
+    sed -i -E "s|^user = .*|user = app|" /usr/local/etc/php-fpm.d/www.conf \
     && sed -i -E "s|^group = .*|group = app|" /usr/local/etc/php-fpm.d/www.conf
 
 # Üretim opcache: validate_timestamps kapalı (dosyalar sabit), memory yüksek.

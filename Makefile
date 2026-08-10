@@ -27,13 +27,15 @@ help: ## Bu yardımı göster
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
 build: ## İmajları derle (UID/GID .env'den)
-	$(COMPOSE) build --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID)
+	$(COMPOSE) build --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) app
+	$(COMPOSE) build --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) queue scheduler
 
 rebuild: ## İmajları temizleyip yeniden derle
-	$(COMPOSE) build --no-cache --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID)
+	$(COMPOSE) build --no-cache --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) app
+	$(COMPOSE) build --no-cache --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) queue scheduler
 
-up: build ## Servisleri ayağa kaldır (arka planda)
-	$(COMPOSE) up -d
+up: ## Servisleri ayağa kaldır (arka planda; gerekirse imajı derler)
+	$(COMPOSE) up -d --build
 	@echo ""
 	@echo "Uygulama : http://localhost:$$(grep '^WEB_PORT=' .env 2>/dev/null | cut -d= -f2 || echo 8088)"
 	@echo "Mailpit  : http://localhost:$$(grep '^PUBLISH_MAILPIT_WEB_PORT=' .env 2>/dev/null | cut -d= -f2 || echo 8025)"
@@ -77,10 +79,9 @@ migrate: ## migrate
 test: ## Pest/PHPUnit testleri
 	$(COMPOSE) exec $(APP) php artisan test
 
-fresh: ## Tam sıfırdan kurulum: down → up → key → migrate
+fresh: ## Tam sıfırdan kurulum: down -v → up --build → key → migrate
 	$(COMPOSE) down -v
-	$(COMPOSE) build --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID)
-	$(COMPOSE) up -d
+	$(COMPOSE) up -d --build --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID)
 	@echo "Veritabanı ve önbellek sıfırlandı, migrate bekleniyor..."
 	$(COMPOSE) exec $(APP) php artisan key:generate --ansi || true
 	$(COMPOSE) exec $(APP) php artisan migrate --force
