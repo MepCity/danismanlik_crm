@@ -1,22 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 /*
-|--------------------------------------------------------------------------
-| Bu dosya neden publish edildi? (bakım notu)
-|--------------------------------------------------------------------------
-| Laravel 13 iskeletinde 'timezone' => 'UTC' sabitti; env('APP_TIMEZONE')
-| kullanmıyordu. .env'deki Europe/Istanbul'ı okutmak için tek satırı env
-| odaklı yaptık ve dosyayı publish ettik.
-|
-| Alternatif: bootstrap/app.php içinde date_default_timezone_set() ile aynı
-| sonucu publish etmeden almak mümkündü; ancak PHP tarih fonksiyonlarıyla
-| Laravel ayarını iki yerde tutmak, framework güncellemelerinde dağılması
-| kolay ince bir çift kayıt yaratırdı. config/app.php'de tekilleştirmeyi
-| tercih ettik.
-|
-| Bakım: framework yükseltmesinde vendor'tan gelen yeni app.php anahtarlarını
-| elle birleştirmek gerekir — artık otomatik gelmezler.
-*/
+ * Bu dosya saat dilimini tek bir Laravel ayarından yönetmek için publish
+ * edildi. Framework yükseltmelerinde vendor değişiklikleri elle birleştirilir.
+ * Karar ve alternatifler: docs/adr/0001-config-app-publish.md
+ */
 
 return [
 

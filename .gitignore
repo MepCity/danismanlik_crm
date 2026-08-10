@@ -18,8 +18,10 @@ auth.json
 /storage/*.key
 /storage/pail
 /vendor
+/coverage
 /.phpunit.cache
 /.phpunit.result.cache
+/.phpstan
 
 # --- OS / editör ---
 .DS_Store
