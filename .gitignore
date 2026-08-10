@@ -1,0 +1,32 @@
+# --- Secrets / local config (DEPO PUBLIC — asla commit edilmez) ---
+.env
+.env.backup
+.env.production
+.env.*.local
+auth.json
+
+# --- Geçici kurulum dizini ---
+.laravel-tmp/
+
+# --- OS / editör ---
+.DS_Store
+Thumbs.db
+*.log
+.phpactor.json
+_ide_helper.php
+
+# --- Docker kalıcı verileri ---
+docker/**/data/
+**/volumes/
+
+# --- Editor / IDE ---
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.vscode
+/.zed
+
+# --- Yerel agent / araç oturum dizinleri (projeye ait değil) ---
+/.claude/
+/.zcode/
