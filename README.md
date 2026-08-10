@@ -42,6 +42,10 @@ make artisan a="about"      # PHP + Laravel + DB sürümünü göster
 make artisan a="migrate"    # migration'ları çalıştır
 make tinker        # Laravel tinker
 make test          # testleri çalıştır
+make test-coverage # HTML kapsama raporu üret
+make lint          # kod biçimini denetle
+make lint-fix      # kod biçimini düzelt
+make analyse       # Larastan level 6 analizi
 make composer a="require spatie/laravel-permission"  # paket ekle
 make fresh         # tam sıfırdan kurulum (volumeleri de siler)
 make help          # tüm komutlar
@@ -63,5 +67,7 @@ Denetim iki katmanlıdır. Tüm arayüz metni Türkçe, tüm kod İngilizcedir.
 ## Teknoloji
 
 PHP 8.4 · Laravel 13.24 · PostgreSQL 17 · Redis · S3 uyumlu (MinIO) · Docker
-Compose. Test (Pest) ve statik analiz (Larastan) WP-02'de kurulur; bu paket
-yalnızca iskelet ve ortamdır.
+Compose · Pest · Larastan · Laravel Pint.
+
+Katkı akışı ve PR öncesi kontroller için [`CONTRIBUTING.md`](CONTRIBUTING.md)
+belgesine bakın.
