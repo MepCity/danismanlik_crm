@@ -40,5 +40,8 @@ docker/**/data/
 /.zed
 
 # --- Yerel agent / araç oturum dizinleri (projeye ait değil) ---
-/.claude/
+# .claude: yalnızca settings.local.json (kişisel) yoksayılır; proje geneli
+# settings.json varsa paylaşılır.
+/.claude/*
+!/.claude/settings.json
 /.zcode/
