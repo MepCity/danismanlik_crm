@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Support\Audit\Actor;
-use App\Support\Audit\ActorContext;
+use App\Support\Audit\ActorHolder;
 use App\Support\Audit\ActorSource;
 use Closure;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 final readonly class ApplyActorContext
 {
-    public function __construct(private ActorContext $actorContext) {}
+    public function __construct(private ActorHolder $actorHolder) {}
 
     /**
      * @param  Closure(Request): Response  $next
@@ -22,7 +22,7 @@ final readonly class ApplyActorContext
     {
         $userId = $request->user()?->getAuthIdentifier();
 
-        return $this->actorContext->run(
+        return $this->actorHolder->runWith(
             new Actor(
                 source: ActorSource::User,
                 id: $userId !== null ? (string) $userId : null,

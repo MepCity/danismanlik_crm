@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Queue;
 
 use App\Support\Audit\Actor;
-use App\Support\Audit\ActorContext;
+use App\Support\Audit\ActorHolder;
 use App\Support\Audit\ActorSource;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,9 +20,9 @@ abstract class AutomationJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    final public function handle(ActorContext $actorContext): void
+    final public function handle(ActorHolder $actorHolder): void
     {
-        $actorContext->run(
+        $actorHolder->runWith(
             new Actor(source: ActorSource::Automation),
             fn () => $this->execute(),
         );

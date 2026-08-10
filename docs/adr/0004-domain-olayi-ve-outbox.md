@@ -24,6 +24,21 @@ yerine `WP-07` işaretli `LogicException` fırlatır. Kuyruk işleri
 
 Dışa açık webhook bu kararın parçası değildir ve Faz 3'e bırakılmıştır.
 
+Aktör bilgisi HTTP isteğini veya kuyruk işini baştan sona transaction içine
+almaz. Middleware ve `AutomationJob`, aktörü yalnızca scoped bir tutucuda
+saklar. Laravel'in `TransactionBeginning` olayı her gerçek transaction
+başladığında tutucudaki değerleri o connection'a `SET LOCAL` ile yazar. Uzun
+HTTP istekleri, dosya aktarımları ve dış servis çağrıları böylece gereksiz yere
+PostgreSQL transaction'ı açık tutmaz.
+
+Bu seçimin kabul edilen bedeli şudur: explicit transaction dışında yapılan tek
+satırlık yazımlar aktör bağlamı taşımaz ve denetim trigger'ı tarafından
+`system/unknown` olarak kaydedilir. Mimari, domain yazımlarını servis katmanında
+toplar ve bu servisler atomik işlemler için explicit transaction açar. Bağlamın
+önemli olduğu iş yazımları bu nedenle aktörü alırken, transaction açmayı
+unutmanın sonucu sahte bir kullanıcı atfı değil açıkça bilinmeyen kaynak olur.
+Bu davranış PLAN.md §8.2 ile uyumludur.
+
 ## Sonuçlar
 
 Domain servisleri belirli dinleyicilere bağlanmaz ve testlerde `OutboxWriter`
