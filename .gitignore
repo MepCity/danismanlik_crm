@@ -20,6 +20,7 @@ auth.json
 /vendor
 /.phpunit.cache
 /.phpunit.result.cache
+/.phpstan
 
 # --- OS / editör ---
 .DS_Store
