@@ -40,13 +40,22 @@ ve `activities` aynı deseni `lead_id | deal_id | deal_document_id` olarak
 uygulayacaktır. Kolon sayısı artar; karşılığında var olmayan veya yanlış türde
 özne kimlikleri DB seviyesinde engellenir ve `RESTRICT` sözleşmesi korunur.
 
-### Modüller arası Eloquent ilişkileri
+### Modüller arası Eloquent ilişkileri — geri çekildi
 
-Domain modelleri başka bir modülün `Models` sınıfını doğrudan içe aktarmaz.
-Çapraz ilişkiler `config/domain-models.php` içindeki uygulama bileşim kökünden
-`DomainModelRegistry` ile class-string olarak çözülür; aynı modül içindeki
-ilişkiler doğrudan ve tipli kalır. Böylece ilişkiler Eloquent'ta kullanılabilir,
-uygulama bileşimi tek yerde görünür ve PHPStan sınır kuralı gevşetilmez.
+WP-06 ilk uygulamasında domain modellerinin çapraz ilişkileri
+`config/domain-models.php` içindeki uygulama bileşim kökünden
+`DomainModelRegistry` ile class-string olarak çözülmüştür. Bu karar geri
+çekilmiştir: registry tüm modüllere açık bir kaçış yolu oluşturduğu için servis
+katmanı da başka modülün modeline görünmeden erişebiliyor, bağımlılık config'e
+taşınıyor ve `BelongsTo<EloquentModel, $this>` jenerikleri gerçek ilişki tipini
+kaybediyordu. Bu bedel ADR-0002'deki Larastan level 8 hedefine aykırıdır.
+
+ADR-0003'ün gerçek niyeti iş mantığı bağımlılığını engellemek olarak
+netleştirilmiştir. Eloquent ilişki grafiği `Models` namespace'i içinde serbesttir;
+ilişkiler doğrudan sınıf import'u ve `BelongsTo<Company, $this>` gibi hassas
+jeneriklerle tanımlanır. Registry ve config dosyası kaldırılmıştır. Servis,
+aksiyon, olay, DTO ve exception katmanlarında çapraz model erişimi PHPStan
+tarafından yasak kalır.
 
 ## Sonuçlar
 
