@@ -20,5 +20,10 @@ return [
             'history_missing' => 'Öznenin açık statü geçmişi bulunamadı.',
             'revision_missing' => 'Yürürlükte bir iş akışı revizyonu bulunamadı.',
         ],
+        'workflow' => [
+            'orphaned' => 'Değişiklik kaydedilemez. :details ve değişiklikten sonra çıkış geçişi kalmıyor.',
+            'deal_count' => '{1} Şu anda :count dosya ":status" statüsünde|[2,*] Şu anda :count dosya ":status" statüsünde',
+            'lead_count' => '{1} Şu anda :count fırsat ":status" statüsünde|[2,*] Şu anda :count fırsat ":status" statüsünde',
+        ],
     ],
 ];
