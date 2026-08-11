@@ -20,5 +20,12 @@ parameters:
         - app/
         - database/
         - tests/
+        - tools/phpstan/
 
     tmpDir: .phpstan
+
+services:
+    -
+        class: Quality\PHPStan\Rules\ForbidCrossModuleModelAccessRule
+        tags:
+            - phpstan.rules.rule
