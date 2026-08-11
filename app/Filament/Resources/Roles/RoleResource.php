@@ -77,7 +77,7 @@ final class RoleResource extends ScopedResource
             TextColumn::make('default_scope')->label(__('management.fields.default_scope'))->formatStateUsing(fn (string $state): string => __('management.scopes.'.$state)),
             TextColumn::make('permissions_count')->counts('permissions')->label(__('management.fields.permissions'))->alignEnd()->extraAttributes(['class' => 'numeric-data']),
             IconColumn::make('is_active')->label(__('management.fields.active'))->boolean(),
-        ])->recordActions([EditAction::make()])->defaultPaginationPageOption(25)->paginationPageOptions([25, 50, 100]);
+        ])->recordActions([EditAction::make()->label(__('management.actions.edit'))])->defaultPaginationPageOption(25)->paginationPageOptions([25, 50, 100]);
     }
 
     public static function getPages(): array

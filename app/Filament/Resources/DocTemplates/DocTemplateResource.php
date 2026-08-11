@@ -80,7 +80,7 @@ final class DocTemplateResource extends ScopedResource
                 ->formatStateUsing(fn (mixed $state): string => ConditionDefinition::preview(is_array($state) ? $state : null))->limit(70),
             TextColumn::make('sort_order')->label(__('management.fields.sort_order'))->alignEnd()->extraAttributes(['class' => 'numeric-data']),
             IconColumn::make('is_active')->label(__('management.fields.active'))->boolean(),
-        ])->recordActions([EditAction::make()])->defaultPaginationPageOption(25)->paginationPageOptions([25, 50, 100]);
+        ])->recordActions([EditAction::make()->label(__('management.actions.edit'))])->defaultPaginationPageOption(25)->paginationPageOptions([25, 50, 100]);
     }
 
     public static function getPages(): array

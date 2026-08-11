@@ -68,7 +68,7 @@ final class ProgramResource extends ScopedResource
             TextColumn::make('code')->label(__('management.fields.code'))->extraAttributes(['class' => 'numeric-data']),
             TextColumn::make('versions_count')->counts('versions')->label(__('management.models.program_version.plural'))->alignEnd()->extraAttributes(['class' => 'numeric-data']),
             IconColumn::make('is_active')->label(__('management.fields.active'))->boolean(),
-        ])->recordActions([EditAction::make()])->defaultPaginationPageOption(25)->paginationPageOptions([25, 50, 100]);
+        ])->recordActions([EditAction::make()->label(__('management.actions.edit'))])->defaultPaginationPageOption(25)->paginationPageOptions([25, 50, 100]);
     }
 
     public static function getPages(): array

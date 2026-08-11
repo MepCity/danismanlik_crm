@@ -79,7 +79,7 @@ final class UserResource extends ScopedResource
             TextColumn::make('teams.name')->label(__('management.fields.teams'))->badge(),
             TextColumn::make('data_scope')->label(__('management.fields.data_scope'))->formatStateUsing(fn (?string $state): string => $state === null ? __('management.messages.not_set') : __('management.scopes.'.$state)),
             IconColumn::make('is_active')->label(__('management.fields.active'))->boolean(),
-        ])->recordActions([EditAction::make()])->defaultPaginationPageOption(25)->paginationPageOptions([25, 50, 100]);
+        ])->recordActions([EditAction::make()->label(__('management.actions.edit'))])->defaultPaginationPageOption(25)->paginationPageOptions([25, 50, 100]);
     }
 
     public static function getPages(): array

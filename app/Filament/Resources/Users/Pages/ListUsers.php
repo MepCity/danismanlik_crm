@@ -14,6 +14,6 @@ final class ListUsers extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [CreateAction::make()];
+        return [CreateAction::make()->label(__('management.actions.create'))];
     }
 }

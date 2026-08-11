@@ -85,7 +85,7 @@ final class StatusResource extends ScopedResource
             IconColumn::make('is_terminal')->label(__('management.fields.terminal'))->boolean(),
             IconColumn::make('is_active')->label(__('management.fields.active'))->boolean(),
         ])->recordActions([
-            EditAction::make(),
+            EditAction::make()->label(__('management.actions.edit')),
             Action::make('deactivate')->label(__('management.actions.deactivate'))->icon('heroicon-o-no-symbol')
                 ->visible(fn (Status $record): bool => $record->is_active)
                 ->modalDescription(fn (Status $record): string => app(OrphanImpactPresenter::class)->describe(

@@ -75,7 +75,7 @@ final class ProgramVersionResource extends ScopedResource
                 ->extraAttributes(['class' => 'numeric-data']),
             TextColumn::make('doc_templates_count')->counts('docTemplates')->label(__('management.fields.template_count'))->alignEnd()->extraAttributes(['class' => 'numeric-data']),
             IconColumn::make('is_active')->label(__('management.fields.active'))->boolean(),
-        ])->recordActions([EditAction::make()])->defaultPaginationPageOption(25)->paginationPageOptions([25, 50, 100]);
+        ])->recordActions([EditAction::make()->label(__('management.actions.edit'))])->defaultPaginationPageOption(25)->paginationPageOptions([25, 50, 100]);
     }
 
     public static function getPages(): array

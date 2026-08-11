@@ -23,9 +23,11 @@ final class ConditionEditor
         return [
             Repeater::make('condition_rules')
                 ->label(__('management.fields.condition'))
+                ->columnSpanFull()
                 ->schema([
                     Select::make('field')
                         ->label(__('management.fields.condition_field'))
+                        ->columnSpan(3)
                         ->options(ConditionDefinition::fieldOptions())
                         ->required()
                         ->live()
@@ -36,11 +38,13 @@ final class ConditionEditor
                         }),
                     Select::make('op')
                         ->label(__('management.fields.condition_operator'))
+                        ->columnSpan(2)
                         ->options(static fn (Get $get): array => ConditionDefinition::operatorOptions($get('field')))
                         ->required()
                         ->live(),
                     Select::make('list_value')
                         ->label(__('management.fields.condition_value'))
+                        ->columnSpan(5)
                         ->options(static fn (Get $get): array => match ($get('field')) {
                             'company.city' => __('management.conditions.values.cities'),
                             'deal.required_documents.status' => __('management.conditions.values.document_statuses'),
@@ -52,12 +56,13 @@ final class ConditionEditor
                         ->visible(static fn (Get $get): bool => $get('field') !== 'deal.requested_amount'),
                     TextInput::make('numeric_value')
                         ->label(__('management.fields.condition_value'))
+                        ->columnSpan(5)
                         ->numeric()
                         ->minValue(0)
                         ->required(static fn (Get $get): bool => $get('field') === 'deal.requested_amount')
                         ->visible(static fn (Get $get): bool => $get('field') === 'deal.requested_amount'),
                 ])
-                ->columns(4)
+                ->columns(10)
                 ->addActionLabel(__('management.conditions.add_rule'))
                 ->defaultItems(0)
                 ->live()

@@ -87,7 +87,7 @@ final class TransitionResource extends ScopedResource
                 ->formatStateUsing(fn (mixed $state): string => ConditionDefinition::preview(is_array($state) ? $state : null))->limit(70),
             IconColumn::make('is_active')->label(__('management.fields.active'))->boolean(),
         ])->recordActions([
-            EditAction::make(),
+            EditAction::make()->label(__('management.actions.edit')),
             Action::make('deactivate')->label(__('management.actions.deactivate'))->icon('heroicon-o-no-symbol')
                 ->visible(fn (Transition $record): bool => $record->is_active)
                 ->modalDescription(fn (Transition $record): string => app(OrphanImpactPresenter::class)->describe(

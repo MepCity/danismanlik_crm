@@ -65,6 +65,20 @@ it('koşul önizlemesini yöneticiye Türkçe cümle olarak verir', function ():
     ]]]))->toBe('Firma ili 01, 02, 31 illerinden biriyse zorunlu');
 });
 
+it('yönetim kaynaklarının model etiketlerini açık ve tutarlı tanımlar', function (string $resource, string $singular, string $plural): void {
+    expect((string) $resource::getModelLabel())->toBe($singular)
+        ->and((string) $resource::getPluralModelLabel())->toBe($plural);
+})->with([
+    'program' => [ProgramResource::class, 'Program', 'Programlar'],
+    'program sürümü' => [ProgramVersionResource::class, 'Program sürümü', 'Program sürümleri'],
+    'evrak şablonu' => [DocTemplateResource::class, 'Evrak şablonu', 'Evrak şablonları'],
+    'statü' => [StatusResource::class, 'Statü', 'Statüler'],
+    'geçiş' => [TransitionResource::class, 'Geçiş', 'Geçişler'],
+    'kullanıcı' => [UserResource::class, 'Kullanıcı', 'Kullanıcılar'],
+    'rol' => [RoleResource::class, 'Rol', 'Roller'],
+    'acil erişim' => [BreakGlassGrantResource::class, 'Acil erişim', 'Acil erişimler'],
+]);
+
 it('bilinmeyen operatörlü koşulu evrak şablonu ekranında kaydetmez', function (): void {
     $admin = wp15User('Sistem Yöneticisi', 'kosul-operator-admin');
     $version = ProgramVersion::query()->firstOrFail();

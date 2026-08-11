@@ -23,7 +23,7 @@ final class ListProgramVersions extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()->label(__('management.actions.create')),
             Action::make('copy_previous')
                 ->label(__('management.actions.copy_previous'))
                 ->icon('heroicon-o-document-duplicate')
