@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Document\Services;
 
-use App\Domain\Access\Services\OperationPermissionChecker;
 use App\Domain\Collaboration\Services\ActivityRecorder;
 use App\Domain\Document\Events\DocumentAccessRequested;
 use App\Domain\Document\Events\DocumentDownloaded;
 use App\Domain\Document\Exceptions\DocumentFileRejected;
 use App\Domain\Document\Models\File;
+use App\Models\User;
 use App\Support\Audit\ActorSource;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -19,7 +20,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 final readonly class DocumentAccessService
 {
     public function __construct(
-        private OperationPermissionChecker $permissions,
         private ActivityRecorder $activities,
         private DocumentTransaction $transactions,
     ) {}
@@ -79,11 +79,12 @@ final readonly class DocumentAccessService
 
     private function authorizedFile(int $fileId, int $actorId): File
     {
-        if (! $this->permissions->allows($actorId, 'document.download')) {
+        $actor = User::query()->find($actorId);
+        $file = File::query()->where('is_deleted', false)->findOrFail($fileId);
+
+        if ($actor === null || ! Gate::forUser($actor)->allows('download', $file)) {
             throw DocumentFileRejected::forbidden();
         }
-
-        $file = File::query()->where('is_deleted', false)->findOrFail($fileId);
 
         if ($file->scan_result !== 'clean') {
             throw DocumentFileRejected::unavailable();

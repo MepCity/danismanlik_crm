@@ -41,7 +41,10 @@ afterEach(function (): void {
  */
 function statusMachineDealFixture(array $transitionAttributes = []): array
 {
-    $actor = User::factory()->create(['email' => fake()->unique()->safeEmail().'.invalid']);
+    $actor = User::factory()->create([
+        'email' => fake()->unique()->safeEmail().'.invalid',
+        'data_scope' => 'own',
+    ]);
     $permission = Permission::findOrCreate('deal.transition', 'web');
     $actor->givePermissionTo($permission);
     $company = Company::query()->create([
@@ -268,7 +271,10 @@ it('rolls back history subject activity and outbox when an effect fails midway',
 });
 
 it('runs the same status machine effects for a lead', function (): void {
-    $actor = User::factory()->create(['email' => 'firsat-sorumlusu@example.invalid']);
+    $actor = User::factory()->create([
+        'email' => 'firsat-sorumlusu@example.invalid',
+        'data_scope' => 'own',
+    ]);
     $actor->givePermissionTo(Permission::findOrCreate('lead.manage', 'web'));
     $company = Company::query()->create(['legal_name' => 'Kurgusal Fırsat İşletmesi', 'city' => '06']);
     $from = Status::query()->create([

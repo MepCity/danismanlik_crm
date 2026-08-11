@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Document\Services;
 
-use App\Domain\Access\Services\OperationPermissionChecker;
 use App\Domain\Collaboration\Services\ActivityRecorder;
 use App\Domain\Document\Events\DocumentStatusChanged;
 use App\Domain\Document\Exceptions\DocumentStatusRejected;
 use App\Domain\Document\Models\DealDocument;
+use App\Models\User;
 use App\Support\Audit\ActorSource;
+use App\Support\Authorization\PolicyDecision;
 use Illuminate\Support\Carbon;
 
 final readonly class DocumentStatusService
@@ -18,7 +19,7 @@ final readonly class DocumentStatusService
         private DocumentTransaction $transactions,
         private ActivityRecorder $activities,
         private DealDocumentCompletion $completion,
-        private OperationPermissionChecker $permissions,
+        private PolicyDecision $authorization,
     ) {}
 
     public function startReview(int $documentId, int $actorId): DealDocument
@@ -48,9 +49,13 @@ final readonly class DocumentStatusService
         ActorSource $source,
         array $allowedFrom,
     ): DealDocument {
-        if ($source === ActorSource::User
-            && ($actorId === null || ! $this->permissions->allows($actorId, 'document.approve'))) {
-            throw DocumentStatusRejected::forbidden();
+        if ($source === ActorSource::User) {
+            $actor = $actorId === null ? null : User::query()->find($actorId);
+            $document = DealDocument::query()->findOrFail($documentId);
+
+            if ($actor === null || ! $this->authorization->record($actor, 'document.approve', $document)) {
+                throw DocumentStatusRejected::forbidden();
+            }
         }
 
         return $this->transactions->run($source, $actorId, function () use ($documentId, $target, $reason, $actorId, $source, $allowedFrom): DealDocument {

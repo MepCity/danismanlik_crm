@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Deal\Services;
 
-use App\Domain\Access\Services\OperationPermissionChecker;
+use App\Domain\Access\Services\WorkflowScopeAuthorizer;
 use App\Domain\Collaboration\Services\ActivityRecorder;
 use App\Domain\Crm\Events\LeadStatusChanged;
 use App\Domain\Crm\Services\CompanyConditionDataReader;
@@ -34,7 +34,7 @@ final class StatusMachine implements StatusMachineContract
         private readonly LeadWorkflowSubjectGateway $leads,
         private readonly CompanyConditionDataReader $companies,
         private readonly RequiredDocumentDataReader $documents,
-        private readonly OperationPermissionChecker $permissions,
+        private readonly WorkflowScopeAuthorizer $authorization,
         private readonly ConditionEvaluator $conditions,
         private readonly ActivityRecorder $activities,
     ) {}
@@ -69,7 +69,7 @@ final class StatusMachine implements StatusMachineContract
                 throw StatusTransitionRejected::inactive($fromStatus->label, $toStatus->label);
             }
 
-            $this->guard($transition, $request->actorId);
+            $this->guard($transition, $request->actorId, $subject);
             $this->evaluateCondition($transition, $subject);
 
             $revision = WorkflowRevision::query()
@@ -126,10 +126,18 @@ final class StatusMachine implements StatusMachineContract
         };
     }
 
-    private function guard(Transition $transition, int $actorId): void
+    private function guard(Transition $transition, int $actorId, WorkflowSubject $subject): void
     {
-        if ($transition->required_permission !== null
-            && ! $this->permissions->allows($actorId, $transition->required_permission)) {
+        if ($transition->required_permission === null) {
+            return;
+        }
+
+        if (! $this->authorization->allows(
+            $actorId,
+            $transition->required_permission,
+            $subject->type,
+            $subject->id,
+        )) {
             throw StatusTransitionRejected::permission($transition->required_permission);
         }
     }

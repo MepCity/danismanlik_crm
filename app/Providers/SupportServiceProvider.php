@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Access\Services\WorkflowScopeAuthorizer;
 use App\Support\Audit\ActorHolder;
 use App\Support\Audit\ApplyActorToTransaction;
+use App\Support\Authorization\DatabaseWorkflowScopeAuthorizer;
 use App\Support\Conditions\ConditionEvaluator;
 use App\Support\Conditions\JsonConditionEvaluator;
 use Illuminate\Database\Events\TransactionBeginning;
@@ -18,6 +20,7 @@ final class SupportServiceProvider extends ServiceProvider
     {
         $this->app->scoped(ActorHolder::class);
         $this->app->bind(ConditionEvaluator::class, JsonConditionEvaluator::class);
+        $this->app->bind(WorkflowScopeAuthorizer::class, DatabaseWorkflowScopeAuthorizer::class);
     }
 
     public function boot(): void
