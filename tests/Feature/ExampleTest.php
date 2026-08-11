@@ -1,19 +1,24 @@
 <?php
 
-namespace Tests\Feature;
+declare(strict_types=1);
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
-class ExampleTest extends TestCase
-{
-    /**
-     * A basic test example.
-     */
-    public function test_the_application_returns_a_successful_response(): void
-    {
-        $response = $this->get('/');
+use function Pest\Laravel\get;
 
-        $response->assertStatus(200);
-    }
-}
+it('boots in Turkish against PostgreSQL', function (): void {
+    $response = get('/');
+
+    $response->assertStatus(200);
+
+    expect(DB::scalar('select current_database()'))->toBe('tesvik_crm_test')
+        ->and((int) DB::scalar("select current_setting('server_version_num')"))->toBeGreaterThanOrEqual(170000)
+        ->and(DB::scalar("select current_setting('server_encoding')"))->toBe('UTF8')
+        ->and(DB::scalar("select current_setting('client_encoding')"))->toBe('UTF8')
+        ->and(config('app.locale'))->toBe('tr');
+
+    $validator = Validator::make([], ['email' => ['required']]);
+
+    expect($validator->errors()->first('email'))->toBe('E-posta alanı zorunludur.');
+});

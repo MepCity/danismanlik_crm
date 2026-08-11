@@ -20,7 +20,8 @@ GROUP_ID    ?= $(shell id -g)
 
 .PHONY: help up down restart build rebuild logs ps shell \
         artisan composer php tinker migrate fresh test \
-        minio-bucket clean
+        minio-bucket clean \
+        lint lint-fix analyse test test-coverage
 
 help: ## Bu yardımı göster
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -76,8 +77,13 @@ tinker: ## Laravel tinker
 migrate: ## migrate
 	$(COMPOSE) exec $(APP) php artisan migrate
 
-test: ## Pest/PHPUnit testleri
+test: ## Pest testleri (PostgreSQL test veritabanına karşı)
+	$(COMPOSE) run --rm db-init
 	$(COMPOSE) exec $(APP) php artisan test
+
+test-coverage: ## Pest kod kapsama raporu (coverage/*.clover)
+	$(COMPOSE) run --rm db-init
+	$(COMPOSE) exec $(APP) php artisan test --coverage --coverage-html=coverage --min=0
 
 fresh: ## Tam sıfırdan kurulum: down -v → up --build → key → migrate
 	$(COMPOSE) down -v
@@ -85,6 +91,17 @@ fresh: ## Tam sıfırdan kurulum: down -v → up --build → key → migrate
 	@echo "Veritabanı ve önbellek sıfırlandı, migrate bekleniyor..."
 	$(COMPOSE) exec $(APP) php artisan key:generate --ansi || true
 	$(COMPOSE) exec $(APP) php artisan migrate --force
+
+# --- Kalite / test ---
+
+lint: ## Pint biçim kontrolü (düzeltmez)
+	$(COMPOSE) exec $(APP) vendor/bin/pint --test
+
+lint-fix: ## Pint biçim düzeltmesi (dosyaları değiştirir)
+	$(COMPOSE) exec $(APP) vendor/bin/pint
+
+analyse: ## Larastan (PHPStan) statik analiz — level 6
+	$(COMPOSE) exec $(APP) vendor/bin/phpstan analyse --memory-limit=512M
 
 minio-bucket: ## MinIO bucket'ını elle oluştur (normalde minio-init yapar)
 	$(COMPOSE) run --rm minio-init

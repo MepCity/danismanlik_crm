@@ -64,6 +64,10 @@ WORKDIR /var/www/html
 ###############################################################################
 FROM base AS dev
 
+# Pest'in `make test-coverage` hedefi için hafif kapsama sürücüsü. Yalnızca
+# geliştirme imajında bulunur; üretim imajına gereksiz eklenti taşımaz.
+RUN pecl install pcov && docker-php-ext-enable pcov
+
 # Host UID/GID'sini build-args ile al; app kullanıcısını bu id'yle oluştur,
 # php-fpm worker'ları da bu kullanıcıyla çalışsın. Default 1000:1000.
 # macOS'ta host GID genelde düşüktür (staff=20) ve imaj içinde çakışabilir;
