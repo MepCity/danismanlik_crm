@@ -55,16 +55,6 @@ beforeEach(function (): void {
     Queue::fake();
 });
 
-afterEach(function (): void {
-    $keys = File::query()->pluck('storage_key')->all();
-
-    if ($keys !== []) {
-        Storage::disk('s3')->delete($keys);
-    }
-
-    Carbon::setTestNow();
-});
-
 /** @return array{actor: User, pm: User, deal: Deal, document: DealDocument} */
 function documentServiceFixture(bool $withValidity = false): array
 {
