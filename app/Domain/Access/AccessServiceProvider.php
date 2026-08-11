@@ -10,6 +10,6 @@ final class AccessServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // WP-12 servis bağları burada tanımlanacak.
+        // Concrete authorization services are auto-wired by the container.
     }
 }

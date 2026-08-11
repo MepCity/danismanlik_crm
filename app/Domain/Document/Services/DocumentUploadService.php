@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\Document\Services;
 
-use App\Domain\Access\Services\OperationPermissionChecker;
 use App\Domain\Collaboration\Services\ActivityRecorder;
 use App\Domain\Document\DTOs\DocumentUploadResult;
 use App\Domain\Document\Events\DocumentStatusChanged;
@@ -14,7 +13,9 @@ use App\Domain\Document\Exceptions\DocumentStatusRejected;
 use App\Domain\Document\Jobs\ScanUploadedFile;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Document\Models\File;
+use App\Models\User;
 use App\Support\Audit\ActorSource;
+use App\Support\Authorization\PolicyDecision;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -26,14 +27,17 @@ final readonly class DocumentUploadService
     public function __construct(
         private DocumentFileValidator $validator,
         private DocumentTransaction $transactions,
-        private OperationPermissionChecker $permissions,
+        private PolicyDecision $authorization,
         private ActivityRecorder $activities,
         private DealDocumentCompletion $completion,
     ) {}
 
     public function upload(int $documentId, UploadedFile $upload, int $actorId): DocumentUploadResult
     {
-        if (! $this->permissions->allows($actorId, 'document.upload')) {
+        $actor = User::query()->find($actorId);
+        $authorizedDocument = DealDocument::query()->findOrFail($documentId);
+
+        if ($actor === null || ! $this->authorization->record($actor, 'document.upload', $authorizedDocument)) {
             throw DocumentFileRejected::forbidden();
         }
 
