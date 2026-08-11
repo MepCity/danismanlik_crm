@@ -103,3 +103,253 @@ body {
     background: var(--crm-status-danger-bg);
     color: var(--crm-status-danger-fg);
 }
+
+.deal-board {
+    display: grid;
+    grid-auto-columns: minmax(17rem, 1fr);
+    grid-auto-flow: column;
+    gap: var(--crm-space-3);
+    padding-block-end: var(--crm-space-3);
+    overflow-x: auto;
+}
+
+.deal-column,
+.operations-panel,
+.checklist-table-wrap {
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+}
+
+.deal-column {
+    min-height: 28rem;
+}
+
+.deal-column__header,
+.checklist-toolbar,
+.version-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-2);
+}
+
+.deal-column__header {
+    min-height: var(--crm-row-height);
+    padding-inline: var(--crm-space-2);
+    border-block-end: 1px solid var(--crm-border);
+}
+
+.deal-column__cards {
+    display: grid;
+    gap: var(--crm-space-2);
+    padding: var(--crm-space-2);
+}
+
+.deal-card {
+    display: grid;
+    gap: var(--crm-space-1);
+    padding: var(--crm-space-2);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-inline-start: var(--crm-space-1) solid var(--crm-status-info-fg);
+    border-radius: var(--crm-radius-sm);
+    color: var(--crm-text);
+}
+
+.deal-card:hover {
+    border-color: var(--crm-accent-500);
+}
+
+.deal-card--delayed {
+    border-inline-start-color: var(--crm-status-danger-fg);
+}
+
+.deal-card__title {
+    font-weight: 650;
+}
+
+.deal-card__reference,
+.deal-card__meta,
+.deal-card__age,
+.operations-muted,
+.operations-label {
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+}
+
+.deal-card__meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--crm-space-2);
+}
+
+.deal-card__age--delayed {
+    color: var(--crm-status-danger-fg);
+    font-weight: 650;
+}
+
+.deal-card__counters {
+    padding-block-start: var(--crm-space-1);
+    border-block-start: 1px solid var(--crm-border);
+    font-size: var(--crm-text-xs);
+}
+
+.deal-warning,
+.operations-error {
+    padding: var(--crm-space-2);
+    background: var(--crm-status-danger-bg);
+    border-inline-start: var(--crm-space-1) solid var(--crm-status-danger-fg);
+    border-radius: var(--crm-radius-sm);
+    color: var(--crm-status-danger-fg);
+    font-size: var(--crm-text-xs);
+    font-weight: 650;
+}
+
+.deal-column__empty,
+.checklist-empty,
+.operations-placeholder {
+    padding: var(--crm-space-6);
+    color: var(--crm-text-muted);
+    text-align: center;
+}
+
+.deal-tabs {
+    display: flex;
+    gap: var(--crm-space-1);
+    margin-block-end: var(--crm-space-3);
+    overflow-x: auto;
+    border-block-end: 1px solid var(--crm-border);
+}
+
+.deal-tab {
+    min-height: var(--crm-row-height);
+    padding-inline: var(--crm-space-3);
+    border-block-end: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.deal-tab--active {
+    border-color: var(--crm-accent-500);
+    color: var(--crm-accent-600);
+    font-weight: 650;
+}
+
+.operations-panel,
+.checklist-toolbar,
+.operations-inline-form,
+.ad-hoc-form {
+    padding: var(--crm-space-3);
+}
+
+.operations-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.operations-fact {
+    min-height: calc(var(--crm-row-height) * 2);
+    padding: var(--crm-space-2);
+    border-block-end: 1px solid var(--crm-border);
+}
+
+.operations-fact dt {
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+}
+
+.operations-fact dd {
+    margin-block-start: var(--crm-space-1);
+    font-weight: 600;
+}
+
+.process-panel,
+.operations-inline-form,
+.ad-hoc-form form {
+    display: grid;
+    gap: var(--crm-space-3);
+}
+
+.operations-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--crm-space-2);
+}
+
+.operations-button {
+    min-height: var(--crm-row-height);
+    padding-inline: var(--crm-space-3);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-sm);
+    font-weight: 600;
+}
+
+.operations-button--primary {
+    background: var(--crm-accent-600);
+    border-color: var(--crm-accent-600);
+    color: var(--crm-neutral-0);
+}
+
+.operations-link {
+    color: var(--crm-accent-600);
+    font-size: var(--crm-text-xs);
+    font-weight: 650;
+}
+
+.checklist-table-wrap {
+    overflow-x: auto;
+}
+
+.checklist-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--crm-text-sm);
+}
+
+.checklist-table th,
+.checklist-table td {
+    min-height: var(--crm-row-height);
+    padding: var(--crm-space-2);
+    border-block-end: 1px solid var(--crm-border);
+    text-align: start;
+    vertical-align: middle;
+}
+
+.checklist-table th {
+    height: var(--crm-table-header-height);
+    background: var(--crm-surface-muted);
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+}
+
+.checklist-row--expired {
+    background: var(--crm-status-danger-bg);
+}
+
+.version-row td {
+    background: var(--crm-surface-muted);
+}
+
+.version-line {
+    min-height: var(--crm-row-height);
+    padding-inline-start: var(--crm-space-4);
+}
+
+.operations-inline-form input,
+.operations-inline-form textarea,
+.ad-hoc-form input:not([type='checkbox']),
+.ad-hoc-form textarea {
+    width: 100%;
+    padding: var(--crm-space-2);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-sm);
+    color: var(--crm-text);
+}
+
+@media (max-width: 48rem) {
+    .deal-board {
+        grid-auto-columns: minmax(85vw, 1fr);
+    }
+}
