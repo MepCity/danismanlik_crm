@@ -237,9 +237,10 @@ it('günlük özeti doğru kullanıcıya yalnız asgari veriyle hazırlar', func
 });
 
 it('Mailpit üzerinden gerçek SMTP teslimini doğrular', function (): void {
-    Http::delete('http://mailpit:8025/api/v1/messages');
+    $mailpitHost = (string) config('mail.mailers.smtp.host');
+    Http::delete("http://{$mailpitHost}:8025/api/v1/messages");
     config()->set('mail.default', 'smtp');
-    config()->set('mail.mailers.smtp.host', 'mailpit');
+    config()->set('mail.mailers.smtp.host', $mailpitHost);
     config()->set('mail.mailers.smtp.port', 1025);
     app('mail.manager')->forgetMailers();
     $user = User::factory()->create(['email' => 'mailpit-teslim@example.invalid']);
@@ -253,7 +254,7 @@ it('Mailpit üzerinden gerçek SMTP teslimini doğrular', function (): void {
 
     (new SendNotificationEmail($notification->id))->handle(app(ActorHolder::class));
     /** @var list<array{Subject: string}> $messages */
-    $messages = Http::get('http://mailpit:8025/api/v1/messages')->throw()->json('messages');
+    $messages = Http::get("http://{$mailpitHost}:8025/api/v1/messages")->throw()->json('messages');
 
     expect($notification->refresh()->delivery_status)->toBe('sent')
         ->and(array_column($messages, 'Subject'))->toContain('Kurgusal Mailpit teslimi');
