@@ -43,6 +43,7 @@ use App\Domain\Program\Models\Program;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Domain\Program\ProgramServiceProvider;
 use App\Models\User;
+use App\Support\Conditions\ConditionDefinitionObserver;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
@@ -69,6 +70,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $conditionObserver = $this->app->make(ConditionDefinitionObserver::class);
+        DocTemplate::observe($conditionObserver);
+        Transition::observe($conditionObserver);
+
         Gate::policy(Company::class, CompanyPolicy::class);
         Gate::policy(Contact::class, ContactPolicy::class);
         Gate::policy(Lead::class, LeadPolicy::class);

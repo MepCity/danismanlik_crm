@@ -14,7 +14,9 @@ Yöneticinin program şablonlarını ve iş akışını kod yazmadan değiştire
 
 Koşul formu ham JSON göstermez. Alanlar sabit bir katalogdan (`company.city`, `deal.requested_amount`, `deal.required_documents.status`), operatörler mevcut DSL'den (`in`, `gt`, `all_in`) seçilir. Değer bileşeni alan tipine göre il çoklu seçimi, sayı veya belge durumu çoklu seçimi olur. Form durumu kayıtta mevcut `{"all": [...]}` biçimine çevrilir.
 
-Kaydetmeden önce aynı tanım hem alan/operatör kataloğuna hem mevcut `ConditionEvaluator` uygulamasına doğrulatılır. Bilinmeyen alan veya operatör sessizce `false` olmaz ve veritabanına ulaşmaz. Önizleme aynı tanımdan Türkçe cümle üretir; böylece kaydedilen kural ile kullanıcıya gösterilen anlam ayrışmaz.
+Form doğrulaması kullanıcıya erken geri bildirim verir; kalıcılık değişmezini ise `DocTemplate` ve `Transition` için ortak kayıt observer'ı zorlar. Observer her Eloquent `saving` olayında aynı `ConditionDefinition` kataloğunu ve mevcut `ConditionEvaluator` uygulamasını kullanır. Böylece Filament, seeder, action veya doğrudan model kaydı aynı doğrulamadan geçer; ikinci bir alan ya da operatör listesi oluşmaz. Bilinmeyen alan veya operatör sessizce `false` olmaz ve veritabanına ulaşmaz. Önizleme aynı tanımdan Türkçe cümle üretir; böylece kaydedilen kural ile kullanıcıya gösterilen anlam ayrışmaz.
+
+JSONB yapısını PostgreSQL `CHECK` ile doğrulama seçilmedi. Desteklenen alan-operatör eşleşmelerini SQL içinde tekrar etmek iki doğruluk kaynağı oluşturacak ve uygulamadaki koşul bağlamı çözümlemesini veritabanında yeniden kurmayı gerektirecekti. Özel cast/value object de yalnız atama yolunu değil eski satırların okunmasını etkileyerek hatalı geçmiş verinin teşhis edilmesini güçleştirecekti. Model kayıt observer'ı, bütün uygulama ve seeder yazma yollarını kapsayan en dar korumadır; Eloquent dışı bakım SQL'i hâlâ kontrollü operasyon sorumluluğundadır.
 
 ### Yetim kontrolü ve toplu geçiş
 
@@ -28,7 +30,7 @@ Statü veya geçişin diğer düzenlemeleri de aynı mevcut servis üzerinden ve
 
 Kopyalama açıkça seçilen **Önceki sürümden kopyala** aksiyonudur; yeni sürüm oluşturmanın sessiz yan etkisi değildir. Aksiyon tek transaction içinde yeni `program_versions` satırını ve her evrak için yeni `doc_templates` satırlarını oluşturur. Kaynak sürüm ve şablonlar yerinde değiştirilmez. Açık dosyaların `program_version_id`, `source_program_version_id` ve anlık görüntü alanları kaynak sürümde kalır.
 
-Program sürümlerinde silme eylemi yoktur; model düzeyinde de silme reddedilir. Kullanım dışı sürüm `is_active=false` yapılır.
+Program sürümlerinde silme eylemi yoktur. Kullanım dışı sürüm `is_active=false` yapılır; ilişkili sürümlerin silinmesi mevcut PostgreSQL yabancı anahtarlarıyla reddedilir.
 
 ## Sonuçlar
 
