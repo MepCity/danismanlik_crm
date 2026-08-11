@@ -1,0 +1,73 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'validation' => [
+        'body_required' => 'Yorum metni zorunludur.',
+        'visibility' => 'Yorum görünürlüğü geçersiz.',
+        'parent_subject' => 'Yanıtlanan yorum aynı kayda ait olmalıdır.',
+        'subject' => 'İlgili kayıt bulunamadı.',
+        'task_title' => 'Görev başlığı zorunludur.',
+        'reminder_after_due' => 'Hatırlatma zamanı son tarihten sonra olamaz.',
+        'timeline_filter' => 'Zaman tüneli filtresi geçersiz.',
+    ],
+    'notifications' => [
+        'mention_title' => 'Bir yorumda sizden bahsedildi',
+        'mention_body' => ':user sizi erişebildiğiniz bir yorumda etiketledi.',
+        'task_reminder_title' => 'Görev hatırlatması',
+        'task_reminder_body' => '":task" görevinin son tarihi :due_at.',
+    ],
+    'commands' => [
+        'reminders' => ':count görev hatırlatması üretildi.',
+        'digest' => ':count günlük özet kuyruğa alındı.',
+    ],
+    'mail' => ['unknown_error' => 'Bilinmeyen e-posta gönderim hatası'],
+    'digest' => [
+        'subject' => 'Günlük operasyon özeti',
+        'intro' => 'Bugünkü operasyon özetiniz:',
+        'task_line' => 'Açık görev — :company · :reference · son tarih :due_at',
+        'deadline_line' => 'Yaklaşan son tarih — :company · :reference · :due_at',
+        'assignment_line' => 'Bekleyen atama — :company · :reference',
+        'unknown_company' => 'Firma bilgisi yok',
+        'lead_reference' => 'Fırsat',
+    ],
+    'activity' => [
+        'system' => 'Sistem',
+        'document' => 'Belge',
+        'file' => 'dosya',
+        'unknown_value' => 'Bilinmeyen',
+        'unknown' => ':action işlemini gerçekleştirdi',
+        'comment' => 'yorum: ":body"',
+        'actions' => [
+            'deal_status_changed' => 'statüyü ":from" → ":to" yaptı',
+            'lead_status_changed' => 'fırsat statüsünü ":from" → ":to" yaptı',
+            'document_status_changed' => '":document" durumunu :from → :to yaptı',
+            'document_uploaded' => '":document" belgesini yükledi (:file, sürüm :version)',
+            'document_ad_hoc_created' => '":document" ek belge talebini oluşturdu',
+            'document_requirement_suggested' => '":document" için zorunluluk değişikliği önerdi',
+            'document_requirement_decided' => '":document" zorunluluk önerisini karara bağladı',
+            'deal_documents_requested' => ':count evrakı firmadan talep etti',
+            'deal_checklist_generated' => ':count evraklık kontrol listesi oluşturdu',
+            'deal_condition_documents_added' => '":documents" zorunlu hale geldi',
+            'document_access_requested' => '":document" için sürüm :version erişimi istedi',
+            'document_downloaded' => '":document" sürüm :version dosyasını indirdi',
+            'document_scan_completed' => '":document" güvenlik taramasını tamamladı',
+            'task_created' => '":task" görevini oluşturdu',
+            'task_assigned' => '":task" görevini :assignee kullanıcısına atadı',
+            'task_completed' => '":task" görevini tamamladı',
+            'task_reopened' => '":task" görevini yeniden açtı',
+        ],
+    ],
+    'document_statuses' => [
+        'to_request' => 'Talep edilecek',
+        'requested' => 'Talep edildi',
+        'uploaded' => 'Yüklendi',
+        'under_review' => 'İnceleniyor',
+        'accepted' => 'Kabul edildi',
+        'rejected' => 'Eksik/hatalı',
+        'new_version_required' => 'Yeni sürüm bekleniyor',
+        'not_applicable' => 'Bu dosya için gerekli değil',
+        'expired' => 'Süresi doldu',
+    ],
+];

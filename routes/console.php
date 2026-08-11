@@ -17,3 +17,11 @@ Schedule::command('audit:ensure-partitions')
 Schedule::command('documents:expire')
     ->hourly()
     ->withoutOverlapping();
+
+Schedule::command('collaboration:send-reminders')
+    ->everyMinute()
+    ->withoutOverlapping();
+
+Schedule::command('collaboration:send-daily-digest')
+    ->dailyAt('07:30')
+    ->withoutOverlapping();

@@ -24,11 +24,12 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property Carbon|null $due_at
  * @property Carbon|null $remind_at
+ * @property Carbon|null $reminder_sent_at
  * @property Carbon|null $completed_at
  */
 #[Fillable([
     'lead_id', 'deal_id', 'deal_document_id', 'assigned_to', 'created_by',
-    'title', 'description', 'due_at', 'remind_at', 'completed_at',
+    'title', 'description', 'due_at', 'remind_at', 'reminder_sent_at', 'completed_at',
 ])]
 final class Task extends Model
 {
@@ -68,6 +69,7 @@ final class Task extends Model
         return [
             'due_at' => 'datetime',
             'remind_at' => 'datetime',
+            'reminder_sent_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
     }
