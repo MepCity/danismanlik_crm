@@ -9,6 +9,9 @@ use App\Domain\Access\Models\BreakGlassGrant;
 use App\Domain\Access\Models\RolePermissionHistory;
 use App\Domain\Access\Models\Team;
 use App\Domain\Access\Models\TeamMember;
+use App\Domain\Crm\Models\CommunicationConsent;
+use App\Domain\Crm\Models\Interaction;
+use App\Domain\Crm\Models\Lead;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -35,6 +38,9 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read Collection<int, BreakGlassGrant> $breakGlassGrants
  * @property-read Collection<int, BreakGlassGrant> $grantedBreakGlassGrants
  * @property-read Collection<int, RolePermissionHistory> $permissionChanges
+ * @property-read Collection<int, Lead> $ownedLeads
+ * @property-read Collection<int, Interaction> $interactions
+ * @property-read Collection<int, CommunicationConsent> $recordedCommunicationConsents
  */
 #[Fillable(['name', 'email', 'password', 'is_active', 'deactivated_at', 'last_login_at', 'data_scope'])]
 #[Hidden(['password', 'remember_token'])]
@@ -79,6 +85,24 @@ class User extends Authenticatable
     public function permissionChanges(): HasMany
     {
         return $this->hasMany(RolePermissionHistory::class, 'changed_by');
+    }
+
+    /** @return HasMany<Lead, $this> */
+    public function ownedLeads(): HasMany
+    {
+        return $this->hasMany(Lead::class, 'owner_user_id');
+    }
+
+    /** @return HasMany<Interaction, $this> */
+    public function interactions(): HasMany
+    {
+        return $this->hasMany(Interaction::class);
+    }
+
+    /** @return HasMany<CommunicationConsent, $this> */
+    public function recordedCommunicationConsents(): HasMany
+    {
+        return $this->hasMany(CommunicationConsent::class, 'recorded_by');
     }
 
     /**
