@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Deal\Models;
 
+use App\Domain\Collaboration\Models\Activity;
+use App\Domain\Collaboration\Models\Comment;
+use App\Domain\Collaboration\Models\Notification;
+use App\Domain\Collaboration\Models\Task;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Document\Models\DealDocument;
@@ -41,6 +45,10 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, Interaction> $interactions
  * @property-read Status $status
  * @property-read Collection<int, StatusHistory> $statusHistory
+ * @property-read Collection<int, Activity> $activities
+ * @property-read Collection<int, Comment> $comments
+ * @property-read Collection<int, Task> $tasks
+ * @property-read Collection<int, Notification> $notifications
  */
 #[Fillable([
     'company_id', 'program_version_id', 'reference_no', 'status_id', 'status_changed_at',
@@ -96,6 +104,30 @@ final class Deal extends Model
     public function statusHistory(): HasMany
     {
         return $this->hasMany(StatusHistory::class);
+    }
+
+    /** @return HasMany<Activity, $this> */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
+    /** @return HasMany<Comment, $this> */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    /** @return HasMany<Task, $this> */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /** @return HasMany<Notification, $this> */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
     }
 
     /** @return array<string, string> */
