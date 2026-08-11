@@ -6,6 +6,7 @@ use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
+use App\Domain\Deal\Models\Status;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Document\Models\File;
 use App\Domain\Program\Models\DocTemplate;
@@ -41,12 +42,16 @@ function createDeal(ProgramVersion $version, array $attributes = []): Deal
         'legal_name' => 'Kurgusal Firma '.Str::random(8),
         'city' => '06',
     ]);
+    $status = Status::query()->firstOrCreate(
+        ['type' => 'deal', 'code' => 'program_deal_open'],
+        ['label' => 'Kurgusal Açık', 'color' => 'neutral'],
+    );
 
     return Deal::query()->create([
         'company_id' => $company->id,
         'program_version_id' => $version->id,
         'reference_no' => 'D-'.Str::upper(Str::random(12)),
-        'status' => 'temporary_open',
+        'status_id' => $status->id,
         'status_changed_at' => now(),
         'opened_by_user_id' => $user->id,
         ...$attributes,
@@ -246,7 +251,7 @@ it('enforces unique deal reference numbers while allowing repeat applications', 
         'company_id' => $first->company_id,
         'program_version_id' => $version->id,
         'reference_no' => 'D-REPEAT-002',
-        'status' => 'temporary_open',
+        'status_id' => $first->status_id,
         'status_changed_at' => now(),
         'opened_by_user_id' => $first->opened_by_user_id,
     ]);
@@ -256,7 +261,7 @@ it('enforces unique deal reference numbers while allowing repeat applications', 
             'company_id' => $first->company_id,
             'program_version_id' => $version->id,
             'reference_no' => 'D-REPEAT-001',
-            'status' => 'temporary_open',
+            'status_id' => $first->status_id,
             'status_changed_at' => now(),
             'opened_by_user_id' => $first->opened_by_user_id,
         ]))->toThrow(QueryException::class);
@@ -271,7 +276,12 @@ it('requires interactions to reference exactly one real lead or deal', function 
     $lead = Lead::query()->create([
         'company_id' => $company->id,
         'owner_user_id' => $user->id,
-        'status' => 'new',
+        'status_id' => Status::query()->create([
+            'code' => 'interaction_new',
+            'label' => 'Kurgusal Yeni',
+            'type' => 'lead',
+            'color' => 'neutral',
+        ])->id,
     ]);
     $deal = createDeal(createProgramVersion());
     $attributes = [
