@@ -29,3 +29,23 @@ services:
         class: Quality\PHPStan\Rules\ForbidCrossModuleModelAccessRule
         tags:
             - phpstan.rules.rule
+    -
+        class: Quality\PHPStan\Rules\ForbidCrossModuleModelStaticCallRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: Quality\PHPStan\Rules\ForbidCrossModuleModelInstantiationRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: Quality\PHPStan\Rules\ForbidCrossModuleModelClassConstantRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: Quality\PHPStan\Rules\ForbidCrossModuleModelFunctionTypeRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: Quality\PHPStan\Rules\ForbidCrossModuleModelPropertyTypeRule
+        tags:
+            - phpstan.rules.rule

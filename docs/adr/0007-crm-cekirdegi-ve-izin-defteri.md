@@ -43,21 +43,22 @@ senkronizasyonu WP-12/13'te uygulanacaktır.
 
 ### Geçici bağlar
 
-Bağımlılık sırası nedeniyle aşağıdaki açıklar bilinçlidir:
+Bağımlılık sırası nedeniyle aşağıdaki açıklar bilinçli açılmıştır:
 
-- `leads.interested_program`, WP-06'da `program_versions` oluşturulana kadar
-  serbest metin veya kod taşır; WP-06'da gerçek yabancı anahtar bağına
-  dönüştürülecektir.
+- [x] `leads.interested_program`, WP-06'da `program_versions` oluşturulduktan
+  sonra `interested_program_version_id` adlı nullable gerçek yabancı anahtar
+  bağına dönüştürülmüştür. Geçiş sayısal olmayan eski değerleri sessizce
+  kaybetmek yerine migration'ı durdurur; böyle bir veri varsa önce açıkça
+  eşlenmesi gerekir.
 - `leads.status`, WP-07'de `statuses` oluşturulana kadar kısa kod taşır; WP-07'de
   statü yabancı anahtarı ve DB tabanlı geçiş yapısıyla değiştirilecektir.
-- `interactions.subject_type`, kontrollü kümede `deal` kodunu şimdiden kabul
-  eder; `deals` WP-06'da oluşmadığı için bu dalda yabancı anahtar kurulamaz.
-  WP-06'da `deal` öznesinin bütünlüğü bağlanacak, kontrollü polymorphic sözleşme
-  korunacaktır.
+- [x] `interactions` özne bağı, WP-06'da `lead_id` ve `deal_id` gerçek yabancı
+  anahtarlarına dönüştürülmüş; `num_nonnulls(...) = 1` kısıtıyla tam olarak bir
+  özne zorunlu kılınmıştır. Kontrollü polymorphic geçici deseni kalıcılaştırılmamıştır.
 
 ## Sonuçlar
 
 Koşullu evrak motoru il yazım hatalarıyla sessizce yanlış sonuç üretmez. İzin
 geçmişi üzerine yazılamaz ve belirli bir tarihteki hukuki dayanak ile kanıt
-yeniden bulunabilir. Geçici program/statü/`deal` bağları şema yorumlarında da
-işaretlidir; WP-06 ve WP-07 tamamlanmadan kalıcı kabul edilmez.
+yeniden bulunabilir. Geçici program ve `deal` bağları WP-06 ile kapanmıştır.
+Yalnız statü bağı WP-07 tamamlanana kadar açık ve şema yorumunda işaretli kalır.

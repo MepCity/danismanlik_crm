@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Lead;
+use App\Domain\Program\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -24,11 +25,19 @@ it('connects a company to contacts and a lead to interactions', function (): voi
         'email' => 'contact@example.invalid',
         'consent_call' => true,
     ]);
+    $program = Program::query()->create([
+        'name' => 'Kurgusal Dönüşüm Desteği',
+        'institution' => 'other',
+        'code' => 'KURGUSAL-DONUSUM',
+    ]);
+    $programVersion = $program->versions()->create([
+        'call_period' => '2099-1',
+    ]);
     $lead = Lead::query()->create([
         'company_id' => $company->id,
         'owner_user_id' => $owner->id,
         'source' => 'fictional_test',
-        'interested_program' => 'KURGUSAL-PROGRAM',
+        'interested_program_version_id' => $programVersion->id,
         'status' => 'new',
     ]);
     $interaction = $lead->interactions()->create([
@@ -45,8 +54,9 @@ it('connects a company to contacts and a lead to interactions', function (): voi
         ->and($lead->company->is($company))->toBeTrue()
         ->and($lead->owner->is($owner))->toBeTrue()
         ->and($lead->interactions->modelKeys())->toBe([$interaction->id])
-        ->and($interaction->subject_type)->toBe('lead')
-        ->and($interaction->subject->is($lead))->toBeTrue()
+        ->and($interaction->lead_id)->toBe($lead->id)
+        ->and($interaction->deal_id)->toBeNull()
+        ->and($interaction->lead->is($lead))->toBeTrue()
         ->and($interaction->user->is($owner))->toBeTrue()
         ->and($contact->consent_call)->toBeTrue();
 });

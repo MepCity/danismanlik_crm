@@ -4,30 +4,30 @@ declare(strict_types=1);
 
 namespace App\Domain\Crm\Models;
 
+use App\Domain\Deal\Models\Deal;
 use App\Models\User;
 use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property string $subject_type
- * @property int $subject_id
+ * @property int|null $lead_id
+ * @property int|null $deal_id
  * @property int $user_id
  * @property string $type
  * @property Carbon $occurred_at
  * @property int|null $duration_minutes
  * @property string|null $outcome
  * @property string|null $note
- * @property-read EloquentModel $subject
+ * @property-read Lead|null $lead
+ * @property-read Deal|null $deal
  * @property-read User $user
  */
 #[Fillable([
-    'subject_type',
-    'subject_id',
+    'lead_id',
+    'deal_id',
     'user_id',
     'type',
     'occurred_at',
@@ -37,10 +37,16 @@ use Illuminate\Support\Carbon;
 ])]
 final class Interaction extends Model
 {
-    /** @return MorphTo<EloquentModel, $this> */
-    public function subject(): MorphTo
+    /** @return BelongsTo<Lead, $this> */
+    public function lead(): BelongsTo
     {
-        return $this->morphTo();
+        return $this->belongsTo(Lead::class);
+    }
+
+    /** @return BelongsTo<Deal, $this> */
+    public function deal(): BelongsTo
+    {
+        return $this->belongsTo(Deal::class);
     }
 
     /** @return BelongsTo<User, $this> */
