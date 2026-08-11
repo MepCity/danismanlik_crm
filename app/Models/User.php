@@ -13,6 +13,12 @@ use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use Database\Factories\UserFactory;
+use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
+use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
@@ -43,11 +49,16 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read Collection<int, CommunicationConsent> $recordedCommunicationConsents
  */
 #[Fillable(['name', 'email', 'password', 'is_active', 'deactivated_at', 'last_login_at', 'data_scope'])]
-#[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+#[Hidden(['password', 'remember_token', 'app_authentication_secret', 'app_authentication_recovery_codes'])]
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable;
+    use HasFactory, HasRoles, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, Notifiable;
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $panel->getId() === 'operations' && $this->is_active;
+    }
 
     /** @return BelongsToMany<Team, $this> */
     public function teams(): BelongsToMany
