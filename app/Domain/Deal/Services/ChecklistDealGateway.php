@@ -6,10 +6,40 @@ namespace App\Domain\Deal\Services;
 
 use App\Domain\Deal\DTO\ChecklistDeal;
 use App\Domain\Deal\Models\Deal;
+use App\Domain\Deal\Models\Status;
+use App\Domain\Deal\Models\StatusHistory;
+use App\Domain\Deal\Models\WorkflowRevision;
 use Illuminate\Support\Carbon;
 
 final class ChecklistDealGateway
 {
+    public function createAwaitingAssignment(int $companyId, int $programVersionId, int $actorId, string $reference, string $reason): ChecklistDeal
+    {
+        $initial = Status::query()->where('type', 'deal')->where('is_initial', true)->where('is_active', true)->sole();
+        $revision = WorkflowRevision::query()->where('effective_from', '<=', now())->latest('effective_from')->firstOrFail();
+        $deal = Deal::query()->create([
+            'company_id' => $companyId,
+            'program_version_id' => $programVersionId,
+            'reference_no' => $reference,
+            'status_id' => $initial->id,
+            'status_changed_at' => now(),
+            'opened_by_user_id' => $actorId,
+            'requested_amount' => '0.00',
+            'priority' => 'normal',
+        ]);
+        StatusHistory::query()->create([
+            'deal_id' => $deal->id,
+            'status_id' => $initial->id,
+            'status_label_snapshot' => $initial->label,
+            'workflow_revision_id' => $revision->id,
+            'entered_at' => $deal->status_changed_at,
+            'changed_by' => $actorId,
+            'reason' => $reason,
+        ]);
+
+        return $this->toData($deal);
+    }
+
     public function lock(int $dealId): ChecklistDeal
     {
         return $this->toData(Deal::query()->lockForUpdate()->findOrFail($dealId));
