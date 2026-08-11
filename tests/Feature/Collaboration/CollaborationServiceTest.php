@@ -313,7 +313,7 @@ it('zaman tünelini kapsamlı, filtrelenebilir ve sabit sorgu sayısıyla sayfal
     DB::disableQueryLog();
 
     expect($first->total())->toBe(13)->and($first->count())->toBe(5)
-        ->and($second->total())->toBe(13)->and($firstCount)->toBe($secondCount)
+        ->and($second->total())->toBe(13)->and($firstCount)->toBe(7)->and($secondCount)->toBe(7)
         ->and($query->paginate($fixture['owner'], $subject, 'comment')->total())->toBe(1)
         ->and($query->paginate($fixture['owner'], $subject, 'status')->total())->toBe(12)
         ->and(fn () => $query->paginate($fixture['outsider'], $subject))->toThrow(AuthorizationException::class);
