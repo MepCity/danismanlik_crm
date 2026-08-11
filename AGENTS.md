@@ -165,6 +165,8 @@ Depo şu an **herkese açık**. Bu yüzden:
 
 1. **Kapsam dışına çıkma.** Paket "şu 4 tabloyu oluştur" diyorsa 5. tabloyu ekleme. Eksik gördüğün şeyi `NOTLAR.md`'ye yaz, yapma.
 2. **Test yaz.** Migration paketleri hariç her pakette Pest testi olur. Yetki ve statü geçişi testleri zorunlu.
+
+3. **🔴 Yeşil geçmek yetmez — aracın çalıştığını kanıtla.** Kurduğun her koruma (linter, statik analiz, yetki kontrolü, doğrulama kuralı, güvenlik politikası) için **bilerek ihlal üret, kırmızıya düştüğünü göster, sonra geri al.** Bir aracın "hata bulamaması", çalıştığının değil çoğu zaman **hiç devreye girmediğinin** kanıtıdır — özellikle kod tabanı boşken. Aynı mantık yapılandırma için de geçerli: bir güvenlik ayarının değerini varsayma, **sorgula ve çıktısını göster**.
 3. **`docker compose exec app ./vendor/bin/pint`** ve **`larastan`** temiz geçecek.
 4. **Türkçe arayüz, İngilizce kod.** Tablo/kolon/sınıf/değişken adları İngilizce; kullanıcıya görünen her metin Türkçe ve dil dosyasında (`lang/tr/`), koda gömülü değil.
 5. **Migration geri alınabilir olacak** (`down()` çalışacak).
