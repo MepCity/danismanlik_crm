@@ -41,15 +41,39 @@ make shell         # app container'ında bash
 make artisan a="about"      # PHP + Laravel + DB sürümünü göster
 make artisan a="migrate"    # migration'ları çalıştır
 make tinker        # Laravel tinker
+make seed          # yalnız üretimde güvenli referans/yapılandırma verisi
+make seed-demo     # referans + kurgusal demo verisi (production'da reddedilir)
 make test          # testleri çalıştır
 make test-coverage # HTML kapsama raporu üret
 make lint          # kod biçimini denetle
 make lint-fix      # kod biçimini düzelt
 make analyse       # Larastan level 6 analizi
 make composer a="require spatie/laravel-permission"  # paket ekle
-make fresh         # tam sıfırdan kurulum (volumeleri de siler)
+make fresh         # migrate:fresh + yalnız referans/yapılandırma verisi
 make help          # tüm komutlar
 ```
+
+## Seeder komutları ve demo hesapları
+
+`make seed`, statü/geçiş, rol/izin, ilk workflow revizyonu ve Yeşil Sanayi
+program şablonunu idempotent olarak yükler. Üretimde çalıştırılabilir. İlk
+workflow revizyonunun `changed_by` bağı için bu işlem ayrıca rastgele parolalı,
+pasif `system-seeder@localhost.invalid` teknik kimliğini oluşturur.
+
+`make seed-demo`, önce aynı referans verisini, ardından tamamen kurgusal firma,
+kişi, fırsat, dosya ve evrak satırlarını yükler. Komut `production` ortamında
+herhangi bir demo verisi yazmadan hata verir. Tüm demo hesaplarının parolası
+`Demo123!` değeridir:
+
+| Rol | E-posta |
+|---|---|
+| Pazarlama | `pazarlama@demo.invalid` |
+| Proje Yöneticisi | `proje.yoneticisi@demo.invalid` |
+| Şirket Yetkilisi | `sirket.yetkilisi@demo.invalid` |
+| Sistem Yöneticisi | `sistem.yoneticisi@demo.invalid` |
+
+`make fresh`, mevcut şemayı ve içindeki veriyi siler; migration'ları yeniden
+çalıştırır ve yalnız referans verisini yükler. Demo veri yüklemez.
 
 ## Mimari kararlar ve kurallar
 
