@@ -21,6 +21,7 @@ final readonly class DatabaseActivityRecorder implements ActivityRecorder
         ?int $dealId = null,
         ?int $dealDocumentId = null,
         ?Carbon $occurredAt = null,
+        ?string $defaultSource = null,
     ): void {
         $actor = $this->actors->current();
 
@@ -31,7 +32,7 @@ final readonly class DatabaseActivityRecorder implements ActivityRecorder
             'deal_document_id' => $dealDocumentId,
             'action' => $action,
             'payload' => $payload,
-            'source' => $actor?->source->value ?? 'system',
+            'source' => $actor?->source->value ?? $defaultSource ?? 'system',
             'ip_address' => $actor?->clientIp,
             'created_at' => $occurredAt ?? Carbon::now(),
         ]);
@@ -55,6 +56,7 @@ final readonly class DatabaseActivityRecorder implements ActivityRecorder
             leadId: $subjectType === SubjectType::Lead ? $subjectId : null,
             dealId: $subjectType === SubjectType::Deal ? $subjectId : null,
             occurredAt: $occurredAt,
+            defaultSource: 'user',
         );
     }
 }
