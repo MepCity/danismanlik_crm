@@ -58,7 +58,10 @@
     --crm-space-6: 1.5rem;
     --crm-radius-sm: 0.375rem;
     --crm-radius-md: 0.5rem;
-    --crm-row-height: 2.25rem;
+    --crm-table-divider-width: 1px;
+    --crm-row-height: 36px;
+    --crm-table-header-height: 32px;
+    --crm-pagination-height: 40px;
 
     --primary-50: var(--crm-accent-50) !important;
     --primary-100: var(--crm-accent-100) !important;

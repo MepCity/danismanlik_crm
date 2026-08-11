@@ -57,3 +57,21 @@ it('token dosyası dışında çiğ hex renk bırakmaz', function (): void {
 
     expect($violations)->toBe([], 'Token dosyası dışında çiğ hex bulundu: '.implode(', ', $violations));
 });
+
+it('tablo yoğunluğunu gerçek hücre sarmalayıcılarında uygular', function (): void {
+    $tokens = file_get_contents(resource_path('css/filament/operations/tokens.css'));
+    $theme = file_get_contents(resource_path('css/filament/operations/theme.css'));
+
+    expect($tokens)->not->toBeFalse()
+        ->and($theme)->not->toBeFalse()
+        ->and($tokens)->toContain('--crm-row-height: 36px;')
+        ->and($tokens)->toContain('--crm-table-divider-width: 1px;')
+        ->and($tokens)->toContain('--crm-table-header-height: 32px;')
+        ->and($tokens)->toContain('--crm-pagination-height: 40px;')
+        ->and($theme)->toContain('.fi-ta-cell > .fi-ta-col')
+        ->and($theme)->toContain('min-height: calc(var(--crm-row-height) - var(--crm-table-divider-width));')
+        ->and($theme)->toContain('.fi-ta-header-cell')
+        ->and($theme)->toContain('height: var(--crm-table-header-height);')
+        ->and($theme)->toContain('.fi-ta-ctn .fi-pagination')
+        ->and($theme)->toContain('height: var(--crm-pagination-height);');
+});

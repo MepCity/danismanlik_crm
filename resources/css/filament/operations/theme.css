@@ -22,12 +22,27 @@ body {
     box-shadow: none;
 }
 
-.fi-ta-row {
-    min-height: var(--crm-row-height);
+.fi-ta-table > tbody > .fi-ta-row > .fi-ta-cell {
+    padding-block: 0;
 }
 
-.fi-ta-cell {
-    padding-block: var(--crm-space-1);
+.fi-ta-table > tbody > .fi-ta-row > .fi-ta-cell > .fi-ta-col {
+    align-items: center;
+    min-height: calc(var(--crm-row-height) - var(--crm-table-divider-width));
+}
+
+.fi-ta-table > tbody > .fi-ta-row > .fi-ta-cell > .fi-ta-col > :not(.fi-inline) {
+    padding-block: 0;
+}
+
+.fi-ta-header-cell {
+    height: var(--crm-table-header-height);
+    padding-block: 0;
+}
+
+.fi-ta-ctn .fi-pagination {
+    height: var(--crm-pagination-height);
+    padding-block: 0;
 }
 
 .numeric-data,
