@@ -8,6 +8,7 @@ use App\Domain\Deal\Exceptions\WorkflowDeactivationBlocked;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Status;
 use App\Domain\Deal\Models\Transition;
+use App\Domain\Deal\Models\WorkflowRevision;
 use App\Domain\Deal\Services\OrphanTransitionInspectorContract;
 use App\Domain\Deal\Services\WorkflowDeactivationService;
 use App\Domain\Program\Models\Program;
@@ -85,7 +86,11 @@ it('forces the deactivation flow to block an orphaning transition', function ():
     $fixture = orphanDealFixture();
 
     expect(fn () => app(WorkflowDeactivationService::class)
-        ->deactivateTransition($fixture['transition']->id))
+        ->deactivateTransition(
+            $fixture['transition']->id,
+            $fixture['actor']->id,
+            'kurgusal yetim kontrolü',
+        ))
         ->toThrow(
             WorkflowDeactivationBlocked::class,
             'Şu anda 2 dosya "Müşteri onayı bekleniyor" statüsünde',
@@ -106,9 +111,28 @@ it('allows transition deactivation when another active exit remains', function (
         'to_status_id' => $alternative->id,
     ]);
 
-    app(WorkflowDeactivationService::class)->deactivateTransition($fixture['transition']->id);
+    app(WorkflowDeactivationService::class)->deactivateTransition(
+        $fixture['transition']->id,
+        $fixture['actor']->id,
+        'alternatif çıkış kaldığı için pasifleştirildi',
+    );
 
-    expect($fixture['transition']->refresh()->is_active)->toBeFalse();
+    $revision = WorkflowRevision::query()->sole();
+    /** @var list<array{from: string, is_active: bool}> $transitionSnapshot */
+    $transitionSnapshot = $revision->snapshot['transitions'];
+    $deactivatedTransition = collect($transitionSnapshot)->firstWhere(
+        'from',
+        'deal.'.$fixture['from']->code,
+    );
+
+    if ($deactivatedTransition === null) {
+        throw new RuntimeException('Pasifleştirilen geçiş revizyon anlık görüntüsünde bulunamadı.');
+    }
+
+    expect($fixture['transition']->refresh()->is_active)->toBeFalse()
+        ->and($revision->changed_by)->toBe($fixture['actor']->id)
+        ->and($revision->reason)->toBe('alternatif çıkış kaldığı için pasifleştirildi')
+        ->and($deactivatedTransition['is_active'])->toBeFalse();
 });
 
 it('reports both occupied status and predecessor orphaned by status deactivation', function (): void {
@@ -130,7 +154,11 @@ it('reports both occupied status and predecessor orphaned by status deactivation
         ->and(collect($impact->statuses)->pluck('statusId')->all())
         ->toContain($fixture['from']->id, $fixture['to']->id);
 
-    expect(fn () => app(WorkflowDeactivationService::class)->deactivateStatus($fixture['to']->id))
+    expect(fn () => app(WorkflowDeactivationService::class)->deactivateStatus(
+        $fixture['to']->id,
+        $fixture['actor']->id,
+        'kurgusal statü pasifleştirme',
+    ))
         ->toThrow(WorkflowDeactivationBlocked::class)
         ->and($fixture['to']->refresh()->is_active)->toBeTrue();
 });
