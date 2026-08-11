@@ -19,13 +19,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $sort_order
  * @property bool $is_terminal
  * @property bool $is_active
+ * @property list<string> $required_fields
+ * @property bool $is_initial
+ * @property bool $converts_to_deal
  * @property-read Collection<int, Lead> $leads
  * @property-read Collection<int, Deal> $deals
  * @property-read Collection<int, Transition> $outgoingTransitions
  * @property-read Collection<int, Transition> $incomingTransitions
  * @property-read Collection<int, StatusHistory> $history
  */
-#[Fillable(['code', 'label', 'type', 'color', 'sort_order', 'is_terminal', 'is_active'])]
+#[Fillable(['code', 'label', 'type', 'color', 'sort_order', 'is_terminal', 'is_active', 'required_fields', 'is_initial', 'converts_to_deal'])]
 final class Status extends Model
 {
     /** @return HasMany<Lead, $this> */
@@ -65,6 +68,9 @@ final class Status extends Model
             'sort_order' => 'integer',
             'is_terminal' => 'boolean',
             'is_active' => 'boolean',
+            'required_fields' => 'array',
+            'is_initial' => 'boolean',
+            'converts_to_deal' => 'boolean',
         ];
     }
 }

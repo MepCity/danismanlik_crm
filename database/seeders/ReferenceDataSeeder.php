@@ -125,15 +125,15 @@ final class ReferenceDataSeeder extends Seeder
     private function seedStatuses(): array
     {
         $definitions = [
-            ['type' => 'lead', 'code' => 'new', 'label' => 'Yeni', 'color' => 'info'],
+            ['type' => 'lead', 'code' => 'new', 'label' => 'Yeni', 'color' => 'info', 'is_initial' => true],
             ['type' => 'lead', 'code' => 'called', 'label' => 'Arandı', 'color' => 'neutral'],
             ['type' => 'lead', 'code' => 'interested', 'label' => 'İlgileniyor', 'color' => 'waiting'],
             ['type' => 'lead', 'code' => 'proposal_sent', 'label' => 'Teklif gönderildi', 'color' => 'waiting'],
-            ['type' => 'lead', 'code' => 'won', 'label' => 'İş alındı', 'color' => 'success', 'is_terminal' => true],
-            ['type' => 'lead', 'code' => 'lost', 'label' => 'Kaybedildi', 'color' => 'danger', 'is_terminal' => true],
-            ['type' => 'lead', 'code' => 'callback', 'label' => 'Sonra aranacak', 'color' => 'waiting'],
+            ['type' => 'lead', 'code' => 'won', 'label' => 'İş alındı', 'color' => 'success', 'is_terminal' => true, 'required_fields' => ['program_version_id'], 'converts_to_deal' => true],
+            ['type' => 'lead', 'code' => 'lost', 'label' => 'Kaybedildi', 'color' => 'danger', 'is_terminal' => true, 'required_fields' => ['lost_reason']],
+            ['type' => 'lead', 'code' => 'callback', 'label' => 'Sonra aranacak', 'color' => 'waiting', 'required_fields' => ['next_call_at', 'owner_user_id']],
             ['type' => 'lead', 'code' => 'do_not_contact', 'label' => 'Aranmak istemiyor', 'color' => 'danger', 'is_terminal' => true],
-            ['type' => 'deal', 'code' => 'awaiting_assignment', 'label' => 'Atama bekliyor', 'color' => 'waiting'],
+            ['type' => 'deal', 'code' => 'awaiting_assignment', 'label' => 'Atama bekliyor', 'color' => 'waiting', 'is_initial' => true],
             ['type' => 'deal', 'code' => 'pm_assigned', 'label' => 'PM atandı', 'color' => 'info'],
             ['type' => 'deal', 'code' => 'collecting_documents', 'label' => 'Belgeler toplanıyor', 'color' => 'waiting'],
             ['type' => 'deal', 'code' => 'preparing_application', 'label' => 'Başvuru hazırlanıyor', 'color' => 'info'],
@@ -160,6 +160,9 @@ final class ReferenceDataSeeder extends Seeder
                     'sort_order' => $sortOrders[$type],
                     'is_terminal' => $definition['is_terminal'] ?? false,
                     'is_active' => true,
+                    'required_fields' => $definition['required_fields'] ?? [],
+                    'is_initial' => $definition['is_initial'] ?? false,
+                    'converts_to_deal' => $definition['converts_to_deal'] ?? false,
                 ],
             );
 

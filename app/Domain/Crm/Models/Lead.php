@@ -8,6 +8,7 @@ use App\Domain\Collaboration\Models\Activity;
 use App\Domain\Collaboration\Models\Comment;
 use App\Domain\Collaboration\Models\Notification;
 use App\Domain\Collaboration\Models\Task;
+use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Status;
 use App\Domain\Deal\Models\StatusHistory;
 use App\Domain\Program\Models\ProgramVersion;
@@ -28,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property int $status_id
  * @property Carbon|null $next_call_at
  * @property string|null $lost_reason
+ * @property int|null $converted_deal_id
  * @property-read Company $company
  * @property-read User $owner
  * @property-read ProgramVersion|null $interestedProgramVersion
@@ -38,6 +40,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, Comment> $comments
  * @property-read Collection<int, Task> $tasks
  * @property-read Collection<int, Notification> $notifications
+ * @property-read Deal|null $convertedDeal
  */
 #[Fillable([
     'company_id',
@@ -47,6 +50,7 @@ use Illuminate\Support\Carbon;
     'status_id',
     'next_call_at',
     'lost_reason',
+    'converted_deal_id',
 ])]
 final class Lead extends Model
 {
@@ -78,6 +82,12 @@ final class Lead extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class);
+    }
+
+    /** @return BelongsTo<Deal, $this> */
+    public function convertedDeal(): BelongsTo
+    {
+        return $this->belongsTo(Deal::class, 'converted_deal_id');
     }
 
     /** @return HasMany<StatusHistory, $this> */
