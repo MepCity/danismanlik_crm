@@ -49,6 +49,8 @@
             </section>
         @elseif ($activeTab === 'documents')
             @include('filament.pages.partials.document-checklist')
+        @elseif ($activeTab === 'interactions')
+            @include('filament.pages.partials.interactions', ['interactions' => $deal->interactions])
         @else
             <section class="operations-panel operations-placeholder">
                 <span aria-hidden="true">◇</span>

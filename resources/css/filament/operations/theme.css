@@ -338,6 +338,7 @@ body {
 
 .operations-inline-form input,
 .operations-inline-form textarea,
+.operations-inline-form select,
 .ad-hoc-form input:not([type='checkbox']),
 .ad-hoc-form textarea {
     width: 100%;
@@ -348,8 +349,255 @@ body {
     color: var(--crm-text);
 }
 
+.call-list,
+.lead-detail,
+.company-detail {
+    display: grid;
+    gap: var(--crm-space-3);
+}
+
+.call-card {
+    display: grid;
+    gap: var(--crm-space-2);
+    padding: var(--crm-space-3);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-inline-start: var(--crm-space-1) solid var(--crm-status-info-fg);
+    border-radius: var(--crm-radius-md);
+}
+
+.call-card--overdue {
+    border-inline-start-color: var(--crm-status-danger-fg);
+}
+
+.call-card__header,
+.call-card__facts,
+.call-card__actions,
+.quick-results,
+.interactions-panel > header,
+.transition-drawer > header,
+.contact-card > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-2);
+}
+
+.call-card__company {
+    font-weight: 700;
+}
+
+.call-card__due {
+    color: var(--crm-status-danger-fg);
+    font-size: var(--crm-text-xs);
+    font-weight: 700;
+}
+
+.call-card__facts {
+    justify-content: flex-start;
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+}
+
+.call-card__facts > * + * {
+    padding-inline-start: var(--crm-space-2);
+    border-inline-start: 1px solid var(--crm-border);
+}
+
+.consent-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--crm-space-2);
+    padding: var(--crm-space-2);
+    border-inline-start: var(--crm-space-1) solid currentColor;
+    border-radius: var(--crm-radius-sm);
+    font-size: var(--crm-text-xs);
+}
+
+.consent-strip--allowed {
+    background: var(--crm-status-success-bg);
+    color: var(--crm-status-success-fg);
+}
+
+.consent-strip--blocked,
+.call-blocked {
+    background: var(--crm-status-danger-bg);
+    color: var(--crm-status-danger-fg);
+}
+
+.call-blocked {
+    padding: var(--crm-space-2);
+    border-inline-start: var(--crm-space-1) solid var(--crm-status-danger-fg);
+    border-radius: var(--crm-radius-sm);
+    font-size: var(--crm-text-xs);
+    font-weight: 650;
+}
+
+.call-link {
+    display: inline-flex;
+    align-items: center;
+}
+
+.quick-results {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.quick-result {
+    min-height: var(--crm-row-height);
+    padding-inline: var(--crm-space-3);
+    background: var(--crm-surface-muted);
+    border: 1px solid var(--crm-border);
+    border-radius: 999px;
+    font-size: var(--crm-text-xs);
+    font-weight: 650;
+}
+
+.quick-result--selected {
+    background: var(--crm-accent-600);
+    border-color: var(--crm-accent-600);
+    color: var(--crm-neutral-0);
+}
+
+.quick-note,
+.contact-form,
+.interaction-form {
+    display: grid;
+    gap: var(--crm-space-2);
+}
+
+.quick-note textarea {
+    width: 100%;
+    padding: var(--crm-space-2);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-sm);
+    color: var(--crm-text);
+}
+
+.lead-card__transitions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--crm-space-2);
+    padding-block-start: var(--crm-space-2);
+    border-block-start: 1px solid var(--crm-border);
+}
+
+.transition-drawer {
+    position: sticky;
+    inset-block-end: var(--crm-space-3);
+    margin-block-start: var(--crm-space-3);
+    padding: var(--crm-space-3);
+    border-color: var(--crm-accent-500);
+}
+
+.transition-drawer .operations-inline-form {
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.conversion-chain {
+    padding: var(--crm-space-2);
+    background: var(--crm-status-info-bg);
+    border-inline-start: var(--crm-space-1) solid var(--crm-status-info-fg);
+    color: var(--crm-status-info-fg);
+    font-size: var(--crm-text-xs);
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    gap: var(--crm-space-3);
+}
+
+.contact-card,
+.contact-create,
+.interactions-panel {
+    display: grid;
+    gap: var(--crm-space-2);
+    padding: var(--crm-space-3);
+}
+
+.contact-card > header {
+    align-items: flex-start;
+    flex-direction: column;
+}
+
+.contact-form {
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.interaction-form {
+    grid-template-columns: repeat(4, minmax(9rem, 1fr));
+}
+
+.interaction-form__note {
+    grid-column: 1 / -1;
+}
+
+.interaction-list {
+    display: grid;
+}
+
+.interaction-row {
+    display: grid;
+    grid-template-columns: auto 7rem 9rem 1fr 10rem 10rem;
+    align-items: center;
+    min-height: var(--crm-row-height);
+    gap: var(--crm-space-2);
+    border-block-start: 1px solid var(--crm-border);
+    font-size: var(--crm-text-xs);
+}
+
+.interaction-row__shape {
+    display: grid;
+    width: var(--crm-space-6);
+    height: var(--crm-space-6);
+    place-items: center;
+    border: 1px solid var(--crm-border);
+    border-radius: 999px;
+}
+
 @media (max-width: 48rem) {
     .deal-board {
         grid-auto-columns: minmax(85vw, 1fr);
+    }
+
+    .call-card {
+        padding: var(--crm-space-2);
+    }
+
+    .call-card__header,
+    .call-card__facts,
+    .call-card__actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .call-card__facts > * + * {
+        padding-inline-start: 0;
+        border-inline-start: 0;
+    }
+
+    .call-link,
+    .call-card__actions .operations-button,
+    .quick-result,
+    .quick-note .operations-button {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .quick-results,
+    .interaction-form,
+    .interaction-row {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-results {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .interaction-row {
+        padding-block: var(--crm-space-2);
     }
 }
