@@ -29,13 +29,20 @@ Renk tek başına anlam taşımaz. Durum gösteren her bileşen `.status-token` 
 
 | Token | Değer | Kullanım |
 |---|---|---|
-| `--crm-font-ui` | Inter + sistem sans | Başlık, etiket, gövde |
+| `--crm-font-ui` | Inter + sistem sans | Başlık, etiket, gövde; tek UI font kaynağı |
 | `--crm-font-data` | sistem monospace | Tutar, sayaç, kod, tarih-saat |
 | `--crm-text-xs/sm/base/lg/xl` | 12 / 13 / 14 / 16 / 20 px | Sabit tipografik ölçek |
-| `--crm-row-height` | 36 px | 25 satırlık varsayılan sayfalama |
+| `--crm-table-divider-width` | 1 px | Satırlar arası kenarlık; satır yüksekliği hesabına dahildir |
+| `--crm-row-height` | 36 px | Gövde hücresinin `.fi-ta-col` sarmalayıcısı |
+| `--crm-table-header-height` | 32 px | Tablo sütun başlığı |
+| `--crm-pagination-height` | 40 px | Tablo sayfalama çubuğu |
 | `--crm-space-1/2/3/4/6` | 4 / 8 / 12 / 16 / 24 px | Aralık ölçeği |
 
-Sayısal hücreye `.numeric-data` verilir; bu rol monospace yazı ve `tabular-nums` kullanır. Tablo sayfalaması 25, 50 ve 100 satırdır; varsayılan 25'tir.
+UI fontu yalnız `tokens.css` içindeki `--crm-font-ui` ile seçilir; uygulama CSS'i veya Vite yapılandırması ikinci bir font ailesi tanımlamaz. Sayısal hücreye `.numeric-data` verilir; bu rol monospace yazı ve `tabular-nums` kullanır. Tablo sayfalaması 25, 50 ve 100 satırdır; varsayılan 25'tir.
+
+Filament tablo hücrelerinin gerçek dikey dolgusu `<td>` üzerinde değil, `.fi-ta-col` içindeki sütun bileşenlerindedir. Tema bu iç dolguyu sıfırlar ve minimum yüksekliği `.fi-ta-col` üzerinde uygular. Böylece `--crm-row-height` içerik tek satır kaldığı sürece render edilen satır yüksekliğini doğrudan belirler; uzun veya çok satırlı içerik erişilebilir biçimde büyümeye devam eder.
+
+Durum tokenlarının gerçek rozetlerde renk ve form birlikteliği WP-16 dosya ekranlarında kanıtlanacaktır. WP-14 örnek Firma tablosundaki `is_active` alanı yalnız boolean ikondur ve semantik rozet kabul edilmez.
 
 ## Yüzey ve boş durum
 
