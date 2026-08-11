@@ -1,0 +1,74 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import './tokens.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+html,
+body {
+    background: var(--crm-surface-page);
+    color: var(--crm-text);
+    font-family: var(--crm-font-ui);
+    font-size: var(--crm-text-base);
+}
+
+.fi-sidebar,
+.fi-topbar,
+.fi-section,
+.fi-ta-ctn,
+.fi-wi-stats-overview-stat {
+    background: var(--crm-surface-panel);
+    border-color: var(--crm-border);
+    box-shadow: none;
+}
+
+.fi-ta-row {
+    min-height: var(--crm-row-height);
+}
+
+.fi-ta-cell {
+    padding-block: var(--crm-space-1);
+}
+
+.numeric-data,
+.fi-ta-text[data-numeric] {
+    font-family: var(--crm-font-data);
+    font-variant-numeric: tabular-nums;
+}
+
+.fi-ta-empty-state {
+    background: var(--crm-surface-muted);
+    border: 1px dashed var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: none;
+}
+
+.status-token {
+    border-inline-start: var(--crm-space-1) solid currentColor;
+    border-radius: var(--crm-radius-sm);
+}
+
+.status-token[data-status='neutral'] {
+    background: var(--crm-status-neutral-bg);
+    color: var(--crm-status-neutral-fg);
+}
+
+.status-token[data-status='info'] {
+    background: var(--crm-status-info-bg);
+    color: var(--crm-status-info-fg);
+}
+
+.status-token[data-status='waiting'] {
+    background: var(--crm-status-waiting-bg);
+    color: var(--crm-status-waiting-fg);
+}
+
+.status-token[data-status='success'] {
+    background: var(--crm-status-success-bg);
+    color: var(--crm-status-success-fg);
+}
+
+.status-token[data-status='danger'] {
+    background: var(--crm-status-danger-bg);
+    color: var(--crm-status-danger-fg);
+}
