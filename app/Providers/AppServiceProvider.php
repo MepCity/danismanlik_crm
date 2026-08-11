@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Access\AccessServiceProvider;
+use App\Domain\Access\Models\BreakGlassGrant;
+use App\Domain\Access\Policies\BreakGlassGrantPolicy;
 use App\Domain\Access\Policies\CommentPolicy;
 use App\Domain\Access\Policies\CompanyPolicy;
 use App\Domain\Access\Policies\ContactPolicy;
@@ -16,7 +18,11 @@ use App\Domain\Access\Policies\InteractionPolicy;
 use App\Domain\Access\Policies\LeadPolicy;
 use App\Domain\Access\Policies\ProgramPolicy;
 use App\Domain\Access\Policies\ProgramVersionPolicy;
+use App\Domain\Access\Policies\RolePolicy;
+use App\Domain\Access\Policies\StatusPolicy;
 use App\Domain\Access\Policies\TaskPolicy;
+use App\Domain\Access\Policies\TransitionPolicy;
+use App\Domain\Access\Policies\UserPolicy;
 use App\Domain\Collaboration\CollaborationServiceProvider;
 use App\Domain\Collaboration\Models\Comment;
 use App\Domain\Collaboration\Models\Task;
@@ -27,6 +33,8 @@ use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\DealServiceProvider;
 use App\Domain\Deal\Models\Deal;
+use App\Domain\Deal\Models\Status;
+use App\Domain\Deal\Models\Transition;
 use App\Domain\Document\DocumentServiceProvider;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Document\Models\File;
@@ -34,8 +42,10 @@ use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\Program;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Domain\Program\ProgramServiceProvider;
+use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -71,5 +81,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(DocTemplate::class, DocTemplatePolicy::class);
         Gate::policy(Comment::class, CommentPolicy::class);
         Gate::policy(Task::class, TaskPolicy::class);
+        Gate::policy(Status::class, StatusPolicy::class);
+        Gate::policy(Transition::class, TransitionPolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Role::class, RolePolicy::class);
+        Gate::policy(BreakGlassGrant::class, BreakGlassGrantPolicy::class);
     }
 }

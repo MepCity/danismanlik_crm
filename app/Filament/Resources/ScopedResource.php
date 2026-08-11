@@ -16,6 +16,20 @@ use LogicException;
 /** @template TModel of \Illuminate\Database\Eloquent\Model */
 abstract class ScopedResource extends Resource
 {
+    protected static ?string $configurationPermission = null;
+
+    public static function canViewAny(): bool
+    {
+        $user = Filament::auth()->user();
+
+        if (static::$configurationPermission !== null
+            && (! $user instanceof User || ! $user->can(static::$configurationPermission))) {
+            return false;
+        }
+
+        return parent::canViewAny();
+    }
+
     /** @return Builder<TModel> */
     final public static function getEloquentQuery(): Builder
     {

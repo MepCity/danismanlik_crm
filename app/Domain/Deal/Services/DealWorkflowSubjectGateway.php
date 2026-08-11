@@ -12,6 +12,14 @@ use Illuminate\Support\Carbon;
 
 final class DealWorkflowSubjectGateway implements WorkflowSubjectGateway
 {
+    /** @return list<int> */
+    public function lockIdsByStatus(int $statusId): array
+    {
+        return Deal::query()->where('status_id', $statusId)->lockForUpdate()->pluck('id')->map(
+            static fn (mixed $id): int => (int) $id,
+        )->all();
+    }
+
     public function lock(int $subjectId): WorkflowSubject
     {
         $deal = Deal::query()->lockForUpdate()->findOrFail($subjectId);

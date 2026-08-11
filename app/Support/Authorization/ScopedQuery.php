@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Authorization;
 
 use App\Domain\Access\Enums\DataScope;
+use App\Domain\Access\Models\BreakGlassGrant;
 use App\Domain\Access\Services\ActiveBreakGlass;
 use App\Domain\Access\Services\EffectiveScopeResolver;
 use App\Domain\Collaboration\Models\Comment;
@@ -14,14 +15,20 @@ use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
+use App\Domain\Deal\Models\Status;
+use App\Domain\Deal\Models\Transition;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Document\Models\File;
+use App\Domain\Program\Models\DocTemplate;
+use App\Domain\Program\Models\Program;
+use App\Domain\Program\Models\ProgramVersion;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Spatie\Permission\Models\Role;
 
 final readonly class ScopedQuery
 {
@@ -37,6 +44,13 @@ final readonly class ScopedQuery
     public function apply(Builder $query, User $user, string $ability = 'viewAny'): Builder
     {
         $model = $query->getModel();
+
+        $configurationPermission = $this->configurationPermission($model);
+        if ($configurationPermission !== null) {
+            return $user->is_active && $user->can($configurationPermission)
+                ? $query
+                : $query->whereRaw('1 = 0');
+        }
 
         if ($this->breakGlass->use($user, $ability, $model::class) !== null) {
             return $query;
@@ -82,6 +96,18 @@ final readonly class ScopedQuery
         }
 
         return $this->scopes->resolve($user) !== DataScope::None;
+    }
+
+    private function configurationPermission(Model $model): ?string
+    {
+        return match ($model::class) {
+            Program::class, ProgramVersion::class, DocTemplate::class => 'program.view',
+            Status::class, Transition::class => 'system.settings',
+            User::class => 'system.users',
+            Role::class => 'system.roles',
+            BreakGlassGrant::class => 'access.break_glass.grant',
+            default => null,
+        };
     }
 
     private function visibleUserIds(User $user, DataScope $scope): QueryBuilder
