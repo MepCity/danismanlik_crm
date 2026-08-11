@@ -15,10 +15,13 @@ use App\Domain\Deal\Models\StatusHistory;
 use App\Domain\Deal\Models\WorkflowRevision;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Document\Models\DocumentRequirementSuggestion;
+use App\Domain\Document\Services\DocumentStatusService;
+use App\Domain\Document\Services\DocumentUploadService;
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\Program;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -180,7 +183,7 @@ final class DemoDataSeeder extends Seeder
                 ],
             );
 
-            $this->seedDealDocuments($deal, $statusCode);
+            $this->seedDealDocuments($deal, $statusCode, $projectManager);
 
             if ($reference === 'DEMO-2026-002') {
                 $document = $deal->documents()->where('name_snapshot', 'Fizibilite Raporu')->firstOrFail();
@@ -195,7 +198,7 @@ final class DemoDataSeeder extends Seeder
         }
     }
 
-    private function seedDealDocuments(Deal $deal, string $dealStatus): void
+    private function seedDealDocuments(Deal $deal, string $dealStatus, ?User $projectManager): void
     {
         $templates = DocTemplate::query()
             ->where('program_version_id', $deal->program_version_id)
@@ -203,13 +206,7 @@ final class DemoDataSeeder extends Seeder
             ->get();
 
         foreach ($templates as $index => $template) {
-            $documentStatus = match (true) {
-                $dealStatus === 'preparing_application' => 'accepted',
-                $index < 2 => 'uploaded',
-                default => 'requested',
-            };
-
-            DealDocument::query()->updateOrCreate(
+            $document = DealDocument::query()->firstOrCreate(
                 ['deal_id' => $deal->id, 'source_doc_template_id' => $template->id],
                 [
                     'source_program_version_id' => $deal->program_version_id,
@@ -217,10 +214,83 @@ final class DemoDataSeeder extends Seeder
                     'description_snapshot' => $template->description,
                     'required_snapshot' => $template->is_required,
                     'condition_snapshot' => $template->condition,
-                    'status' => $documentStatus,
+                    'status' => 'requested',
                     'requested_at' => now()->subDays(3),
                 ],
             );
+
+            if ($projectManager === null) {
+                continue;
+            }
+
+            if ($dealStatus === 'preparing_application') {
+                $this->seedDocumentFlow($document, $projectManager, 'accepted');
+
+                continue;
+            }
+
+            match ($index) {
+                0 => $this->seedDocumentFlow($document, $projectManager, 'accepted', 2),
+                1 => $this->seedDocumentFlow($document, $projectManager, 'uploaded'),
+                2 => $this->seedDocumentFlow($document, $projectManager, 'rejected'),
+                default => null,
+            };
         }
+    }
+
+    private function seedDocumentFlow(
+        DealDocument $document,
+        User $actor,
+        string $target,
+        int $versions = 1,
+    ): void {
+        $uploads = app(DocumentUploadService::class);
+
+        while ($document->files()->count() < $versions) {
+            $version = $document->files()->count() + 1;
+            $temporaryPath = tempnam(sys_get_temp_dir(), 'bizlife-demo-');
+
+            if ($temporaryPath === false) {
+                throw new RuntimeException('Kurgusal demo PDF dosyası oluşturulamadı.');
+            }
+
+            try {
+                file_put_contents($temporaryPath, $this->fictionalPdf($document, $version));
+                $upload = new UploadedFile(
+                    $temporaryPath,
+                    'kurgusal-'.str($document->name_snapshot)->slug()."-surum-{$version}.pdf",
+                    'application/pdf',
+                    null,
+                    true,
+                );
+                $uploads->upload($document->id, $upload, $actor->id);
+            } finally {
+                @unlink($temporaryPath);
+            }
+        }
+
+        $document->refresh();
+
+        if ($target === 'uploaded' || $document->status === $target) {
+            return;
+        }
+
+        $statuses = app(DocumentStatusService::class);
+        $statuses->startReview($document->id, $actor->id);
+        $statuses->decide(
+            $document->id,
+            $target,
+            $target === 'rejected' ? 'Kurgusal örnekte imza sayfası eksik bırakıldı.' : null,
+            $actor->id,
+        );
+    }
+
+    private function fictionalPdf(DealDocument $document, int $version): string
+    {
+        return "%PDF-1.4\n"
+            ."% KURGUSAL DEMO BELGESI - gercek kisi veya firma verisi icermez\n"
+            ."% Evrak: {$document->name_snapshot}\n"
+            ."% Surum: {$version}\n"
+            ."%%EOF\n";
     }
 }
