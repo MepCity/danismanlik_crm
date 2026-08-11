@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Domain\Collaboration\Models\Activity;
-use App\Domain\Collaboration\Services\ActivityRecorder;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Exceptions\StatusTransitionRejected;
@@ -16,7 +15,10 @@ use App\Domain\Deal\Services\StatusMachineContract;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Program\Models\Program;
 use App\Models\User;
+use App\Support\Events\DomainEvent;
+use App\Support\Outbox\DatabaseOutboxWriter;
 use App\Support\Outbox\Models\OutboxMessage;
+use App\Support\Outbox\OutboxWriter;
 use App\Support\Workflow\StatusTransition;
 use App\Support\Workflow\SubjectType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -246,16 +248,12 @@ it('rolls back history subject activity and outbox when an effect fails midway',
     $baselineActivities = Activity::query()->count();
     $baselineOutbox = OutboxMessage::query()->count();
 
-    app()->instance(ActivityRecorder::class, new class implements ActivityRecorder
+    app()->instance(OutboxWriter::class, new class implements OutboxWriter
     {
-        public function recordStatusChanged(
-            SubjectType $subjectType,
-            int $subjectId,
-            int $actorId,
-            array $fromStatus,
-            array $toStatus,
-            Carbon $occurredAt,
-        ): void {
+        public function write(DomainEvent $event): void
+        {
+            (new DatabaseOutboxWriter)->write($event);
+
             throw new RuntimeException('Kurgusal effect hatası');
         }
     });
