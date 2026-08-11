@@ -58,7 +58,10 @@ beforeEach(function (): void {
 /** @return array{actor: User, pm: User, deal: Deal, document: DealDocument} */
 function documentServiceFixture(bool $withValidity = false): array
 {
-    $actor = User::factory()->create(['email' => fake()->unique()->userName().'@belge.invalid']);
+    $actor = User::factory()->create([
+        'email' => fake()->unique()->userName().'@belge.invalid',
+        'data_scope' => 'own',
+    ]);
     $actor->givePermissionTo(['document.upload', 'document.download', 'document.approve', 'deal.transition']);
     $pm = User::factory()->create(['email' => fake()->unique()->userName().'@pm-belge.invalid']);
     $company = Company::query()->create([
