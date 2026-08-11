@@ -27,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $description_snapshot
  * @property bool $required_snapshot
  * @property array<string, mixed>|null $condition_snapshot
+ * @property bool|null $condition_matches
  * @property string $status
  * @property Carbon|null $requested_at
  * @property Carbon|null $received_at
@@ -41,11 +42,12 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, Comment> $comments
  * @property-read Collection<int, Task> $tasks
  * @property-read Collection<int, Notification> $notifications
+ * @property-read Collection<int, DocumentRequirementSuggestion> $requirementSuggestions
  */
 #[Fillable([
     'deal_id', 'source_doc_template_id', 'source_program_version_id',
     'name_snapshot', 'description_snapshot', 'required_snapshot',
-    'condition_snapshot', 'status', 'requested_at', 'received_at', 'due_at',
+    'condition_snapshot', 'condition_matches', 'status', 'requested_at', 'received_at', 'due_at',
     'validity_expires_at', 'notes',
 ])]
 final class DealDocument extends Model
@@ -98,12 +100,19 @@ final class DealDocument extends Model
         return $this->hasMany(Notification::class);
     }
 
+    /** @return HasMany<DocumentRequirementSuggestion, $this> */
+    public function requirementSuggestions(): HasMany
+    {
+        return $this->hasMany(DocumentRequirementSuggestion::class);
+    }
+
     /** @return array<string, string> */
     protected function casts(): array
     {
         return [
             'required_snapshot' => 'boolean',
             'condition_snapshot' => 'array',
+            'condition_matches' => 'boolean',
             'requested_at' => 'datetime',
             'received_at' => 'datetime',
             'due_at' => 'datetime',
