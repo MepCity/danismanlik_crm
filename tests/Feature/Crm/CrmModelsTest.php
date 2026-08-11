@@ -22,6 +22,7 @@ it('connects a company to contacts and a lead to interactions', function (): voi
     $contact = Contact::query()->create([
         'company_id' => $company->id,
         'full_name' => 'Kurgusal İlişki Kişisi',
+        'data_source' => 'other',
         'phone' => '+900000000000',
         'email' => 'contact@example.invalid',
         'consent_call' => true,

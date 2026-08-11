@@ -6,6 +6,7 @@ use App\Domain\Collaboration\Jobs\SendNotificationEmail;
 use App\Domain\Collaboration\Models\Notification;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
+use App\Domain\Crm\Models\Interaction;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Status;
 use App\Domain\Deal\Models\StatusHistory;
@@ -180,6 +181,7 @@ it('eksik evrak e-postasını doğru izinli kontağa kuyruğa alır', function (
     $fixture = operationsFixture('eposta');
     Contact::query()->create([
         'company_id' => $fixture['company']->id, 'full_name' => 'Kurgusal Firma Yetkilisi',
+        'data_source' => 'other',
         'email' => 'firma-yetkilisi@example.invalid', 'is_primary' => true, 'is_active' => true,
         'consent_email' => true, 'do_not_call' => false,
     ]);
@@ -222,4 +224,23 @@ it('izinsiz rol checklist aksiyonlarını görmez ve doğrudan çağıramaz', fu
         ->assertDontSee('İncelemeye al')
         ->call('startReview', $document->id)
         ->assertForbidden();
+});
+
+it('dosya görüşmesini dosyadan ayrı bir interaction satırı olarak kaydeder', function (): void {
+    $fixture = operationsFixture('dosya-gorusme');
+    $statusId = $fixture['deal']->status_id;
+    Auth::login($fixture['officer']);
+
+    Livewire::test(DealDetail::class, ['deal' => $fixture['deal']->id])
+        ->set('activeTab', 'interactions')
+        ->set('interactionType', 'meeting')
+        ->set('interactionOccurredAt', now()->format('Y-m-d\TH:i'))
+        ->set('interactionDuration', 20)
+        ->set('interactionOutcome', 'Kurgusal toplantı sonucu')
+        ->call('addInteraction')
+        ->assertHasNoErrors()
+        ->assertSee('Kurgusal toplantı sonucu');
+
+    expect(Interaction::query()->where('deal_id', $fixture['deal']->id)->whereNull('lead_id')->count())->toBe(1)
+        ->and($fixture['deal']->refresh()->status_id)->toBe($statusId);
 });
