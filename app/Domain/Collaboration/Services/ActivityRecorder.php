@@ -9,6 +9,17 @@ use Illuminate\Support\Carbon;
 
 interface ActivityRecorder
 {
+    /** @param array<string, mixed> $payload */
+    public function record(
+        string $action,
+        array $payload,
+        ?int $actorId = null,
+        ?int $leadId = null,
+        ?int $dealId = null,
+        ?int $dealDocumentId = null,
+        ?Carbon $occurredAt = null,
+    ): void;
+
     /**
      * @param  array{id: int, label: string}  $fromStatus
      * @param  array{id: int, label: string}  $toStatus

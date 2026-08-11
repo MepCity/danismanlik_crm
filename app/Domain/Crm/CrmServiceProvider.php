@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Crm;
 
+use App\Domain\Crm\Models\Company;
+use App\Domain\Crm\Observers\CompanyChecklistObserver;
 use Illuminate\Support\ServiceProvider;
 
 final class CrmServiceProvider extends ServiceProvider
@@ -15,6 +17,6 @@ final class CrmServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // CRM açılış bağları ilgili iş paketlerinde tanımlanacak.
+        Company::observe(CompanyChecklistObserver::class);
     }
 }
