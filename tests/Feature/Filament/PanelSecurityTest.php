@@ -13,6 +13,7 @@ use Filament\Facades\Filament;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
@@ -53,7 +54,7 @@ function panelCompany(User $owner, string $slug): Company
     return $company;
 }
 
-/** @return TestResponse<\Symfony\Component\HttpFoundation\Response> */
+/** @return TestResponse<Response> */
 function panelGet(User $user, string $uri): TestResponse
 {
     Auth::login($user);
