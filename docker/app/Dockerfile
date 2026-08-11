@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 #
-# Teşvik CRM — PHP-FPM uygulama imajı
+# Bizlife CRM — PHP-FPM uygulama imajı
 #
 # Geliştirme (varsayılan target):  composer dev bağımlılıkları dahil, Xdebug yok,
 # opcache geliştirme modunda. Üretim (prod target): --no-dev, opcache üretim

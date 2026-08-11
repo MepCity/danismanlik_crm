@@ -1,4 +1,4 @@
-# Teşvik CRM — geliştirme ortamı (Docker Compose)
+# Bizlife CRM — geliştirme ortamı (Docker Compose)
 #
 # Kullanım:  make up   (ya da   docker compose up -d)
 # Tüm host portları .env üzerinden değiştirilebilir; yoksa varsayılanlar geçerli.

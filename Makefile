@@ -1,4 +1,4 @@
-# Teşvik CRM — geliştirme kısayolları
+# Bizlife CRM — geliştirme kısayolları
 #
 # Host'a PHP kurulmaz. Tüm php/artisan/composer komutları container içinde
 # çalışır. Kullanım örnekleri:

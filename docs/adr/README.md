@@ -1,4 +1,4 @@
-# Mimari karar kayıtları
+# Bizlife CRM mimari karar kayıtları
 
 Projenin temel kararları ve kapsam sınırı [`PLAN.md`](../../PLAN.md) içindeki
 K-01–K-11 kayıtlarında tutulur; burada kopyalanmaz.

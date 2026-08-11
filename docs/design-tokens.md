@@ -1,4 +1,4 @@
-# WP-14 tasarım tokenları
+# Bizlife CRM — WP-14 tasarım tokenları
 
 Tek renk kaynağı `resources/css/filament/operations/tokens.css` dosyasıdır. Arayüz bileşenleri renk değeri yazmaz; yalnız `--crm-*` değişkenlerini kullanır. Filament'in `primary` ve `gray` ölçekleri de bu dosyada CRM tokenlarına bağlanır.
 

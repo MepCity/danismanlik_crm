@@ -1,5 +1,5 @@
 #!/bin/sh
-# Teşvik CRM — app container giriş noktası.
+# Bizlife CRM — app container giriş noktası.
 #
 # İlk çalıştırmada .env yoksa örnekten üretir ve uygulama anahtarı oluşturur;
 # storage ve bootstrap/cache dizinlerinin app kullanıcısı tarafından yazılabilir

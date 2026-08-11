@@ -22,7 +22,11 @@ return [
         'reminders' => ':count görev hatırlatması üretildi.',
         'digest' => ':count günlük özet kuyruğa alındı.',
     ],
-    'mail' => ['unknown_error' => 'Bilinmeyen e-posta gönderim hatası'],
+    'mail' => [
+        'unknown_error' => 'Bilinmeyen e-posta gönderim hatası',
+        'subject' => ':product · :title',
+        'template' => ":product\n\n:body",
+    ],
     'digest' => [
         'subject' => 'Günlük operasyon özeti',
         'intro' => 'Bugünkü operasyon özetiniz:',

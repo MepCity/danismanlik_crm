@@ -1,4 +1,4 @@
-# Teşvik CRM
+# Bizlife CRM
 
 Teşvik ve hibe danışmanlığı yapan bir şirket için dar kapsamlı operasyon sistemi:
 pazarlamanın aramasından, dosyanın statü ve evrak takibiyle sonuçlanmasına kadar

@@ -84,6 +84,16 @@ it('pasif kullanıcının doğru parolayla panel oturumu açmasını reddeder', 
     expect(auth()->check())->toBeFalse();
 });
 
+it('giriş ekranı panel markası ve tarayıcı başlığında ürün adını gösterir', function (): void {
+    /** @var TestCase $this */
+    $this->get(route('filament.operations.auth.login'))
+        ->assertOk()
+        ->assertSee('Bizlife CRM')
+        ->assertSeeInOrder(['<title>', 'Giriş Yap', 'Bizlife CRM', '</title>'], false);
+
+    $this->assertSame('Bizlife CRM', (string) Filament::getPanel('operations')->getBrandName());
+});
+
 it('panel liste sorgusunu pazarlama kullanıcısının kapsamına indirger', function (): void {
     $marketing = panelUser('Pazarlama', 'panel-pazarlama');
     $other = panelUser('Pazarlama', 'panel-diger');

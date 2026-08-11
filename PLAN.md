@@ -1,7 +1,7 @@
-# Teşvik & Hibe Danışmanlığı CRM — Proje Planı
+# Bizlife CRM — Proje Planı
 
 > **Durum:** Karar aşaması tamamlandı, geliştirme başlamadı
-> **Sürüm:** 1.3 — 10.08.2026
+> **Sürüm:** 1.4 — 12.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -939,6 +939,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
 | 1.0 | 10.08.2026 | İlk teknik fizibilite. Web+PWA, sıfırdan geliştirme, DB tabanlı statü, program sürümleme, e-TUYS tespiti |
+| 1.4 | 12.08.2026 | Ürün adı **Bizlife CRM** olarak belirlendi. TOTP müşteri talebiyle isteğe bağlı yapıldı; Şirket Yetkilisi hesabının geniş erişim riski bilinerek kabul edildi |
 | 1.1 | 10.08.2026 | İkinci bağımsız rapor + karşılıklı değerlendirme sonrası: takvim düzeltmesi (pilot/üretim ayrımı, 11–15 hafta) · `status_history` tablosu · `interactions` ayrıldı · belge deposu SPOF düzeltmesi · Media Library revizyon iddiası düzeltildi · İYS izin/ret alanları v1'e · KVKK alt işleyen envanteri · e-TUYS ifadesi yumuşatıldı · altyapı/TCO ayrımı · RLS ertelendi · rol sayısı 4'e indi · dosya statüsü 10'a indi · kopyalama+referans mekanizması · iş akışı sürümleme reddedildi |
 | 1.3 | 10.08.2026 | **K-10 eklendi** — barındırma ofisteki 7/24 çalışan makinede yapılacak. Pilot için koşulsuz uygun; üretim için altı şart (UPS · ofis dışı şifreli yedek · port açma yerine tünel · adanmış makine · mirror disk · fiziksel güvenlik). Hibrit öneri: uygulama+DB ofiste, nesne depolama ve yedek bulutta. Maliyet tablosu iki sütuna ayrıldı. Açık soru: makine kimin ofisinde — sizinkiyse veri işleyen sözleşmesi gerekir |
 | 1.2 | 10.08.2026 | Üçüncü tur — plan denetimi sonrası **7 bulgunun tamamı kabul edildi.** **P1:** K-09 yeniden yazıldı (değişmez akış revizyonu + yürürlük tarihi + **yetim geçiş kontrolü** — v1.1'de yalnız statüler korunuyordu, asıl açık geçişlerdeydi) · `communication_consents` **append-only izin defteri** eklendi, `contacts` yalnız özet taşır · **tetikleyici session context** (`SET LOCAL app.actor_id`, doğrudan SQL → `system/unknown`) + hassas alanların denetim dışı bırakılması · veri modeli metinle hizalandı: `files.deal_document_id` FK, `comments`/`tasks`/`activities` polymorphic subject, yeni tablolar `teams`, `team_members`, `notifications`, `outbox`, `workflow_revisions`, `role_permission_history`. **P2:** koşul kalkınca belge **silinmez**, PM onaylı "gerekli değil" önerisi üretilir · imzalı URL ≠ indirme, iki ayrı olay + opaque UUID anahtar · sistem yöneticisi ≠ iş verisi erişimi (break-glass) · kapsam filtresi iş özelliği / zorunlu güvenlik-mevzuat gereksinimi diye ayrıldı · **efor aritmetiği düzeltildi** (49–68 geliştirme + tampon = 55–75) · framework sürümü sabitlenmedi · Tauri "1 gün" taahhüdü kaldırıldı · maliyetler "varsayımsal, KDV ve yönetilen hizmet hariç" işaretlendi |

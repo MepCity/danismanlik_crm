@@ -29,13 +29,24 @@ final class SendNotificationEmail extends AutomationJob
         $notification->update(['delivery_status' => 'pending', 'error' => null]);
 
         try {
-            app(Mailer::class)->raw($notification->body, function ($message) use ($notification): void {
+            $productName = (string) config('app.name');
+            $body = trans('collaboration.mail.template', [
+                'product' => $productName,
+                'body' => $notification->body,
+            ]);
+            $subject = trans('collaboration.mail.subject', [
+                'product' => $productName,
+                'title' => $notification->title,
+            ]);
+
+            app(Mailer::class)->raw($body, function ($message) use ($notification, $productName, $subject): void {
                 $external = $notification->recipient_email !== null;
-                $message->to(
-                    $external ? $notification->recipient_email : $notification->user->email,
-                    $external ? $notification->recipient_name : $notification->user->name,
-                )
-                    ->subject($notification->title);
+                $message->from((string) config('mail.from.address'), $productName)
+                    ->to(
+                        $external ? $notification->recipient_email : $notification->user->email,
+                        $external ? $notification->recipient_name : $notification->user->name,
+                    )
+                    ->subject($subject);
             });
             $notification->update(['delivery_status' => 'sent', 'error' => null]);
         } catch (Throwable $exception) {
