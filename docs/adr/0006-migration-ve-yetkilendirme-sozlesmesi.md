@@ -31,7 +31,9 @@ Yetkilendirmede işlem izni ile satır görünürlüğünün birbirine karışt�
   durum alanıyla pasifleştirilir.
 - Enum benzeri değerler kısa İngilizce kod olarak saklanır. Kullanıcı etiketleri
   `lang/tr` kaynaklarından gelir. Kapalı kümeler PostgreSQL `CHECK` constraint ile
-  korunur.
+  korunur. Yönetici tarafından çalışma anında tanımlanan statü etiketleri,
+  deploy gerektirmeyen K-05 sözleşmesi nedeniyle ADR-0009'da belgelenen dar
+  istisnadır ve `statuses.label` alanında saklanır.
 - Her yabancı anahtar indekslenir. Sorgu filtreleri için bileşik/tekil indeks,
   gerçek kimlik kısıtları için `UNIQUE` constraint kullanılır.
 - PostgreSQL `COMMENT ON` kullanılır. Her kolonu tekrar etmek yerine tablolar,

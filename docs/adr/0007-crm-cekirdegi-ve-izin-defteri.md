@@ -50,8 +50,10 @@ Bağımlılık sırası nedeniyle aşağıdaki açıklar bilinçli açılmışt�
   bağına dönüştürülmüştür. Geçiş sayısal olmayan eski değerleri sessizce
   kaybetmek yerine migration'ı durdurur; böyle bir veri varsa önce açıkça
   eşlenmesi gerekir.
-- `leads.status`, WP-07'de `statuses` oluşturulana kadar kısa kod taşır; WP-07'de
-  statü yabancı anahtarı ve DB tabanlı geçiş yapısıyla değiştirilecektir.
+- [x] `leads.status`, WP-07A'da kaldırılmış ve `statuses` tablosuna zorunlu
+  `status_id` yabancı anahtarıyla değiştirilmiştir. Koda bağlı `lost` ve
+  `callback` CHECK'leri veri tabanlı koşul/guard uygulaması için WP-09'a
+  bırakılmıştır.
 - [x] `interactions` özne bağı, WP-06'da `lead_id` ve `deal_id` gerçek yabancı
   anahtarlarına dönüştürülmüş; `num_nonnulls(...) = 1` kısıtıyla tam olarak bir
   özne zorunlu kılınmıştır. Kontrollü polymorphic geçici deseni kalıcılaştırılmamıştır.
@@ -61,4 +63,5 @@ Bağımlılık sırası nedeniyle aşağıdaki açıklar bilinçli açılmışt�
 Koşullu evrak motoru il yazım hatalarıyla sessizce yanlış sonuç üretmez. İzin
 geçmişi üzerine yazılamaz ve belirli bir tarihteki hukuki dayanak ile kanıt
 yeniden bulunabilir. Geçici program ve `deal` bağları WP-06 ile kapanmıştır.
-Yalnız statü bağı WP-07 tamamlanana kadar açık ve şema yorumunda işaretli kalır.
+Statü bağı WP-07A ile kapanmış, WP-05'in bilinçli geçici bağlarının tamamı gerçek
+yabancı anahtarlara dönüştürülmüştür.

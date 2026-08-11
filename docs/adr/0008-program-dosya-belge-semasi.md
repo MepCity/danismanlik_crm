@@ -57,6 +57,13 @@ jeneriklerle tanımlanır. Registry ve config dosyası kaldırılmıştır. Serv
 aksiyon, olay, DTO ve exception katmanlarında çapraz model erişimi PHPStan
 tarafından yasak kalır.
 
+### Kapanan geçici statü bağı
+
+- [x] `deals.status`, WP-07A'da kaldırılmış ve `statuses` tablosuna zorunlu,
+  `RESTRICT` davranışlı `status_id` yabancı anahtarıyla değiştirilmiştir.
+  `deals.status_changed_at` yalnız pano sorgusu için denormalize önbellek olarak
+  kalır; gerçek kaynak `status_history` tablosudur (ADR-0009).
+
 ## Sonuçlar
 
 Program sürümü ve belge anlık görüntüleri geçmişi yeniden üretir. Yeniden

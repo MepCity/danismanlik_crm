@@ -6,7 +6,6 @@ use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Interaction;
-use App\Domain\Crm\Models\Lead;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,28 +91,6 @@ it('allows only one primary contact per company', function (): void {
         'full_name' => 'Kurgusal Birincil B',
         'is_primary' => true,
     ]))->toThrow(QueryException::class, 'contacts_one_primary_per_company');
-});
-
-it('requires a reason for lost leads', function (): void {
-    $owner = User::factory()->create(['email' => 'lost-owner@example.invalid']);
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Teta Ltd.', 'city' => '26']);
-
-    expect(fn () => Lead::query()->create([
-        'company_id' => $company->id,
-        'owner_user_id' => $owner->id,
-        'status' => 'lost',
-    ]))->toThrow(QueryException::class, 'leads_lost_reason_required');
-});
-
-it('requires a date for callback leads', function (): void {
-    $owner = User::factory()->create(['email' => 'callback-owner@example.invalid']);
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Iota Ltd.', 'city' => '42']);
-
-    expect(fn () => Lead::query()->create([
-        'company_id' => $company->id,
-        'owner_user_id' => $owner->id,
-        'status' => 'callback',
-    ]))->toThrow(QueryException::class, 'leads_callback_date_required');
 });
 
 it('restricts deletion of companies referenced by contacts', function (): void {

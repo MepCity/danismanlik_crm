@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Lead;
+use App\Domain\Deal\Models\Status;
 use App\Domain\Program\Models\Program;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,12 +34,18 @@ it('connects a company to contacts and a lead to interactions', function (): voi
     $programVersion = $program->versions()->create([
         'call_period' => '2099-1',
     ]);
+    $status = Status::query()->create([
+        'code' => 'crm_model_new',
+        'label' => 'Kurgusal Yeni',
+        'type' => 'lead',
+        'color' => 'neutral',
+    ]);
     $lead = Lead::query()->create([
         'company_id' => $company->id,
         'owner_user_id' => $owner->id,
         'source' => 'fictional_test',
         'interested_program_version_id' => $programVersion->id,
-        'status' => 'new',
+        'status_id' => $status->id,
     ]);
     $interaction = $lead->interactions()->create([
         'user_id' => $owner->id,
@@ -53,6 +60,7 @@ it('connects a company to contacts and a lead to interactions', function (): voi
         ->and($company->leads->modelKeys())->toBe([$lead->id])
         ->and($lead->company->is($company))->toBeTrue()
         ->and($lead->owner->is($owner))->toBeTrue()
+        ->and($lead->status->is($status))->toBeTrue()
         ->and($lead->interactions->modelKeys())->toBe([$interaction->id])
         ->and($interaction->lead_id)->toBe($lead->id)
         ->and($interaction->deal_id)->toBeNull()

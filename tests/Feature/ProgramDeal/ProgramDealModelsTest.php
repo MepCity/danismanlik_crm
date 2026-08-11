@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Crm\Models\Company;
 use App\Domain\Deal\Models\Deal;
+use App\Domain\Deal\Models\Status;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Program\Models\Program;
 use App\Models\User;
@@ -29,11 +30,17 @@ it('connects program deal document and file models and casts structured values',
         'condition' => ['all' => [['field' => 'company.city', 'op' => 'in', 'value' => ['35']]]],
         'accepted_formats' => ['pdf', 'xlsx'],
     ]);
+    $status = Status::query()->create([
+        'code' => 'program_model_open',
+        'label' => 'Kurgusal Açık',
+        'type' => 'deal',
+        'color' => 'neutral',
+    ]);
     $deal = Deal::query()->create([
         'company_id' => $company->id,
         'program_version_id' => $version->id,
         'reference_no' => 'D-MODEL-001',
-        'status' => 'temporary_open',
+        'status_id' => $status->id,
         'status_changed_at' => now(),
         'opened_by_user_id' => $user->id,
         'requested_amount' => '125000.50',
