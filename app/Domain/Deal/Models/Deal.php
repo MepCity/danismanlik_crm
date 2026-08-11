@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Deal\Models;
 
+use App\Domain\Crm\Models\Company;
+use App\Domain\Crm\Models\Interaction;
+use App\Domain\Document\Models\DealDocument;
+use App\Domain\Program\Models\ProgramVersion;
 use App\Models\User;
-use App\Support\DomainModelRegistry;
 use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
@@ -31,12 +33,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $document_requested_at
  * @property Carbon|null $first_document_received_at
  * @property Carbon|null $all_required_accepted_at
- * @property-read EloquentModel $company
- * @property-read EloquentModel $programVersion
+ * @property-read Company $company
+ * @property-read ProgramVersion $programVersion
  * @property-read User|null $projectManager
  * @property-read User $openedBy
- * @property-read Collection<int, EloquentModel> $documents
- * @property-read Collection<int, EloquentModel> $interactions
+ * @property-read Collection<int, DealDocument> $documents
+ * @property-read Collection<int, Interaction> $interactions
  */
 #[Fillable([
     'company_id', 'program_version_id', 'reference_no', 'status', 'status_changed_at',
@@ -46,16 +48,16 @@ use Illuminate\Support\Carbon;
 ])]
 final class Deal extends Model
 {
-    /** @return BelongsTo<EloquentModel, $this> */
+    /** @return BelongsTo<Company, $this> */
     public function company(): BelongsTo
     {
-        return $this->belongsTo(DomainModelRegistry::resolve('company'));
+        return $this->belongsTo(Company::class);
     }
 
-    /** @return BelongsTo<EloquentModel, $this> */
+    /** @return BelongsTo<ProgramVersion, $this> */
     public function programVersion(): BelongsTo
     {
-        return $this->belongsTo(DomainModelRegistry::resolve('program_version'));
+        return $this->belongsTo(ProgramVersion::class);
     }
 
     /** @return BelongsTo<User, $this> */
@@ -70,16 +72,16 @@ final class Deal extends Model
         return $this->belongsTo(User::class, 'opened_by_user_id');
     }
 
-    /** @return HasMany<EloquentModel, $this> */
+    /** @return HasMany<DealDocument, $this> */
     public function documents(): HasMany
     {
-        return $this->hasMany(DomainModelRegistry::resolve('deal_document'));
+        return $this->hasMany(DealDocument::class);
     }
 
-    /** @return HasMany<EloquentModel, $this> */
+    /** @return HasMany<Interaction, $this> */
     public function interactions(): HasMany
     {
-        return $this->hasMany(DomainModelRegistry::resolve('interaction'));
+        return $this->hasMany(Interaction::class);
     }
 
     /** @return array<string, string> */

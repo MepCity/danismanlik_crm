@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Crm\Models;
 
+use App\Domain\Deal\Models\Deal;
 use App\Models\User;
-use App\Support\DomainModelRegistry;
 use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
@@ -23,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $outcome
  * @property string|null $note
  * @property-read Lead|null $lead
- * @property-read EloquentModel|null $deal
+ * @property-read Deal|null $deal
  * @property-read User $user
  */
 #[Fillable([
@@ -44,10 +43,10 @@ final class Interaction extends Model
         return $this->belongsTo(Lead::class);
     }
 
-    /** @return BelongsTo<EloquentModel, $this> */
+    /** @return BelongsTo<Deal, $this> */
     public function deal(): BelongsTo
     {
-        return $this->belongsTo(DomainModelRegistry::resolve('deal'));
+        return $this->belongsTo(Deal::class);
     }
 
     /** @return BelongsTo<User, $this> */

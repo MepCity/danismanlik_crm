@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Program\Models;
 
-use App\Support\DomainModelRegistry;
+use App\Domain\Deal\Models\Deal;
 use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
@@ -42,10 +41,10 @@ final class ProgramVersion extends Model
         return $this->hasMany(DocTemplate::class);
     }
 
-    /** @return HasMany<EloquentModel, $this> */
+    /** @return HasMany<Deal, $this> */
     public function deals(): HasMany
     {
-        return $this->hasMany(DomainModelRegistry::resolve('deal'));
+        return $this->hasMany(Deal::class);
     }
 
     /** @return array<string, string> */

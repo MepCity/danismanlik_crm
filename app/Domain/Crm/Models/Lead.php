@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Crm\Models;
 
+use App\Domain\Program\Models\ProgramVersion;
 use App\Models\User;
-use App\Support\DomainModelRegistry;
 use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
@@ -25,7 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $lost_reason
  * @property-read Company $company
  * @property-read User $owner
- * @property-read EloquentModel|null $interestedProgramVersion
+ * @property-read ProgramVersion|null $interestedProgramVersion
  * @property-read Collection<int, Interaction> $interactions
  */
 #[Fillable([
@@ -51,10 +50,10 @@ final class Lead extends Model
         return $this->belongsTo(User::class, 'owner_user_id');
     }
 
-    /** @return BelongsTo<EloquentModel, $this> */
+    /** @return BelongsTo<ProgramVersion, $this> */
     public function interestedProgramVersion(): BelongsTo
     {
-        return $this->belongsTo(DomainModelRegistry::resolve('program_version'));
+        return $this->belongsTo(ProgramVersion::class);
     }
 
     /** @return HasMany<Interaction, $this> */

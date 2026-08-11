@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Program\Models;
 
-use App\Support\DomainModelRegistry;
+use App\Domain\Document\Models\DealDocument;
 use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -36,10 +35,10 @@ final class DocTemplate extends Model
         return $this->belongsTo(ProgramVersion::class);
     }
 
-    /** @return HasMany<EloquentModel, $this> */
+    /** @return HasMany<DealDocument, $this> */
     public function dealDocuments(): HasMany
     {
-        return $this->hasMany(DomainModelRegistry::resolve('deal_document'), 'source_doc_template_id');
+        return $this->hasMany(DealDocument::class, 'source_doc_template_id');
     }
 
     /** @return array<string, string> */

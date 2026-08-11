@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Document\Models;
 
-use App\Support\DomainModelRegistry;
+use App\Domain\Deal\Models\Deal;
+use App\Domain\Program\Models\DocTemplate;
+use App\Domain\Program\Models\ProgramVersion;
 use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
@@ -28,9 +29,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $due_at
  * @property Carbon|null $validity_expires_at
  * @property string|null $notes
- * @property-read EloquentModel $deal
- * @property-read EloquentModel|null $sourceDocTemplate
- * @property-read EloquentModel $sourceProgramVersion
+ * @property-read Deal $deal
+ * @property-read DocTemplate|null $sourceDocTemplate
+ * @property-read ProgramVersion $sourceProgramVersion
  * @property-read Collection<int, File> $files
  */
 #[Fillable([
@@ -41,22 +42,22 @@ use Illuminate\Support\Carbon;
 ])]
 final class DealDocument extends Model
 {
-    /** @return BelongsTo<EloquentModel, $this> */
+    /** @return BelongsTo<Deal, $this> */
     public function deal(): BelongsTo
     {
-        return $this->belongsTo(DomainModelRegistry::resolve('deal'));
+        return $this->belongsTo(Deal::class);
     }
 
-    /** @return BelongsTo<EloquentModel, $this> */
+    /** @return BelongsTo<DocTemplate, $this> */
     public function sourceDocTemplate(): BelongsTo
     {
-        return $this->belongsTo(DomainModelRegistry::resolve('doc_template'));
+        return $this->belongsTo(DocTemplate::class);
     }
 
-    /** @return BelongsTo<EloquentModel, $this> */
+    /** @return BelongsTo<ProgramVersion, $this> */
     public function sourceProgramVersion(): BelongsTo
     {
-        return $this->belongsTo(DomainModelRegistry::resolve('program_version'));
+        return $this->belongsTo(ProgramVersion::class);
     }
 
     /** @return HasMany<File, $this> */
