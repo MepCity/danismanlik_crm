@@ -25,11 +25,13 @@ final readonly class BreakGlassService
         $reason = trim($reason);
         $maximumMinutes = (int) config('access.break_glass_max_minutes', 60);
 
-        if (! $grantedBy->can('access.break_glass.grant')) {
+        if (! $grantedBy->is_active || ! $grantedBy->can('access.break_glass.grant')) {
             throw BreakGlassRejected::forbidden();
         }
 
-        if ($this->scopes->resolve($user) !== DataScope::None) {
+        if (! $user->is_active
+            || ! $user->can('system.users')
+            || $this->scopes->resolve($user) !== DataScope::None) {
             throw BreakGlassRejected::invalidTarget();
         }
 
@@ -68,7 +70,7 @@ final readonly class BreakGlassService
 
     public function revoke(BreakGlassGrant $grant, User $revokedBy): void
     {
-        if (! $revokedBy->can('access.break_glass.grant')) {
+        if (! $revokedBy->is_active || ! $revokedBy->can('access.break_glass.grant')) {
             throw BreakGlassRejected::forbidden();
         }
 

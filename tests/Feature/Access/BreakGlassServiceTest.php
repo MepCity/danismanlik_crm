@@ -52,6 +52,31 @@ it('gerekçesiz süresiz geçmiş ve üst sınırı aşan talepleri reddeder', f
         ->toThrow(BreakGlassRejected::class);
 });
 
+it('acil erişimi yalnız etkin teknik yönetici hedefi ve etkin yetkili verene sınırlar', function (): void {
+    $fixture = breakGlassFixture();
+    $service = app(BreakGlassService::class);
+    $ordinaryNone = User::factory()->create([
+        'email' => 'kapsamsiz-kullanici@example.invalid',
+        'data_scope' => 'none',
+    ]);
+
+    expect(fn () => $service->grant(
+        $ordinaryNone,
+        $fixture['officer'],
+        'Kurgusal teknik inceleme',
+        now()->addMinutes(15),
+    ))->toThrow(BreakGlassRejected::class);
+
+    $fixture['officer']->update(['is_active' => false]);
+
+    expect(fn () => $service->grant(
+        $fixture['admin'],
+        $fixture['officer'],
+        'Kurgusal teknik inceleme',
+        now()->addMinutes(15),
+    ))->toThrow(BreakGlassRejected::class);
+});
+
 it('verildi ve kullanıldı olaylarını yazar, şirket yetkilisini bilgilendirir', function (): void {
     $fixture = breakGlassFixture();
     $grant = app(BreakGlassService::class)->grant(
