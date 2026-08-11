@@ -1,6 +1,6 @@
 # ADR-0017: Filament paneli ve tasarım sistemi
 
-- **Durum:** Kabul edildi
+- **Durum:** Değiştirildi (MFA zorunluluğu ADR-0020 ile değiştirildi)
 - **Tarih:** 13.08.2026
 - **İlgili:** PLAN.md K-03, K-07, K-11 ve §7.3
 
@@ -10,7 +10,7 @@ Filament Resource sorguları varsayılan olarak modelin bütün satırlarını d
 
 ## Karar
 
-Tek Filament panelinin kimliği `operations`, yolu `/operasyon` olur. Kayıt ekranı açılmaz; e-posta ve parola girişi kullanılır. `User::canAccessPanel()` pasif hesapları reddeder. Filament'in yerleşik TOTP sağlayıcısı kurtarma kodlarıyla açılır ve panel genelinde zorunlu tutulur. Bu, PLAN.md'nin Şirket Yetkilisi ile Sistem Yöneticisi için belirlediği asgari çizgiden daha güçlü ve daha sade bir kuraldır.
+Tek Filament panelinin kimliği `operations`, yolu `/operasyon` olur. Kayıt ekranı açılmaz; e-posta ve parola girişi kullanılır. `User::canAccessPanel()` pasif hesapları reddeder. Filament'in yerleşik TOTP sağlayıcısı kurtarma kodlarıyla açılır. TOTP'nin panel genelinde zorunlu tutulması kararı ADR-0020 ile değiştirilmiştir.
 
 Her somut Resource, `ScopedResource` sınıfından türer. Bu temel sınıf liste sorgusunu sonlandırılmış `getEloquentQuery()` içinde `ScopedQuery` üzerinden geçirir. Detay route binding sırasında kapsam üyeliğini denetler ve kapsam dışı mevcut kayıt için 403 döndürür. Kimliği doğrulanmamış sorguda açık kalmak yerine hata verir.
 
@@ -26,5 +26,5 @@ Filament TOTP sırrı `encrypted`, kurtarma kodları `encrypted:array` cast'iyle
 
 - Sonraki UI paketlerinin kapsam filtresini unutması statik testte kırmızı sonuç üretir.
 - Liste ile doğrudan URL erişimi aynı kapsam kaynağını kullanır.
-- Tüm rollerin TOTP kullanması ilk kurulumda küçük ek adım getirir; rol değişiminde güvenlik boşluğu bırakmaz.
+- TOTP zorunluluğunun güncel sonucu ADR-0020'de kayıtlıdır.
 - WP-14 yalnız navigasyon grupları ve örnek Firma Resource'unu içerir; özel operasyon ekranları WP-15–19'a bırakılır.

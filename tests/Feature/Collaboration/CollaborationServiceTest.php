@@ -27,11 +27,12 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Mockery\Expectation;
+use Symfony\Component\Mime\Email;
 
 uses(RefreshDatabase::class);
 
@@ -182,9 +183,20 @@ it('vakti gelen görev için uygulama içi ve e-posta bildirimi bir kez üretir'
 
 it('e-posta işini gönderir ve teslim durumunu sent yapar', function (): void {
     Queue::fake();
-    Mail::fake();
+    config()->set('app.name', 'Bizlife CRM');
     $user = User::factory()->create(['email' => 'teslim@example.invalid']);
     $notification = app(EmailNotificationService::class)->queue($user, 'test', 'Kurgusal başlık', 'Kurgusal gövde');
+    $mailer = Mockery::mock(Mailer::class);
+    /** @var Expectation $mailExpectation */
+    $mailExpectation = $mailer->shouldReceive('raw');
+    $mailExpectation->once()->with("Bizlife CRM\n\nKurgusal gövde", Mockery::on(function (callable $callback): bool {
+        $email = new Email;
+        $callback(new Message($email));
+
+        return $email->getSubject() === 'Bizlife CRM · Kurgusal başlık'
+            && $email->getFrom()[0]->getName() === 'Bizlife CRM';
+    }));
+    app()->instance(Mailer::class, $mailer);
 
     (new SendNotificationEmail($notification->id))->handle(app(ActorHolder::class));
 
@@ -239,6 +251,7 @@ it('günlük özeti doğru kullanıcıya yalnız asgari veriyle hazırlar', func
 it('Mailpit üzerinden gerçek SMTP teslimini doğrular', function (): void {
     $mailpitHost = (string) config('mail.mailers.smtp.host');
     Http::delete("http://{$mailpitHost}:8025/api/v1/messages");
+    config()->set('app.name', 'Bizlife CRM');
     config()->set('mail.default', 'smtp');
     config()->set('mail.mailers.smtp.host', $mailpitHost);
     config()->set('mail.mailers.smtp.port', 1025);
@@ -257,7 +270,7 @@ it('Mailpit üzerinden gerçek SMTP teslimini doğrular', function (): void {
     $messages = Http::get("http://{$mailpitHost}:8025/api/v1/messages")->throw()->json('messages');
 
     expect($notification->refresh()->delivery_status)->toBe('sent')
-        ->and(array_column($messages, 'Subject'))->toContain('Kurgusal Mailpit teslimi');
+        ->and(array_column($messages, 'Subject'))->toContain('Bizlife CRM · Kurgusal Mailpit teslimi');
 });
 
 it('aktiviteyi anlık görüntüden çevirir ve statü değişikliklerinden etkilenmez', function (): void {

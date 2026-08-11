@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'brand' => 'Teşvik Operasyon',
+    'brand' => 'Bizlife CRM',
     'navigation' => [
         'groups' => [
             'overview' => 'Genel Bakış',
