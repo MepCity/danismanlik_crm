@@ -30,7 +30,11 @@ final class SendNotificationEmail extends AutomationJob
 
         try {
             app(Mailer::class)->raw($notification->body, function ($message) use ($notification): void {
-                $message->to($notification->user->email, $notification->user->name)
+                $external = $notification->recipient_email !== null;
+                $message->to(
+                    $external ? $notification->recipient_email : $notification->user->email,
+                    $external ? $notification->recipient_name : $notification->user->name,
+                )
                     ->subject($notification->title);
             });
             $notification->update(['delivery_status' => 'sent', 'error' => null]);

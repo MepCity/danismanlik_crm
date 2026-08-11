@@ -32,4 +32,28 @@ final class EmailNotificationService
 
         return $notification;
     }
+
+    public function queueExternal(
+        string $email,
+        ?string $name,
+        string $type,
+        string $title,
+        string $body,
+        ?SubjectReference $subject = null,
+    ): Notification {
+        $notification = Notification::query()->create([
+            'recipient_email' => $email,
+            'recipient_name' => $name,
+            'type' => $type,
+            ...($subject?->columns() ?? ['lead_id' => null, 'deal_id' => null, 'deal_document_id' => null]),
+            'title' => $title,
+            'body' => $body,
+            'channel' => 'email',
+            'delivery_status' => 'pending',
+        ]);
+
+        SendNotificationEmail::dispatch($notification->id)->afterCommit();
+
+        return $notification;
+    }
 }

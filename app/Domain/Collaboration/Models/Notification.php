@@ -15,7 +15,9 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property int $user_id
+ * @property int|null $user_id
+ * @property string|null $recipient_email
+ * @property string|null $recipient_name
  * @property string $type
  * @property int|null $lead_id
  * @property int|null $deal_id
@@ -28,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $error
  */
 #[Fillable([
-    'user_id', 'type', 'lead_id', 'deal_id', 'deal_document_id', 'title',
+    'user_id', 'recipient_email', 'recipient_name', 'type', 'lead_id', 'deal_id', 'deal_document_id', 'title',
     'body', 'channel', 'read_at', 'delivery_status', 'error',
 ])]
 final class Notification extends Model
