@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Crm\Models;
 
+use App\Domain\Deal\Models\Status;
+use App\Domain\Deal\Models\StatusHistory;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Models\User;
 use App\Support\Model;
@@ -19,20 +21,22 @@ use Illuminate\Support\Carbon;
  * @property int $owner_user_id
  * @property string|null $source
  * @property int|null $interested_program_version_id
- * @property string $status
+ * @property int $status_id
  * @property Carbon|null $next_call_at
  * @property string|null $lost_reason
  * @property-read Company $company
  * @property-read User $owner
  * @property-read ProgramVersion|null $interestedProgramVersion
  * @property-read Collection<int, Interaction> $interactions
+ * @property-read Status $status
+ * @property-read Collection<int, StatusHistory> $statusHistory
  */
 #[Fillable([
     'company_id',
     'owner_user_id',
     'source',
     'interested_program_version_id',
-    'status',
+    'status_id',
     'next_call_at',
     'lost_reason',
 ])]
@@ -60,6 +64,18 @@ final class Lead extends Model
     public function interactions(): HasMany
     {
         return $this->hasMany(Interaction::class);
+    }
+
+    /** @return BelongsTo<Status, $this> */
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(Status::class);
+    }
+
+    /** @return HasMany<StatusHistory, $this> */
+    public function statusHistory(): HasMany
+    {
+        return $this->hasMany(StatusHistory::class);
     }
 
     /** @return array<string, string> */

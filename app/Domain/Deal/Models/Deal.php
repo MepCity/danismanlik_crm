@@ -21,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property int $company_id
  * @property int $program_version_id
  * @property string $reference_no
- * @property string $status
+ * @property int $status_id
  * @property Carbon $status_changed_at
  * @property int|null $pm_user_id
  * @property int $opened_by_user_id
@@ -39,9 +39,11 @@ use Illuminate\Support\Carbon;
  * @property-read User $openedBy
  * @property-read Collection<int, DealDocument> $documents
  * @property-read Collection<int, Interaction> $interactions
+ * @property-read Status $status
+ * @property-read Collection<int, StatusHistory> $statusHistory
  */
 #[Fillable([
-    'company_id', 'program_version_id', 'reference_no', 'status', 'status_changed_at',
+    'company_id', 'program_version_id', 'reference_no', 'status_id', 'status_changed_at',
     'pm_user_id', 'opened_by_user_id', 'requested_amount', 'application_no',
     'applied_at', 'decided_at', 'priority', 'document_requested_at',
     'first_document_received_at', 'all_required_accepted_at',
@@ -82,6 +84,18 @@ final class Deal extends Model
     public function interactions(): HasMany
     {
         return $this->hasMany(Interaction::class);
+    }
+
+    /** @return BelongsTo<Status, $this> */
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(Status::class);
+    }
+
+    /** @return HasMany<StatusHistory, $this> */
+    public function statusHistory(): HasMany
+    {
+        return $this->hasMany(StatusHistory::class);
     }
 
     /** @return array<string, string> */
