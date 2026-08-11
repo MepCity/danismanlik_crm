@@ -17,7 +17,7 @@ use App\Domain\Document\Services\DocumentRequirementDecisionService;
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\Program;
 use App\Models\User;
-use App\Support\Conditions\Exceptions\UnknownConditionOperator;
+use App\Support\Conditions\Exceptions\InvalidConditionDefinition;
 use App\Support\Events\DomainEvent;
 use App\Support\Outbox\DatabaseOutboxWriter;
 use App\Support\Outbox\Models\OutboxMessage;
@@ -237,19 +237,17 @@ it('sets the first document request timestamp when rows become requested', funct
     expect($fixture['deal']->refresh()->document_requested_at?->toDateTimeString())->toBe('2099-04-05 10:30:00');
 });
 
-it('surfaces an unknown condition operator instead of silently skipping it', function (): void {
+it('rejects an unknown condition operator before checklist generation', function (): void {
     $fixture = checklistFixture();
-    DocTemplate::query()->create([
+
+    expect(fn () => DocTemplate::query()->create([
         'program_version_id' => $fixture['deal']->program_version_id,
         'name' => 'Kurgusal Bilinmeyen Koşul Belgesi',
         'is_required' => true,
         'condition' => ['all' => [['field' => 'company.city', 'op' => 'mystery', 'value' => ['06']]]],
         'accepted_formats' => ['pdf'],
         'sort_order' => 99,
-    ]);
-
-    expect(fn () => app(ChecklistGeneratorContract::class)->generate($fixture['deal']->id, $fixture['actor']->id))
-        ->toThrow(UnknownConditionOperator::class, 'Bilinmeyen koşul operatörü: mystery.');
+    ]))->toThrow(InvalidConditionDefinition::class);
 });
 
 it('rolls back every checklist effect when the outbox write fails', function (): void {
