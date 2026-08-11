@@ -10,6 +10,6 @@ final class ProcessOutbox extends AutomationJob
 {
     protected function execute(): void
     {
-        // Outbox tablosu ve işleme davranışı WP-07'de eklenecek.
+        // Olay işleme ve yeniden deneme davranışı sonraki domain paketlerindedir.
     }
 }

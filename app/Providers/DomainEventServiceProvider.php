@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Support\Events\DomainEvent;
+use App\Support\Outbox\DatabaseOutboxWriter;
 use App\Support\Outbox\OutboxWriter;
-use App\Support\Outbox\PendingOutboxWriter;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
@@ -14,7 +14,7 @@ final class DomainEventServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(OutboxWriter::class, PendingOutboxWriter::class);
+        $this->app->bind(OutboxWriter::class, DatabaseOutboxWriter::class);
     }
 
     public function boot(): void
