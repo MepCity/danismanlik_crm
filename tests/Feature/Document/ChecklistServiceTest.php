@@ -82,6 +82,7 @@ it('creates the earthquake document for one of the configured eleven cities', fu
     $fixture = checklistFixture(city: '31');
 
     expect($fixture['deal']->documents()->where('name_snapshot', 'Hasar Durumu Belgesi')->exists())->toBeTrue()
+        ->and($fixture['deal']->documents()->where('name_snapshot', 'Hasar Durumu Belgesi')->sole()->required_snapshot)->toBeTrue()
         ->and($fixture['deal']->documents()->count())->toBe(6);
 });
 
@@ -89,6 +90,7 @@ it('creates the feasibility report above the configured amount threshold', funct
     $fixture = checklistFixture(amount: '5000000.01');
 
     expect($fixture['deal']->documents()->where('name_snapshot', 'Fizibilite Raporu')->exists())->toBeTrue()
+        ->and($fixture['deal']->documents()->where('name_snapshot', 'Fizibilite Raporu')->sole()->required_snapshot)->toBeTrue()
         ->and($fixture['deal']->documents()->count())->toBe(6);
 });
 
@@ -175,7 +177,7 @@ it('keeps the document required when the project manager rejects the suggestion'
 
     expect($suggestion->refresh()->status)->toBe('rejected')
         ->and($document->refresh()->status)->toBe('to_request')
-        ->and($document->required_snapshot)->toBeFalse();
+        ->and($document->required_snapshot)->toBeTrue();
 });
 
 it('rejects deleting suggestions and creating duplicate pending decisions at database level', function (): void {

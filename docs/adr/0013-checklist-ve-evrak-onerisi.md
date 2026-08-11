@@ -21,6 +21,9 @@ program sürümünün etkin şablonlarını okur. Koşulsuz şablonlar doğrudan
 koşullular ise ADR-0012'deki ortak `ConditionEvaluator` başarılı olduğunda
 oluşturulur. Her satır ad, açıklama, zorunluluk ve koşul anlık görüntülerinin
 yanında şablon ile program sürümü kimliklerini de taşır.
+Şablonda `is_required=false` ve koşul bulunması, evrakın opsiyonel olduğunu
+değil koşula bağlı olduğunu anlatır; koşul sağlanıp dosyaya kopyalandığında
+`required_snapshot=true` olur.
 
 İdempotans, dosya kilidi altında `deal_id + source_doc_template_id` eşleşmesiyle
 `firstOrCreate` kullanılarak sağlanır. Kilit aynı dosyanın eşzamanlı iki

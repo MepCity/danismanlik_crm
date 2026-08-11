@@ -73,7 +73,7 @@ final readonly class ChecklistGenerator implements ChecklistGeneratorContract
             'source_program_version_id' => $deal->programVersionId,
             'name_snapshot' => $template->name,
             'description_snapshot' => $template->description,
-            'required_snapshot' => $template->required,
+            'required_snapshot' => $template->required || $template->condition !== null,
             'condition_snapshot' => $template->condition,
             'condition_matches' => $template->condition === null ? null : true,
             'status' => 'to_request',

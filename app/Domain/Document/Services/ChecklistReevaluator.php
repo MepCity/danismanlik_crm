@@ -57,7 +57,7 @@ final readonly class ChecklistReevaluator implements ChecklistReevaluatorContrac
                         'source_program_version_id' => $deal->programVersionId,
                         'name_snapshot' => $template->name,
                         'description_snapshot' => $template->description,
-                        'required_snapshot' => $template->required,
+                        'required_snapshot' => true,
                         'condition_snapshot' => $template->condition,
                         'condition_matches' => true,
                         'status' => 'to_request',
