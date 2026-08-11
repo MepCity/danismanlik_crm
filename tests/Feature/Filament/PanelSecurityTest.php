@@ -18,10 +18,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
+use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    /** @var TestCase $this */
+    $this->disableVite();
     (new ReferenceDataSeeder)->setContainer(app())->run();
     Filament::setCurrentPanel(Filament::getPanel('operations'));
 });
