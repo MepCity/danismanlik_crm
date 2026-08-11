@@ -14,6 +14,7 @@ use App\Domain\Deal\Models\Status;
 use App\Domain\Deal\Models\StatusHistory;
 use App\Domain\Deal\Models\WorkflowRevision;
 use App\Domain\Document\Models\DealDocument;
+use App\Domain\Document\Models\DocumentRequirementSuggestion;
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\Program;
 use App\Models\User;
@@ -120,6 +121,7 @@ final class DemoDataSeeder extends Seeder
                     'phone' => null,
                     'is_primary' => true,
                     'is_active' => true,
+                    'consent_email' => true,
                 ],
             );
         }
@@ -179,6 +181,17 @@ final class DemoDataSeeder extends Seeder
             );
 
             $this->seedDealDocuments($deal, $statusCode);
+
+            if ($reference === 'DEMO-2026-002') {
+                $document = $deal->documents()->where('name_snapshot', 'Fizibilite Raporu')->firstOrFail();
+                DocumentRequirementSuggestion::query()->firstOrCreate(
+                    ['deal_document_id' => $document->id, 'status' => 'pending'],
+                    [
+                        'reason' => 'condition_no_longer_matches',
+                        'reason_parameters' => ['document' => $document->name_snapshot],
+                    ],
+                );
+            }
         }
     }
 
