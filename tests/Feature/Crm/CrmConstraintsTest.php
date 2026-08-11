@@ -141,14 +141,12 @@ it('restricts deletion of contacts referenced by consents', function (): void {
     expect(fn () => $contact->delete())->toThrow(QueryException::class);
 });
 
-it('rejects uncontrolled interaction subject types', function (): void {
+it('requires exactly one interaction subject', function (): void {
     $user = User::factory()->create(['email' => 'interaction-type@example.invalid']);
 
     expect(fn () => Interaction::query()->create([
-        'subject_type' => 'company',
-        'subject_id' => 1,
         'user_id' => $user->id,
         'type' => 'call',
         'occurred_at' => now(),
-    ]))->toThrow(QueryException::class);
+    ]))->toThrow(QueryException::class, 'interactions_exactly_one_subject');
 });

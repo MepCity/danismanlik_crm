@@ -45,7 +45,13 @@ it('migrates rolls back and remigrates the CRM schema on PostgreSQL', function (
                 SELECT indexdef
                 FROM pg_indexes
                 WHERE schemaname = '{$schema}'
-                  AND indexname = 'interactions_subject_timeline'
+                  AND indexname = 'interactions_lead_timeline'
+                SQL))->toContain('occurred_at DESC')
+            ->and(DB::connection($connection)->scalar(<<<SQL
+                SELECT indexdef
+                FROM pg_indexes
+                WHERE schemaname = '{$schema}'
+                  AND indexname = 'interactions_deal_timeline'
                 SQL))->toContain('occurred_at DESC');
 
         expect(Artisan::call('migrate:rollback', [
