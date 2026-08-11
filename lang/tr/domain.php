@@ -25,5 +25,12 @@ return [
             'deal_count' => '{1} Şu anda :count dosya ":status" statüsünde|[2,*] Şu anda :count dosya ":status" statüsünde',
             'lead_count' => '{1} Şu anda :count fırsat ":status" statüsünde|[2,*] Şu anda :count fırsat ":status" statüsünde',
         ],
+        'document' => [
+            'suggestion_not_pending' => 'Bu evrak önerisi daha önce karara bağlanmış.',
+            'request_invalid_status' => '":document" evrakı talep gönderilmeyi beklemiyor.',
+            'request_mixed_deals' => 'Aynı işlemde yalnızca tek dosyanın evrakları talep edilebilir.',
+            'request_empty' => 'Talep gönderilecek en az bir evrak seçilmelidir.',
+            'request_missing' => 'Seçilen evraklardan biri bulunamadı.',
+        ],
     ],
 ];

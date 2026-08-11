@@ -136,6 +136,7 @@ it('applies every deal transition effect in one successful call', function (): v
         ->and($fixture['deal']->refresh()->status_id)->toBe($fixture['to']->id)
         ->and($fixture['deal']->status_changed_at->greaterThan($oldChangedAt))->toBeTrue()
         ->and($activity->action)->toBe('deal.status_changed')
+        ->and($activity->source)->toBe('user')
         ->and($activity->payload)->toMatchArray([
             'from_status' => ['id' => $fixture['from']->id, 'label' => 'Belgeler toplanıyor'],
             'to_status' => ['id' => $fixture['to']->id, 'label' => 'Başvuru hazırlanıyor'],
