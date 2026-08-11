@@ -52,6 +52,13 @@ jobs:
       DB_PASSWORD: tesvik
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: 6379
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_BUCKET: tesvik-crm
+      AWS_USE_PATH_STYLE_ENDPOINT: true
+      AWS_ENDPOINT: http://127.0.0.1:9000
+      DOCUMENT_DISK: s3
 
     steps:
       - name: Kodu al
@@ -61,8 +68,24 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, intl, pdo_pgsql, redis
+          extensions: mbstring, intl, pdo_pgsql, redis, zip
           coverage: none
+
+      - name: MinIO başlat ve kovayı hazırla
+        run: |
+          docker run --detach --name minio \
+            --publish 9000:9000 \
+            --env MINIO_ROOT_USER=minioadmin \
+            --env MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio:latest server /data
+          for attempt in {1..30}; do
+            curl --fail --silent http://127.0.0.1:9000/minio/health/ready && break
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:9000/minio/health/ready
+          docker run --rm --network host \
+            --env MC_HOST_local=http://minioadmin:minioadmin@127.0.0.1:9000 \
+            minio/mc:latest mb --ignore-existing local/tesvik-crm
 
       - name: Composer önbellek dizinini bul
         id: composer-cache

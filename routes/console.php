@@ -13,3 +13,7 @@ Artisan::command('inspire', function () {
 Schedule::command('audit:ensure-partitions')
     ->dailyAt('00:15')
     ->withoutOverlapping();
+
+Schedule::command('documents:expire')
+    ->hourly()
+    ->withoutOverlapping();
