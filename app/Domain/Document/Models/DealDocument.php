@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Document\Models;
 
+use App\Domain\Collaboration\Models\Activity;
+use App\Domain\Collaboration\Models\Comment;
+use App\Domain\Collaboration\Models\Notification;
+use App\Domain\Collaboration\Models\Task;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\ProgramVersion;
@@ -33,6 +37,10 @@ use Illuminate\Support\Carbon;
  * @property-read DocTemplate|null $sourceDocTemplate
  * @property-read ProgramVersion $sourceProgramVersion
  * @property-read Collection<int, File> $files
+ * @property-read Collection<int, Activity> $activities
+ * @property-read Collection<int, Comment> $comments
+ * @property-read Collection<int, Task> $tasks
+ * @property-read Collection<int, Notification> $notifications
  */
 #[Fillable([
     'deal_id', 'source_doc_template_id', 'source_program_version_id',
@@ -64,6 +72,30 @@ final class DealDocument extends Model
     public function files(): HasMany
     {
         return $this->hasMany(File::class);
+    }
+
+    /** @return HasMany<Activity, $this> */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
+    /** @return HasMany<Comment, $this> */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    /** @return HasMany<Task, $this> */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /** @return HasMany<Notification, $this> */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
     }
 
     /** @return array<string, string> */
