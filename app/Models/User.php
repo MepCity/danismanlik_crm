@@ -37,6 +37,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property bool $is_active
  * @property Carbon|null $deactivated_at
  * @property Carbon|null $last_login_at
+ * @property Carbon|null $app_authentication_enabled_at
  * @property string|null $data_scope
  * @property-read Collection<int, Team> $teams
  * @property-read Collection<int, Team> $managedTeams
@@ -129,6 +130,18 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'is_active' => 'boolean',
             'deactivated_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'app_authentication_enabled_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            if (! $user->isDirty('app_authentication_secret')) {
+                return;
+            }
+
+            $user->app_authentication_enabled_at = filled($user->app_authentication_secret) ? now() : null;
+        });
     }
 }

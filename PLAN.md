@@ -487,7 +487,7 @@ Uygulama:
 ### 7.3 Güvenlik temel çizgisi
 
 - E-posta + parola, `bcrypt`/`argon2`, güçlü parola politikası
-- **2FA (TOTP)** en azından Şirket Yetkilisi ve Sistem Yöneticisi için
+- **2FA (TOTP) isteğe bağlıdır:** varsayılan kapalıdır; kullanıcı kendi profilinden açar ve kapatır, açtığında sonraki girişlerde kod sorulur. Müşteri bu kullanım kolaylığı tercihini, Şirket Yetkilisi hesabının tüm iş verisini görmesi riskini bilerek kabul etti
 - Ortak hesap yasak — herkes kendi hesabı
 - HttpOnly + Secure + SameSite çerez, hareketsizlik zaman aşımı, "tüm oturumları kapat"
 - Başarısız giriş sınırı, hız sınırlama, CSRF koruması, girdi şema doğrulaması

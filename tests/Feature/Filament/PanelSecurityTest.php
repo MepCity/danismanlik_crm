@@ -7,6 +7,9 @@ use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Status;
 use App\Filament\Resources\Companies\CompanyResource;
 use App\Models\User;
+use App\Support\Audit\Actor;
+use App\Support\Audit\ActorHolder;
+use App\Support\Audit\ActorSource;
 use Database\Seeders\ReferenceDataSeeder;
 use Filament\Auth\Pages\Login;
 use Filament\Facades\Filament;
@@ -132,13 +135,53 @@ it('yetkisiz kaynağı menüden gizler', function (): void {
     panelGet($admin, '/operasyon')->assertDontSee(__('panel.resources.companies.navigation'));
 });
 
-it('zorunlu rolleri totp kurulumu olmadan panele almaz', function (string $role): void {
-    $user = User::factory()->create(['email' => str($role)->slug().'@example.invalid']);
-    $user->assignRole($role);
+it('mfa kurmamış kullanıcıyı kurulum ekranına zorlamadan giriş yaptırır', function (): void {
+    $user = User::factory()->create([
+        'email' => 'mfasiz@example.invalid',
+        'password' => 'KurgusalParola123!',
+    ]);
+    $user->assignRole('Şirket Yetkilisi');
 
-    panelGet($user, '/operasyon')
-        ->assertRedirect(route('filament.operations.auth.multi-factor-authentication.set-up-required'));
-})->with(['Şirket Yetkilisi', 'Sistem Yöneticisi']);
+    Livewire::test(Login::class)
+        ->fillForm(['email' => $user->email, 'password' => 'KurgusalParola123!'])
+        ->call('authenticate')
+        ->assertSet('userUndertakingMultiFactorAuthentication', null)
+        ->assertRedirect('/operasyon');
+
+    expect(Filament::getPanel('operations')->isMultiFactorAuthenticationRequired())->toBeFalse()
+        ->and(auth()->id())->toBe($user->id);
+
+    panelGet($user, '/operasyon')->assertOk();
+});
+
+it('mfa açıkken girişte kod sorar ve kapatılınca sormaz', function (): void {
+    $user = User::factory()->create([
+        'email' => 'mfa-akisi@example.invalid',
+        'password' => 'KurgusalParola123!',
+    ]);
+    $user->assignRole('Şirket Yetkilisi');
+    $user->saveAppAuthenticationSecret('KURGUSAL-TOTP-SECRET');
+    $user->saveAppAuthenticationRecoveryCodes(['KURGUSAL-KURTARMA']);
+
+    Livewire::test(Login::class)
+        ->fillForm(['email' => $user->email, 'password' => 'KurgusalParola123!'])
+        ->call('authenticate')
+        ->assertSet('userUndertakingMultiFactorAuthentication', fn (?string $value): bool => filled($value));
+
+    expect(auth()->check())->toBeFalse()
+        ->and($user->fresh()->app_authentication_enabled_at)->not->toBeNull();
+
+    $user->saveAppAuthenticationSecret(null);
+    $user->saveAppAuthenticationRecoveryCodes(null);
+
+    Livewire::test(Login::class)
+        ->fillForm(['email' => $user->email, 'password' => 'KurgusalParola123!'])
+        ->call('authenticate')
+        ->assertSet('userUndertakingMultiFactorAuthentication', null)
+        ->assertRedirect('/operasyon');
+
+    expect($user->fresh()->app_authentication_enabled_at)->toBeNull();
+});
 
 it('totp sırlarını ve kurtarma kodlarını denetim jsonuna yazmaz', function (): void {
     $user = panelUser('Şirket Yetkilisi', 'audit-mfa');
@@ -158,4 +201,30 @@ it('totp sırlarını ve kurtarma kodlarını denetim jsonuna yazmaz', function 
         ->and(str_contains($payload, 'app_authentication_recovery_codes'))->toBeFalse()
         ->and(str_contains($payload, 'DENETIMDE-GORUNMEMELI'))->toBeFalse()
         ->and(str_contains($payload, 'KOD-GORUNMEMELI'))->toBeFalse();
+});
+
+it('mfa açma ve kapatmayı aktörüyle denetim kaydına yazar', function (): void {
+    $user = panelUser('Şirket Yetkilisi', 'audit-mfa-toggle');
+
+    app(ActorHolder::class)->runWith(
+        new Actor(ActorSource::User, (string) $user->id),
+        function () use ($user): void {
+            DB::transaction(fn () => $user->saveAppAuthenticationSecret(null));
+            DB::transaction(fn () => $user->saveAppAuthenticationSecret('YENI-KURGUSAL-SECRET'));
+        },
+    );
+
+    $events = DB::table('audit_log')
+        ->where('table_name', 'users')
+        ->where('row_id', $user->id)
+        ->where('operation', 'UPDATE')
+        ->orderBy('created_at')
+        ->get();
+
+    expect($events)->toHaveCount(2)
+        ->and($events[0]->actor_id)->toBe($user->id)
+        ->and(json_decode($events[0]->new_data, true)['app_authentication_enabled_at'])->toBeNull()
+        ->and($events[1]->actor_id)->toBe($user->id)
+        ->and(json_decode($events[1]->new_data, true)['app_authentication_enabled_at'])->not->toBeNull()
+        ->and($events->toJson())->not->toContain('YENI-KURGUSAL-SECRET');
 });

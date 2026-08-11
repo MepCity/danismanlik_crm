@@ -36,7 +36,7 @@ final class AdminPanelProvider extends PanelProvider
             ->revealablePasswords(false)
             ->multiFactorAuthentication([
                 AppAuthentication::make()->recoverable()->codeWindow(4),
-            ], isRequired: true)
+            ], isRequired: false)
             ->strictAuthorization()
             ->maxContentWidth(Width::Full)
             ->sidebarCollapsibleOnDesktop()

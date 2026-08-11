@@ -44,7 +44,7 @@ it('migrates rolls back and remigrates the workflow schema on PostgreSQL', funct
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 7,
+            '--step' => 8,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('statuses'))->toBeFalse()
             ->and(Schema::connection($connection)->hasTable('status_history'))->toBeFalse()
