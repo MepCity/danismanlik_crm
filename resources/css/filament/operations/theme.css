@@ -59,8 +59,24 @@ body {
 }
 
 .status-token {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--crm-space-1);
+    padding: var(--crm-space-1) var(--crm-space-2);
     border-inline-start: var(--crm-space-1) solid currentColor;
     border-radius: var(--crm-radius-sm);
+}
+
+.status-token__shape {
+    display: inline-grid;
+    width: var(--crm-space-4);
+    height: var(--crm-space-4);
+    place-items: center;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: var(--crm-text-xs);
+    font-weight: 700;
+    line-height: 1;
 }
 
 .status-token[data-status='neutral'] {
