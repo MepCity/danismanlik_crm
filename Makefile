@@ -19,7 +19,7 @@ USER_ID     ?= $(shell id -u)
 GROUP_ID    ?= $(shell id -g)
 
 .PHONY: help up down restart build rebuild logs ps shell \
-        artisan composer php tinker migrate fresh test \
+        artisan composer php tinker migrate fresh seed seed-demo test \
         minio-bucket clean \
         lint lint-fix analyse test test-coverage
 
@@ -85,12 +85,14 @@ test-coverage: ## Pest kod kapsama raporu (coverage/*.clover)
 	$(COMPOSE) run --rm db-init
 	$(COMPOSE) exec $(APP) php artisan test --coverage --coverage-html=coverage --min=0
 
-fresh: ## Tam sıfırdan kurulum: down -v → up --build → key → migrate
-	$(COMPOSE) down -v
-	$(COMPOSE) up -d --build --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID)
-	@echo "Veritabanı ve önbellek sıfırlandı, migrate bekleniyor..."
-	$(COMPOSE) exec $(APP) php artisan key:generate --ansi || true
-	$(COMPOSE) exec $(APP) php artisan migrate --force
+seed: ## Yalnız üretimde güvenli referans/yapılandırma verisini yükle
+	$(COMPOSE) exec $(APP) php artisan db:seed --class=ReferenceDataSeeder --force
+
+seed-demo: ## Referans verisiyle birlikte kurgusal demo verisini yükle
+	$(COMPOSE) exec $(APP) php artisan db:seed --class=DemoDataSeeder --force
+
+fresh: ## Şemayı sıfırla ve yalnız referans/yapılandırma verisini yükle
+	$(COMPOSE) exec $(APP) php artisan migrate:fresh --seed --force
 
 # --- Kalite / test ---
 
