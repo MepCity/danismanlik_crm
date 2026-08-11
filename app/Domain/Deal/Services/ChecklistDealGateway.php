@@ -33,6 +33,23 @@ final class ChecklistDealGateway
         ]);
     }
 
+    public function setFirstDocumentReceivedAtIfMissing(int $dealId, Carbon $receivedAt): bool
+    {
+        return Deal::query()->whereKey($dealId)->whereNull('first_document_received_at')->update([
+            'first_document_received_at' => $receivedAt,
+        ]) === 1;
+    }
+
+    public function setDocumentCompletion(int $dealId, bool $complete, Carbon $at): void
+    {
+        $deal = Deal::query()->lockForUpdate()->findOrFail($dealId);
+        $deal->update([
+            'all_required_accepted_at' => $complete
+                ? ($deal->all_required_accepted_at ?? $at)
+                : null,
+        ]);
+    }
+
     private function toData(Deal $deal): ChecklistDeal
     {
         return new ChecklistDeal(
