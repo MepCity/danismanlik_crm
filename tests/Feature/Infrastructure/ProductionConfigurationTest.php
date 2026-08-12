@@ -50,3 +50,13 @@ it('keeps production secrets blank in the committed template', function (): void
         expect($template)->toMatch('/^'.preg_quote($secret, '/').'=$/m');
     }
 });
+
+it('preserves the host port when forwarding local requests to Laravel', function (): void {
+    $nginx = file_get_contents(base_path('docker/web/default.conf'));
+
+    expect($nginx)->toBeString();
+    assert(is_string($nginx));
+
+    expect($nginx)->toContain('""      $http_host;');
+    expect($nginx)->not->toContain('""      $host;');
+});
