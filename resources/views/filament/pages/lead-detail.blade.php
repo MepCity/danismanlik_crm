@@ -12,6 +12,7 @@
             <div class="operations-fact"><dt>{{ __('marketing.detail.owner') }}</dt><dd>{{ $lead->owner->name }}</dd></div>
             <div class="operations-fact"><dt>{{ __('marketing.detail.status') }}</dt><dd>{!! \App\Filament\Support\StatusBadge::make($lead->status->color, $lead->status->label) !!}</dd></div>
             <div class="operations-fact"><dt>{{ __('marketing.detail.program') }}</dt><dd>{{ $lead->interestedProgramVersion?->program?->name ?? __('marketing.board.no_program') }}</dd></div>
+            <div class="operations-fact"><dt>{{ __('marketing.intake.contact.title') }}</dt><dd>{{ $lead->primaryContact?->full_name ?? __('marketing.consent.not_recorded') }}@if($lead->primaryContact?->decision_role) · {{ __('marketing.intake.contact.roles.'.$lead->primaryContact->decision_role) }}@endif</dd></div>
             @if ($lead->convertedDeal)<div class="operations-fact"><dt>{{ __('marketing.detail.converted_deal') }}</dt><dd><a class="operations-link numeric-data" href="{{ \App\Filament\Pages\DealDetail::getUrl(['deal' => $lead->convertedDeal->id]) }}">{{ $lead->convertedDeal->reference_no }}</a></dd></div>@endif
         </section>
         @elseif ($activeTab === 'contacts')
@@ -40,7 +41,7 @@
             @endforeach
         </section>
         @elseif ($activeTab === 'interactions')
-        @include('filament.pages.partials.interactions', ['interactions' => $lead->interactions])
+        @include('filament.pages.partials.interactions', ['interactions' => $lead->interactions, 'contacts' => $lead->company->contacts->where('is_active', true)])
         @elseif ($activeTab === 'comments')
             <livewire:collaboration-comments subject-type="lead" :subject-id="$lead->id" :key="'lead-comments-'.$lead->id" />
         @elseif ($activeTab === 'history')

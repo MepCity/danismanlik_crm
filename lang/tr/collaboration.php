@@ -44,6 +44,10 @@ return [
         'unknown' => ':action işlemini gerçekleştirdi',
         'comment' => 'yorum: ":body"',
         'actions' => [
+            'company_created' => 'firma kaydını oluşturdu',
+            'contact_created' => 'firma kişisi kaydını oluşturdu',
+            'lead_created' => 'programa özel fırsatı oluşturdu',
+            'interaction_recorded' => 'görüşmeyi kaydetti',
             'deal_status_changed' => 'statüyü ":from" → ":to" yaptı',
             'lead_status_changed' => 'fırsat statüsünü ":from" → ":to" yaptı',
             'document_status_changed' => '":document" durumunu :from → :to yaptı',

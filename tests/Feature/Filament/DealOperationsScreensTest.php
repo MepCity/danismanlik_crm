@@ -18,6 +18,7 @@ use App\Domain\Document\Services\DocumentUploadService;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Filament\Pages\DealBoard;
 use App\Filament\Pages\DealDetail;
+use App\Filament\Pages\PendingAssignments;
 use App\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
 use Filament\Facades\Filament;
@@ -243,4 +244,20 @@ it('dosya görüşmesini dosyadan ayrı bir interaction satırı olarak kaydeder
 
     expect(Interaction::query()->where('deal_id', $fixture['deal']->id)->whereNull('lead_id')->count())->toBe(1)
         ->and($fixture['deal']->refresh()->status_id)->toBe($statusId);
+});
+
+it('şirket yetkilisi atama ekranında işi inceleyip proje yöneticisine devreder', function (): void {
+    $fixture = operationsFixture('atama-ekrani');
+    $awaiting = Status::query()->where('type', 'deal')->where('is_initial', true)->sole();
+    $fixture['deal']->update(['status_id' => $awaiting->id, 'pm_user_id' => null]);
+    Auth::login($fixture['officer']);
+
+    Livewire::test(PendingAssignments::class)
+        ->assertSee($fixture['company']->legal_name)
+        ->assertSee('Proje yöneticisi iş yükü')
+        ->set("projectManagerIds.{$fixture['deal']->id}", $fixture['pm']->id)
+        ->call('assign', $fixture['deal']->id)
+        ->assertHasNoErrors();
+
+    expect($fixture['deal']->refresh()->pm_user_id)->toBe($fixture['pm']->id);
 });

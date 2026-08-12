@@ -76,7 +76,7 @@ final class TodayCalls extends Page
         ]);
         $lead = $this->lead((int) $this->activeLeadId);
         Gate::authorize('create', Interaction::class);
-        $interactions->forLead($lead->id, (int) Auth::id(), 'call', Carbon::now(), null, $this->quickOutcome, $this->quickNote ?: null);
+        $interactions->forLead($lead->id, (int) Auth::id(), 'call', Carbon::now(), null, $this->quickOutcome, $this->quickNote ?: null, $lead->primary_contact_id);
         $this->reset('activeLeadId', 'quickOutcome', 'quickNote');
         Notification::make()->title(__('marketing.messages.interaction_saved'))->success()->send();
     }

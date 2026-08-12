@@ -23,6 +23,8 @@ final class ViewCompany extends ViewRecord
 
     public string $contactTitle = '';
 
+    public string $contactDecisionRole = '';
+
     public string $contactPhone = '';
 
     public string $contactEmail = '';
@@ -35,11 +37,14 @@ final class ViewCompany extends ViewRecord
 
     public string $contactDisclosureMethod = '';
 
+    public string $activeTab = 'overview';
+
     public function addContact(SaveContact $contacts): void
     {
         $this->validate([
             'contactFullName' => ['required', 'string', 'max:255'],
             'contactTitle' => ['nullable', 'string', 'max:255'],
+            'contactDecisionRole' => ['nullable', 'in:decision_maker,authorized_contact,technical_contact,financial_contact,information_provider,other'],
             'contactPhone' => ['nullable', 'string', 'max:40'],
             'contactEmail' => ['nullable', 'email', 'max:255'],
             'contactDataSource' => ['required', 'string', 'max:255'],
@@ -64,8 +69,9 @@ final class ViewCompany extends ViewRecord
             $consent,
             $this->contactDisclosureDate ?: null,
             $this->contactDisclosureMethod ?: null,
+            $this->contactDecisionRole ?: null,
         );
-        $this->reset('contactFullName', 'contactTitle', 'contactPhone', 'contactEmail', 'contactDataSource', 'contactDisclosureDate', 'contactDisclosureMethod');
+        $this->reset('contactFullName', 'contactTitle', 'contactDecisionRole', 'contactPhone', 'contactEmail', 'contactDataSource', 'contactDisclosureDate', 'contactDisclosureMethod');
         $this->contactCallConsent = 'unknown';
         Notification::make()->title(__('marketing.messages.contact_saved'))->success()->send();
     }

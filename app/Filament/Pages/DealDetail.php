@@ -9,6 +9,7 @@ use App\Domain\Collaboration\Enums\CollaborationSubjectType;
 use App\Domain\Collaboration\Services\EmailNotificationService;
 use App\Domain\Crm\Actions\RecordInteraction;
 use App\Domain\Crm\Models\Interaction;
+use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Actions\AssignDeal;
 use App\Domain\Deal\Exceptions\StatusTransitionRejected;
 use App\Domain\Deal\Models\Deal;
@@ -80,6 +81,8 @@ final class DealDetail extends Page
 
     public string $interactionNote = '';
 
+    public ?int $interactionContactId = null;
+
     public ?int $collaborationDocumentId = null;
 
     public ?int $projectManagerId = null;
@@ -88,6 +91,10 @@ final class DealDetail extends Page
     {
         $this->dealId = $deal;
         $this->interactionOccurredAt = now()->format('Y-m-d\TH:i');
+        $dealModel = $this->deal();
+        $originatingLead = $dealModel->getRelationValue('originatingLead');
+        $this->interactionContactId = ($originatingLead instanceof Lead ? $originatingLead->primary_contact_id : null)
+            ?? $dealModel->company->contacts()->where('is_primary', true)->value('id');
         $this->authorizeDeal();
     }
 
@@ -135,10 +142,13 @@ final class DealDetail extends Page
             'interactionDuration' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'interactionOutcome' => ['nullable', 'string', 'max:255'],
             'interactionNote' => ['nullable', 'string', 'max:5000'],
+            'interactionContactId' => $this->deal()->company->contacts()->where('is_active', true)->exists()
+                ? ['required', 'integer']
+                : ['nullable', 'integer'],
         ]);
         $deal = $this->deal();
         Gate::authorize('create', Interaction::class);
-        $interactions->forDeal($deal->id, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null);
+        $interactions->forDeal($deal->id, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null, $this->interactionContactId);
         $this->interactionOccurredAt = now()->format('Y-m-d\TH:i');
         $this->reset('interactionDuration', 'interactionOutcome', 'interactionNote');
         $this->success(__('marketing.messages.interaction_saved'));
@@ -262,7 +272,9 @@ final class DealDetail extends Page
     {
         $deal = $this->deal()->load([
             'company.contacts', 'programVersion.program', 'projectManager.teams.members', 'openedBy', 'status',
-            'interactions' => fn ($query) => $query->with('user')->latest('occurred_at'),
+            'originatingLead.primaryContact', 'originatingLead.owner', 'originatingLead.statusHistory.status',
+            'originatingLead.interactions' => fn ($query) => $query->with(['user', 'contact'])->latest('occurred_at'),
+            'interactions' => fn ($query) => $query->with(['user', 'contact'])->latest('occurred_at'),
             'documents.files' => fn ($query) => $query->where('is_deleted', false)->orderByDesc('version_no'),
             'documents.requirementSuggestions' => fn ($query) => $query->where('status', 'pending'),
         ]);

@@ -349,6 +349,296 @@ body {
     color: var(--crm-text);
 }
 
+.intake-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 21rem);
+    align-items: start;
+    gap: var(--crm-space-3);
+}
+
+.intake-main,
+.intake-section {
+    display: grid;
+    gap: var(--crm-space-3);
+}
+
+.intake-section__header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--crm-space-3);
+    padding-block-end: var(--crm-space-3);
+    border-block-end: 1px solid var(--crm-border);
+}
+
+.intake-section__header h2,
+.intake-summary h2 {
+    font-size: var(--crm-text-lg);
+    font-weight: 700;
+}
+
+.intake-section__header p {
+    margin-block-start: var(--crm-space-1);
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+}
+
+.intake-step {
+    display: grid;
+    flex: 0 0 auto;
+    width: calc(var(--crm-space-6) + var(--crm-space-2));
+    height: calc(var(--crm-space-6) + var(--crm-space-2));
+    place-items: center;
+    background: var(--crm-accent-50);
+    border: 1px solid var(--crm-accent-300);
+    border-radius: var(--crm-radius-md);
+    color: var(--crm-accent-700);
+    font-family: var(--crm-font-data);
+    font-weight: 700;
+}
+
+.intake-choice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--crm-space-2);
+}
+
+.intake-choice__item {
+    display: flex;
+    align-items: center;
+    min-height: var(--crm-row-height);
+    gap: var(--crm-space-2);
+    padding-inline: var(--crm-space-3);
+    background: var(--crm-surface-muted);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-sm);
+    font-weight: 600;
+}
+
+.intake-choice__item--active {
+    background: var(--crm-accent-50);
+    border-color: var(--crm-accent-500);
+    color: var(--crm-accent-700);
+}
+
+.intake-fields {
+    display: grid;
+    gap: var(--crm-space-3);
+}
+
+.intake-fields--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.intake-fields--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.intake-field {
+    display: grid;
+    align-content: start;
+    gap: var(--crm-space-1);
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+    font-weight: 650;
+}
+
+.intake-field--wide {
+    grid-column: span 2;
+}
+
+.intake-field input,
+.intake-field select,
+.intake-field textarea {
+    width: 100%;
+    padding: var(--crm-space-2);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-sm);
+    color: var(--crm-text);
+    font-size: var(--crm-text-sm);
+}
+
+.intake-field input,
+.intake-field select {
+    min-height: var(--crm-row-height);
+}
+
+.intake-field input:focus,
+.intake-field select:focus,
+.intake-field textarea:focus {
+    border-color: var(--crm-accent-500);
+    outline: 2px solid var(--crm-accent-100);
+    outline-offset: 1px;
+}
+
+.intake-summary {
+    position: sticky;
+    inset-block-start: var(--crm-space-4);
+    display: grid;
+    gap: var(--crm-space-3);
+}
+
+.intake-summary ol {
+    display: grid;
+    gap: var(--crm-space-2);
+    counter-reset: intake-summary;
+}
+
+.intake-summary li {
+    display: grid;
+    grid-template-columns: var(--crm-space-6) 1fr;
+    gap: var(--crm-space-2);
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+    counter-increment: intake-summary;
+}
+
+.intake-summary li::before {
+    content: counter(intake-summary);
+    display: grid;
+    place-items: center;
+    width: var(--crm-space-6);
+    height: var(--crm-space-6);
+    border: 1px solid var(--crm-border);
+    border-radius: 999px;
+    color: var(--crm-text);
+    font-family: var(--crm-font-data);
+}
+
+.intake-duplicate {
+    display: grid;
+    gap: var(--crm-space-1);
+    padding: var(--crm-space-2);
+    background: var(--crm-status-waiting-bg);
+    border-inline-start: var(--crm-space-1) solid var(--crm-status-waiting-fg);
+    border-radius: var(--crm-radius-sm);
+    color: var(--crm-status-waiting-fg);
+    font-size: var(--crm-text-xs);
+}
+
+.intake-duplicate > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--crm-space-3);
+}
+
+@media (max-width: 64rem) {
+    .intake-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .intake-summary {
+        position: static;
+    }
+}
+
+@media (max-width: 42rem) {
+    .intake-fields--two,
+    .intake-fields--three {
+        grid-template-columns: 1fr;
+    }
+
+    .intake-field--wide {
+        grid-column: auto;
+    }
+}
+
+.assignment-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 19rem);
+    align-items: start;
+    gap: var(--crm-space-3);
+}
+
+.assignment-list,
+.assignment-card,
+.assignment-workload {
+    display: grid;
+    gap: var(--crm-space-3);
+}
+
+.assignment-card > header,
+.assignment-action,
+.assignment-workload > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-3);
+}
+
+.assignment-card h2 {
+    margin-block-start: var(--crm-space-1);
+    font-size: var(--crm-text-lg);
+    font-weight: 700;
+}
+
+.assignment-facts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-block: 1px solid var(--crm-border);
+}
+
+.assignment-facts > div {
+    padding: var(--crm-space-2);
+    border-inline-end: 1px solid var(--crm-border);
+}
+
+.assignment-facts dt {
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+}
+
+.assignment-facts dd {
+    margin-block-start: var(--crm-space-1);
+    font-weight: 600;
+}
+
+.assignment-summary p {
+    margin-block-start: var(--crm-space-1);
+    white-space: pre-wrap;
+}
+
+.assignment-action label {
+    flex: 1 1 20rem;
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+}
+
+.assignment-action select {
+    width: 100%;
+    min-height: var(--crm-row-height);
+    margin-block-start: var(--crm-space-1);
+    padding-inline: var(--crm-space-2);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-sm);
+    color: var(--crm-text);
+}
+
+.assignment-workload {
+    position: sticky;
+    inset-block-start: var(--crm-space-4);
+}
+
+.assignment-workload > div {
+    min-height: var(--crm-row-height);
+    border-block-start: 1px solid var(--crm-border);
+}
+
+@media (max-width: 64rem) {
+    .assignment-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .assignment-workload {
+        position: static;
+    }
+
+    .assignment-facts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 .call-list,
 .lead-detail,
 .company-detail {

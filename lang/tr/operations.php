@@ -24,6 +24,8 @@ return [
         'fields' => [
             'company' => 'Firma', 'reference' => 'Dosya no', 'program' => 'Program',
             'manager' => 'Proje yöneticisi', 'opened_by' => 'Dosyayı açan', 'priority' => 'Öncelik',
+            'marketer' => 'İşi alan pazarlamacı', 'contacted_person' => 'Görüşülen kişi',
+            'won_at' => 'İşin alındığı zaman', 'sale_summary' => 'Satış görüşmesi özeti',
             'status' => 'Mevcut statü', 'status_since' => 'Statü başlangıcı',
             'amount' => 'Talep tutarı', 'application_no' => 'Başvuru no', 'applied_at' => 'Başvuru tarihi',
             'decided_at' => 'Karar tarihi', 'document_requested_at' => 'Evrak talep zamanı',
@@ -71,7 +73,13 @@ return [
         'email_queued' => ':count eksik evrak içeren e-posta kuyruğa alındı.', 'assigned' => 'Proje yöneticisi atandı.',
     ],
     'assignment' => [
+        'navigation' => 'Atama bekleyen işler',
+        'title' => 'Atama bekleyen işler',
         'manager' => 'Proje yöneticisi', 'choose_manager' => 'Proje yöneticisi seçin', 'assign' => 'Ata ve süreci başlat',
+        'active_workload' => ':count açık dosya',
+        'workload' => 'Proje yöneticisi iş yükü',
+        'inspect' => 'Tüm ayrıntıyı incele',
+        'empty' => 'Atama bekleyen dosya yok.',
         'forbidden' => 'Bu dosyaya proje yöneticisi atama yetkiniz yoktur.',
         'invalid_manager' => 'Etkin bir proje yöneticisi seçilmelidir.',
         'notification_title' => 'Yeni dosya atandı',

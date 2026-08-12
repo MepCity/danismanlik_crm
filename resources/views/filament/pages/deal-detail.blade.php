@@ -9,6 +9,8 @@
         </nav>
 
         @if ($activeTab === 'general')
+            @php($wonHistory = $deal->originatingLead?->statusHistory?->first(fn ($history) => $history->status->converts_to_deal))
+            @php($saleInteraction = $deal->originatingLead?->interactions?->first())
             <section class="operations-panel operations-facts">
                 @foreach ([
                     __('operations.detail.fields.company') => $deal->company->legal_name,
@@ -16,6 +18,10 @@
                     __('operations.detail.fields.program') => $deal->programVersion->program->name.' · '.$deal->programVersion->call_period,
                     __('operations.detail.fields.manager') => $deal->projectManager?->name ?? __('operations.board.unassigned'),
                     __('operations.detail.fields.opened_by') => $deal->openedBy->name,
+                    __('operations.detail.fields.marketer') => $deal->originatingLead?->owner?->name ?? $deal->openedBy->name,
+                    __('operations.detail.fields.contacted_person') => $deal->originatingLead?->primaryContact?->full_name ?? __('operations.detail.not_recorded'),
+                    __('operations.detail.fields.won_at') => $wonHistory?->entered_at?->format('d.m.Y H:i') ?? __('operations.detail.not_recorded'),
+                    __('operations.detail.fields.sale_summary') => $saleInteraction?->note ?? __('operations.detail.not_recorded'),
                     __('operations.detail.fields.priority') => $deal->priority,
                     __('operations.detail.fields.amount') => $deal->requested_amount ? number_format((float) $deal->requested_amount, 2, ',', '.').' ₺' : __('operations.detail.not_recorded'),
                     __('operations.detail.fields.application_no') => $deal->application_no ?? __('operations.detail.not_recorded'),
@@ -74,7 +80,7 @@
         @elseif ($activeTab === 'comments')
             <livewire:collaboration-comments subject-type="deal" :subject-id="$deal->id" :key="'deal-comments-'.$deal->id" />
         @elseif ($activeTab === 'interactions')
-            @include('filament.pages.partials.interactions', ['interactions' => $deal->interactions])
+            @include('filament.pages.partials.interactions', ['interactions' => $deal->interactions, 'contacts' => $deal->company->contacts->where('is_active', true)])
         @elseif ($activeTab === 'team')
             @php($teamMembers = $deal->projectManager?->teams->flatMap->members->unique('id') ?? collect())
             <section class="team-grid" data-testid="deal-team">
