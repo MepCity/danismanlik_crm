@@ -1,0 +1,270 @@
+name: tesvik-crm
+
+x-app: &app
+  image: tesvik-crm/app:${APP_IMAGE_TAG:-latest}
+  build:
+    context: .
+    dockerfile: docker/app/Dockerfile
+    target: prod
+  env_file:
+    - .env.production
+  environment:
+    APP_ENV: production
+    APP_DEBUG: "false"
+    DOCUMENT_SCANNER: clamav
+    CLAMAV_HOST: clamav
+    DB_HOST: db
+    REDIS_HOST: redis
+  restart: unless-stopped
+  mem_limit: 768m
+  cpus: 1.0
+  pids_limit: 256
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  app:
+    <<: *app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clamav:
+        condition: service_started
+
+  web:
+    image: tesvik-crm/web:${APP_IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+      target: web-prod
+    depends_on:
+      app:
+        condition: service_started
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 128
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost/up"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    # Bilinçli olarak `ports` yoktur. Yalnız tunnel compose ağı içinden erişir.
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      BACKUP_DB_USERNAME: ${BACKUP_DB_USERNAME}
+      BACKUP_DB_PASSWORD: ${BACKUP_DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    command:
+      - postgres
+      - -c
+      - wal_level=replica
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_timeout=60s
+      - -c
+      - archive_command=test ! -f /wal-archive/%f && cp %p /wal-archive/%f.tmp && mv /wal-archive/%f.tmp /wal-archive/%f
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - wal_archive:/wal-archive
+      - ./docker/db/init-replication.sh:/docker-entrypoint-initdb.d/10-replication.sh:ro
+    depends_on:
+      wal-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    mem_limit: 1536m
+    cpus: 1.5
+    pids_limit: 256
+    shm_size: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  wal-init:
+    image: alpine:3.22
+    command: ["sh", "-c", "chown 70:70 /wal-archive && chmod 0700 /wal-archive"]
+    volumes:
+      - wal_archive:/wal-archive
+    restart: "no"
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a '${REDIS_PASSWORD}' ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  clamav:
+    image: clamav/clamav-debian:1.4
+    volumes:
+      - clamav_signatures:/var/lib/clamav
+    restart: unless-stopped
+    mem_limit: 2g
+    cpus: 1.5
+    pids_limit: 256
+    healthcheck:
+      test: ["CMD-SHELL", "printf 'PING\\n' | nc 127.0.0.1 3310 | grep -q PONG"]
+      interval: 30s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
+  queue:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "redis", "--sleep=2", "--tries=3", "--timeout=90", "--max-time=3600"]
+    depends_on:
+      app:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      clamav:
+        condition: service_started
+
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      app:
+        condition: service_started
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN}"]
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    profiles: ["edge"]
+
+  backup:
+    image: tesvik-crm/backup:${APP_IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: docker/backup/Dockerfile
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ${DB_DATABASE}
+      PGUSER: ${BACKUP_DB_USERNAME}
+      PGPASSWORD: ${BACKUP_DB_PASSWORD}
+      RESTIC_REPOSITORY: ${BACKUP_RESTIC_REPOSITORY}
+      RESTIC_PASSWORD: ${BACKUP_RESTIC_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${BACKUP_AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${BACKUP_AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${BACKUP_AWS_DEFAULT_REGION}
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+      BACKUP_FULL_INTERVAL_SECONDS: ${BACKUP_FULL_INTERVAL_SECONDS:-86400}
+      BACKUP_WAL_INTERVAL_SECONDS: ${BACKUP_WAL_INTERVAL_SECONDS:-60}
+      BACKUP_RETENTION_DAILY: ${BACKUP_RETENTION_DAILY:-14}
+      BACKUP_RETENTION_MONTHLY: ${BACKUP_RETENTION_MONTHLY:-12}
+    volumes:
+      - wal_archive:/wal-archive
+      - backup_work:/work
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
+    profiles: ["operations"]
+
+  object-replica:
+    image: tesvik-crm/backup:${APP_IMAGE_TAG:-latest}
+    entrypoint: ["/usr/local/bin/object-replica-loop.sh"]
+    environment:
+      AWS_ENDPOINT: ${AWS_ENDPOINT:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_BUCKET: ${AWS_BUCKET}
+      OBJECT_REPLICA_ENDPOINT: ${OBJECT_REPLICA_ENDPOINT}
+      OBJECT_REPLICA_ACCESS_KEY_ID: ${OBJECT_REPLICA_ACCESS_KEY_ID}
+      OBJECT_REPLICA_SECRET_ACCESS_KEY: ${OBJECT_REPLICA_SECRET_ACCESS_KEY}
+      OBJECT_REPLICA_BUCKET: ${OBJECT_REPLICA_BUCKET}
+      OBJECT_REPLICA_INTERVAL_SECONDS: ${OBJECT_REPLICA_INTERVAL_SECONDS:-300}
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+    volumes:
+      - backup_work:/work
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    profiles: ["operations"]
+
+  monitor:
+    image: tesvik-crm/backup:${APP_IMAGE_TAG:-latest}
+    entrypoint: ["/usr/local/bin/monitor-loop.sh"]
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ${DB_DATABASE}
+      PGUSER: ${DB_USERNAME}
+      PGPASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      RESTIC_REPOSITORY: ${BACKUP_RESTIC_REPOSITORY}
+      RESTIC_PASSWORD: ${BACKUP_RESTIC_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${BACKUP_AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${BACKUP_AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${BACKUP_AWS_DEFAULT_REGION}
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+      MONITOR_INTERVAL_SECONDS: ${MONITOR_INTERVAL_SECONDS:-300}
+      MONITOR_DISK_PERCENT: ${MONITOR_DISK_PERCENT:-80}
+      MONITOR_QUEUE_LENGTH: ${MONITOR_QUEUE_LENGTH:-100}
+      MONITOR_BACKUP_MAX_AGE_HOURS: ${MONITOR_BACKUP_MAX_AGE_HOURS:-30}
+      MONITOR_OBJECT_REPLICA_MAX_AGE_MINUTES: ${MONITOR_OBJECT_REPLICA_MAX_AGE_MINUTES:-15}
+    volumes:
+      - pgdata:/volumes/pgdata:ro
+      - backup_work:/work
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    profiles: ["operations"]
+
+volumes:
+  pgdata:
+  redisdata:
+  wal_archive:
+  backup_work:
+  clamav_signatures:

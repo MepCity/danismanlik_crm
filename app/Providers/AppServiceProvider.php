@@ -45,6 +45,7 @@ use App\Domain\Program\ProgramServiceProvider;
 use App\Models\User;
 use App\Support\Conditions\ConditionDefinitionObserver;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
 
@@ -70,6 +71,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         $conditionObserver = $this->app->make(ConditionDefinitionObserver::class);
         DocTemplate::observe($conditionObserver);
         Transition::observe($conditionObserver);

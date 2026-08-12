@@ -7,3 +7,5 @@ WP-01 sonrasında alınan yeni ve kalıcı teknik kararlar bu klasöre, sıralı
 ADR olarak eklenir. Yeni kayıt için `0000-sablon.md` kopyalanır. Kabul edilmiş
 bir karar sessizce değiştirilmez; yerine geçen ADR eskisini “Değiştirildi”
 durumuna getirir ve iki kayıt birbirine bağlantı verir.
+
+Son kayıt: [ADR-0024 — Üretim tüneli, yedek ve belge deposu](0024-uretim-tunel-yedek-ve-depolama.md).

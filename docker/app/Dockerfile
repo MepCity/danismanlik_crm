@@ -60,7 +60,31 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 ###############################################################################
-# 2. dev — geliştirme imajı
+# 2. build — PHP bağımlılıkları ve ön yüz varlıkları
+###############################################################################
+FROM base AS php-dependencies
+
+COPY composer.json composer.lock ./
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --no-progress \
+    --prefer-dist \
+    --optimize-autoloader \
+    --classmap-authoritative \
+    --no-scripts
+
+FROM node:24-bookworm-slim AS frontend
+
+WORKDIR /var/www/html
+COPY package.json package-lock.json vite.config.js ./
+COPY resources ./resources
+COPY public ./public
+COPY --from=php-dependencies /var/www/html/vendor ./vendor
+RUN npm ci --ignore-scripts && npm run build
+
+###############################################################################
+# 3. dev — geliştirme imajı
 ###############################################################################
 FROM base AS dev
 
@@ -102,7 +126,7 @@ ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["php-fpm"]
 
 ###############################################################################
-# 3. prod — üretim imajı
+# 4. prod — üretim imajı
 ###############################################################################
 FROM base AS prod
 
@@ -131,8 +155,31 @@ COPY docker/app/php/opcache.prod.ini /usr/local/etc/php/conf.d/opcache.ini
 
 # Tüm kaynak kodunu app kullanıcısına ait olarak kopyala (mount yok, imaja gömülü).
 COPY --chown=app:app . /var/www/html
+COPY --from=php-dependencies --chown=app:app /var/www/html/vendor /var/www/html/vendor
+COPY --from=frontend --chown=app:app /var/www/html/public/build /var/www/html/public/build
+COPY docker/app/entrypoint.prod.sh /usr/local/bin/entrypoint.sh
+
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+    && mkdir -p storage/framework/cache/data storage/framework/sessions \
+        storage/framework/views storage/logs bootstrap/cache \
+    && rm -f bootstrap/cache/*.php \
+    && composer dump-autoload --no-dev --classmap-authoritative --no-scripts --no-interaction \
+    && php artisan package:discover --no-ansi \
+    && chown -R app:app storage bootstrap/cache
 
 USER app
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["php-fpm"]
+
+###############################################################################
+# 5. web-prod — kod bind mount'u olmadan statik varlıkları sunan Nginx
+###############################################################################
+FROM nginx:stable-bookworm AS web-prod
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY docker/web/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=prod /var/www/html/public /var/www/html/public
