@@ -20,7 +20,7 @@ final class MarketingOperationsView
             ->where('next_call_at', '<=', now()->endOfDay())
             ->with([
                 'company.contacts' => fn ($contacts) => $contacts->where('is_active', true)->orderByDesc('is_primary')->orderBy('id'),
-                'company.contacts.communicationConsents' => fn ($consents) => $consents->where('channel', 'call')->where('purpose', 'marketing')->latest('effective_from'),
+                'company.contacts.communicationConsents' => fn ($consents) => $consents->where('channel', 'call')->where('purpose', 'marketing')->where('effective_from', '<=', now())->latest('effective_from'),
                 'status',
                 'interactions' => fn ($interactions) => $interactions->latest('occurred_at'),
             ])

@@ -34,6 +34,22 @@ olduğunda bağlantı üretilmez; aksiyonun neden engellendiği kırmızı durum
 “Bir daha aranmasın” işlemi mevcut izin satırını değiştirmez. Yeni bir
 `withdrawn` satırı ekler ve aynı transaction içinde kişi özetini aramaya kapatır.
 
+Giden pazarlama araması kaydı yalnız arayüzde değil, `RecordInteraction`
+aksiyonunda da korunur. Karar kaynağı `contacts` üzerindeki hızlı sorgu özeti
+değil, birincil kişinin arama+pazarlama amacı için görüşme zamanında etkin olan
+son `communication_consents` satırıdır. Son durum `granted` değilse kayıt açık
+bir doğrulama hatasıyla reddedilir. Kişi satırı kilitlendiği için eşzamanlı ret
+ve arama kaydı aynı izin durumu üzerinde sıralanır.
+
+Engel mutlak değildir: kişinin kendisinin yaptığı arama ayrı
+`direction=inbound, purpose=marketing` bağlamıyla kaydedilebilir ve ret bunu
+engellemez. Bu yol fırsat detayında “Gelen arama” adıyla açıkça ayrılır. Dosya
+sürecindeki görüşmeler pazarlama değil hizmet iletişimidir ve
+`purpose=service` olarak kaydedilir. Geçmiş bir giden arama, aramanın gerçekleştiği
+anda defterde izin varsa sonradan girilebilir; böylece daha sonra verilen ret
+geçmişte hukuka uygun yapılmış temasın kaydını bozmaz. Çağrı bağlamı veritabanı
+CHECK kısıtıyla yalnız telefon görüşmelerinde ve geçerli değerlerle tutulur.
+
 Fırsat panosunun sütunları etkin `lead` statülerinden üretilir. Hedef statünün
 form gereksinimleri `statuses.required_fields` JSONB alanında tutulur.
 `callback`, `lost` ve dönüşüm alanları bu yapılandırmadan okunur; ayrıca aynı
@@ -59,6 +75,8 @@ ikinci dönüşümü veritabanında da engeller.
   kapsam kontrolünden geçer.
 - Görüşmeler fırsat/dosyadan ayrı, her temas için yeni satırdır ve fırsat
   statüsünü kendiliğinden değiştirmez.
+- Retten sonraki giden pazarlama araması servis katmanında reddedilir; gelen
+  arama ve hizmet görüşmesi ayrı bağlam işaretleriyle denetlenebilir kalır.
 - Statü davranışı veritabanı yapılandırması olarak kalır.
 - Dönüşüm yarım dosya, yarım checklist veya çift dosya üretemez.
 

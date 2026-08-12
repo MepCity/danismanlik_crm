@@ -126,6 +126,8 @@ it('requires exactly one interaction subject', function (): void {
     expect(fn () => Interaction::query()->create([
         'user_id' => $user->id,
         'type' => 'call',
+        'direction' => 'outbound',
+        'purpose' => 'marketing',
         'occurred_at' => now(),
     ]))->toThrow(QueryException::class, 'interactions_exactly_one_subject');
 });

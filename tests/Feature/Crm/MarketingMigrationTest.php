@@ -14,21 +14,27 @@ it('pazarlama operasyon şemasını PostgreSQL üzerinde geri alıp yeniden kura
     try {
         expect(Schema::connection($connection)->hasColumn('contacts', 'data_source'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('statuses', 'required_fields'))->toBeTrue()
-            ->and(Schema::connection($connection)->hasColumn('leads', 'converted_deal_id'))->toBeTrue();
+            ->and(Schema::connection($connection)->hasColumn('leads', 'converted_deal_id'))->toBeTrue()
+            ->and(Schema::connection($connection)->hasColumn('interactions', 'direction'))->toBeTrue()
+            ->and(Schema::connection($connection)->hasColumn('interactions', 'purpose'))->toBeTrue();
 
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 1,
+            '--step' => 2,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('contacts', 'data_source'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('statuses', 'required_fields'))->toBeFalse()
-            ->and(Schema::connection($connection)->hasColumn('leads', 'converted_deal_id'))->toBeFalse();
+            ->and(Schema::connection($connection)->hasColumn('leads', 'converted_deal_id'))->toBeFalse()
+            ->and(Schema::connection($connection)->hasColumn('interactions', 'direction'))->toBeFalse()
+            ->and(Schema::connection($connection)->hasColumn('interactions', 'purpose'))->toBeFalse();
 
         expect(Artisan::call('migrate', ['--database' => $connection, '--force' => true]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('contacts', 'data_source'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('statuses', 'required_fields'))->toBeTrue()
-            ->and(Schema::connection($connection)->hasColumn('leads', 'converted_deal_id'))->toBeTrue();
+            ->and(Schema::connection($connection)->hasColumn('leads', 'converted_deal_id'))->toBeTrue()
+            ->and(Schema::connection($connection)->hasColumn('interactions', 'direction'))->toBeTrue()
+            ->and(Schema::connection($connection)->hasColumn('interactions', 'purpose'))->toBeTrue();
     } finally {
         Artisan::call('migrate', ['--database' => $connection, '--force' => true]);
     }

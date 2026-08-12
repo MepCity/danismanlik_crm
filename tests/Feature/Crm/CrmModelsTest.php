@@ -51,6 +51,8 @@ it('connects a company to contacts and a lead to interactions', function (): voi
     $interaction = $lead->interactions()->create([
         'user_id' => $owner->id,
         'type' => 'call',
+        'direction' => 'outbound',
+        'purpose' => 'marketing',
         'occurred_at' => now(),
         'duration_minutes' => 5,
         'outcome' => 'Kurgusal görüşme sonucu',

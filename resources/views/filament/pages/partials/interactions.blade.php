@@ -16,7 +16,7 @@
         @forelse ($interactions as $interaction)
             <article class="interaction-row">
                 <span class="interaction-row__shape" aria-hidden="true">{{ match($interaction->type) {'call' => '☎', 'meeting' => '◇', 'email' => '✉', default => '•'} }}</span>
-                <strong>{{ __('marketing.interactions.types.'.$interaction->type) }}</strong>
+                <strong>{{ $interaction->type === 'call' && $interaction->direction === 'inbound' ? __('marketing.interactions.types.incoming_call') : __('marketing.interactions.types.'.$interaction->type) }}</strong>
                 <span>{{ $interaction->outcome ? (__('marketing.interactions.outcomes.'.$interaction->outcome) !== 'marketing.interactions.outcomes.'.$interaction->outcome ? __('marketing.interactions.outcomes.'.$interaction->outcome) : $interaction->outcome) : '—' }}</span>
                 <span>{{ $interaction->note }}</span>
                 <span class="numeric-data">{{ $interaction->occurred_at->format('d.m.Y H:i') }}@if ($interaction->duration_minutes) · {{ __('marketing.interactions.minutes', ['count' => $interaction->duration_minutes]) }}@endif</span>

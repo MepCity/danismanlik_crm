@@ -15,7 +15,7 @@ return [
         'call' => 'Ara',
         'no_contact' => 'Aktif kişi yok',
         'no_phone' => 'Telefon kaydı yok',
-        'blocked_reason' => 'Arama engellendi: kişi “bir daha aranmasın” olarak işaretli.',
+        'blocked_reason' => 'Arama engellendi: geçerli pazarlama araması izni yok veya izin geri çekilmiş.',
     ],
     'board' => [
         'navigation' => 'Fırsat panosu',
@@ -47,7 +47,7 @@ return [
     'interactions' => [
         'title' => 'Görüşmeler',
         'type' => 'Tür',
-        'types' => ['call' => 'Telefon', 'meeting' => 'Toplantı', 'email' => 'E-posta'],
+        'types' => ['call' => 'Giden pazarlama araması', 'incoming_call' => 'Gelen arama', 'meeting' => 'Toplantı', 'email' => 'E-posta'],
         'date' => 'Tarih',
         'duration' => 'Süre (dakika)',
         'outcome' => 'Sonuç',
@@ -115,5 +115,6 @@ return [
         'lost_reason_required' => 'Kaybedildi statüsü için kayıp nedeni zorunludur.',
         'program_version_id_required' => 'İş alındı dönüşümü için program sürümü zorunludur.',
         'already_converted' => 'Bu fırsat daha önce dosyaya dönüştürülmüş.',
+        'outbound_marketing_call_blocked' => 'Giden pazarlama araması reddedildi: kişinin geçerli arama izni yok veya izin geri çekilmiş.',
     ],
 ];

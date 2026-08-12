@@ -56,14 +56,18 @@ final class LeadDetail extends Page
     public function addInteraction(RecordInteraction $interactions): void
     {
         $this->validate([
-            'interactionType' => ['required', 'in:call,meeting,email'],
+            'interactionType' => ['required', 'in:call,incoming_call,meeting,email'],
             'interactionOccurredAt' => ['required', 'date'],
             'interactionDuration' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'interactionOutcome' => ['nullable', 'string', 'max:255'],
             'interactionNote' => ['nullable', 'string', 'max:5000'],
         ]);
         Gate::authorize('create', Interaction::class);
-        $interactions->forLead($this->leadId, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null);
+        if ($this->interactionType === 'incoming_call') {
+            $interactions->forInboundLeadCall($this->leadId, (int) Auth::id(), Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null);
+        } else {
+            $interactions->forLead($this->leadId, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null);
+        }
         $this->interactionOccurredAt = now()->format('Y-m-d\TH:i');
         $this->reset('interactionDuration', 'interactionOutcome', 'interactionNote');
         Notification::make()->title(__('marketing.messages.interaction_saved'))->success()->send();

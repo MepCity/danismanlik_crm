@@ -180,6 +180,8 @@ final class DemoDataSeeder extends Seeder
                 [
                     'user_id' => $users['marketing']->id,
                     'type' => 'call',
+                    'direction' => 'outbound',
+                    'purpose' => 'marketing',
                     'duration_minutes' => 3 + $index,
                     'outcome' => $index === 0 ? 'contacted' : 'unreachable',
                     'note' => 'Kurgusal demo görüşme notu.',

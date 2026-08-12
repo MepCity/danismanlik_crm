@@ -102,7 +102,27 @@ it('aranmaması gereken kişide tel aksiyonunu engeller ve sebebini gösterir', 
     Livewire::test(TodayCalls::class)
         ->assertSee('Arama engellendi')
         ->assertSee('Ret tarihi')
-        ->assertDontSeeHtml('href="tel:');
+        ->assertDontSeeHtml('href="tel:')
+        ->assertDontSee('Ulaşılamadı')
+        ->assertDontSee('Görüşüldü')
+        ->assertDontSee('İlgileniyor')
+        ->assertDontSee('İlgilenmiyor');
+});
+
+it('engelli fırsatta gelen aramayı ayrı işaretle kaydeder', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-gelen@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $fixture = marketingScreenLead($owner, 'Gelen', blocked: true);
+    Auth::login($owner);
+
+    Livewire::test(LeadDetail::class, ['lead' => $fixture['lead']->id])
+        ->set('interactionType', 'incoming_call')
+        ->set('interactionOutcome', 'Kurgusal gelen arama')
+        ->call('addInteraction')
+        ->assertHasNoErrors();
+
+    expect(Interaction::query()->where('lead_id', $fixture['lead']->id)->sole()->direction)->toBe('inbound')
+        ->and(Interaction::query()->where('lead_id', $fixture['lead']->id)->sole()->purpose)->toBe('marketing');
 });
 
 it('bugün ve geçmiş aramaları geciken önce sıralar ve geleceği dışarıda bırakır', function (): void {
@@ -115,6 +135,8 @@ it('bugün ve geçmiş aramaları geciken önce sıralar ve geleceği dışarıd
         'lead_id' => $overdue['lead']->id,
         'user_id' => $owner->id,
         'type' => 'call',
+        'direction' => 'outbound',
+        'purpose' => 'marketing',
         'occurred_at' => now()->subDay(),
         'outcome' => 'unreachable',
     ]);
