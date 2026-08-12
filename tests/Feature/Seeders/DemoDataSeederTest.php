@@ -46,7 +46,8 @@ it('tamamen kurgusal demo grafiğini ve sabit hesapları kurar', function (): vo
         ->and($marketing->hasRole('Pazarlama'))->toBeTrue()
         ->and(Hash::check(DemoDataSeeder::PASSWORD, $marketing->password))->toBeTrue()
         ->and(Team::query()->count())->toBe(2)
-        ->and(Deal::query()->count())->toBe(3)
+        ->and(Deal::query()->count())->toBe(4)
+        ->and(Deal::query()->whereHas('company', fn ($query) => $query->where('legal_name', 'Kurgusal Ufuk Teknoloji Ltd. Şti.'))->count())->toBe(2)
         ->and(Deal::query()->withCount('documents')->get()->pluck('documents_count')->all())
         ->each->toBe(7);
 });
@@ -65,10 +66,14 @@ it('demo evraklarını gerçek yükleme akışıyla sürümlendirir ve panelde g
         ->get();
     $versioned = DealDocument::query()
         ->where('status', 'accepted')
+        ->whereHas('deal', fn ($query) => $query->where('reference_no', 'DEMO-2026-001'))
         ->whereHas('files', fn ($query) => $query->where('version_no', 2))
         ->with(['deal', 'files'])
         ->sole();
-    $rejected = DealDocument::query()->where('status', 'rejected')->sole();
+    $rejected = DealDocument::query()
+        ->where('status', 'rejected')
+        ->whereHas('deal', fn ($query) => $query->where('reference_no', 'DEMO-2026-001'))
+        ->sole();
 
     expect($documentsWithFiles)->not->toBeEmpty()
         ->and($documentsWithFiles->pluck('files_count')->min())->toBeGreaterThan(0)

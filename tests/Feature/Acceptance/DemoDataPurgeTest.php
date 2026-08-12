@@ -33,7 +33,7 @@ it('onay metni olmadan demo temizliğini reddeder', function (): void {
         ->expectsOutputToContain('onayı olmadan çalışmaz')
         ->assertExitCode(2);
 
-    expect(Deal::query()->where('reference_no', 'like', 'DEMO-%')->count())->toBe(3);
+    expect(Deal::query()->where('reference_no', 'like', 'DEMO-%')->count())->toBe(4);
 });
 
 it('demo iş grafiğini silerken referans veriyi ve gerçek işaretli kaydı korur', function (): void {

@@ -128,6 +128,7 @@ final class DemoDataSeeder extends Seeder
                 [
                     'full_name' => 'Kurgusal Yetkili '.($index + 1),
                     'title' => 'Demo Yetkilisi',
+                    'decision_role' => $index === 0 ? 'decision_maker' : 'authorized_contact',
                     'phone' => '+90 000 000 00 0'.($index + 1),
                     'data_source' => $index === 1 ? 'referral' : 'form',
                     'is_primary' => true,
@@ -164,6 +165,7 @@ final class DemoDataSeeder extends Seeder
                     'interested_program_version_id' => $version->id,
                 ],
                 [
+                    'primary_contact_id' => $company->contacts()->where('is_primary', true)->value('id'),
                     'source' => 'demo',
                     'status_id' => $leadStatuses[$statusCode]->id,
                     'next_call_at' => $nextCallAt,
@@ -183,6 +185,7 @@ final class DemoDataSeeder extends Seeder
             Interaction::query()->firstOrCreate(
                 ['lead_id' => $lead->id, 'occurred_at' => now()->subDays(4 - $index)->setTime(11, 0)],
                 [
+                    'contact_id' => $company->contacts()->where('is_primary', true)->value('id'),
                     'user_id' => $users['marketing']->id,
                     'type' => 'call',
                     'direction' => 'outbound',
@@ -199,6 +202,7 @@ final class DemoDataSeeder extends Seeder
             [$companies[0], 'DEMO-2026-001', 'collecting_documents', $users['project_manager'], '6500000.00'],
             [$companies[1], 'DEMO-2026-002', 'preparing_application', $users['second_project_manager'], '2400000.00'],
             [$companies[2], 'DEMO-2026-003', 'awaiting_assignment', null, '950000.00'],
+            [$companies[0], 'DEMO-2026-004', 'collecting_documents', $users['second_project_manager'], '1750000.00'],
         ];
 
         foreach ($dealDefinitions as [$company, $reference, $statusCode, $projectManager, $amount]) {
@@ -225,6 +229,43 @@ final class DemoDataSeeder extends Seeder
                     'entered_at' => $deal->status_changed_at,
                     'changed_by' => $users['marketing']->id,
                     'reason' => 'demo veri kurulumu',
+                ],
+            );
+
+            $wonStatus = $leadStatuses->first(fn (Status $status): bool => $status->converts_to_deal);
+            $originatingLead = Lead::query()->updateOrCreate(
+                ['source' => 'demo-sale-'.$reference],
+                [
+                    'company_id' => $company->id,
+                    'primary_contact_id' => $company->contacts()->where('is_primary', true)->value('id'),
+                    'owner_user_id' => $users['marketing']->id,
+                    'interested_program_version_id' => $version->id,
+                    'status_id' => $wonStatus->id,
+                    'converted_deal_id' => $deal->id,
+                ],
+            );
+            StatusHistory::query()->firstOrCreate(
+                ['lead_id' => $originatingLead->id, 'exited_at' => null],
+                [
+                    'status_id' => $wonStatus->id,
+                    'status_label_snapshot' => $wonStatus->label,
+                    'workflow_revision_id' => $revision->id,
+                    'entered_at' => now()->subDays(5),
+                    'changed_by' => $users['marketing']->id,
+                    'reason' => 'Kurgusal demo satış görüşmesi sonucunda iş alındı.',
+                ],
+            );
+            Interaction::query()->firstOrCreate(
+                ['lead_id' => $originatingLead->id, 'occurred_at' => now()->subDays(5)->setTime(14, 0)],
+                [
+                    'contact_id' => $originatingLead->primary_contact_id,
+                    'user_id' => $users['marketing']->id,
+                    'type' => 'call',
+                    'direction' => 'outbound',
+                    'purpose' => 'marketing',
+                    'duration_minutes' => 14,
+                    'outcome' => 'interested',
+                    'note' => 'Kurgusal satış görüşmesinde program kapsamı, hizmet ve sonraki adımlar üzerinde anlaşıldı.',
                 ],
             );
 

@@ -6,6 +6,7 @@ namespace App\Domain\Crm\Actions;
 
 use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Contact;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -22,6 +23,9 @@ final class SaveContact
         ?bool $callConsent = null,
         ?string $disclosureDate = null,
         ?string $disclosureMethod = null,
+        ?string $decisionRole = null,
+        bool $isPrimary = false,
+        ?Carbon $consentEffectiveAt = null,
     ): Contact {
         $source = trim($dataSource);
 
@@ -29,7 +33,7 @@ final class SaveContact
             throw ValidationException::withMessages(['contactDataSource' => trans('marketing.validation.data_source_required')]);
         }
 
-        return DB::transaction(function () use ($companyId, $actorId, $fullName, $source, $phone, $email, $title, $callConsent, $disclosureDate, $disclosureMethod): Contact {
+        return DB::transaction(function () use ($companyId, $actorId, $fullName, $source, $phone, $email, $title, $callConsent, $disclosureDate, $disclosureMethod, $decisionRole, $isPrimary, $consentEffectiveAt): Contact {
             $contact = Contact::query()->create([
                 'company_id' => $companyId,
                 'full_name' => trim($fullName),
@@ -37,7 +41,8 @@ final class SaveContact
                 'phone' => filled($phone) ? trim((string) $phone) : null,
                 'email' => filled($email) ? trim((string) $email) : null,
                 'title' => filled($title) ? trim((string) $title) : null,
-                'is_primary' => false,
+                'decision_role' => filled($decisionRole) ? $decisionRole : null,
+                'is_primary' => $isPrimary,
                 'is_active' => true,
                 'consent_call' => $callConsent,
                 'do_not_call' => $callConsent === false,
@@ -53,7 +58,7 @@ final class SaveContact
                     'source' => $this->ledgerSource($source),
                     'disclosure_date' => $disclosureDate,
                     'disclosure_method' => filled($disclosureMethod) ? $disclosureMethod : null,
-                    'effective_from' => now(),
+                    'effective_from' => $consentEffectiveAt ?? now(),
                     'recorded_by' => $actorId,
                 ]);
             }
