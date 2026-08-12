@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Document;
 
+use App\Domain\Document\Scanning\ClamAvVirusScanner;
 use App\Domain\Document\Scanning\StubVirusScanner;
 use App\Domain\Document\Scanning\VirusScanner;
 use App\Domain\Document\Services\ChecklistGenerator;
@@ -24,6 +25,11 @@ final class DocumentServiceProvider extends ServiceProvider
 
             return match ($driver) {
                 'stub' => new StubVirusScanner($app->environment()),
+                'clamav' => new ClamAvVirusScanner(
+                    (string) config('documents.clamav.host'),
+                    (int) config('documents.clamav.port'),
+                    (int) config('documents.clamav.timeout_seconds'),
+                ),
                 default => throw new InvalidArgumentException(trans('documents.errors.scanner_driver', ['driver' => $driver])),
             };
         });
