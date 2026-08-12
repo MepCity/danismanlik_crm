@@ -3,10 +3,21 @@
         @if (count($cards) > 0)
             <div class="dashboard-cards">
                 @foreach ($cards as $card)
-                    <a class="dashboard-card dashboard-card--{{ $card['state'] }}" href="{{ $this->cardUrl($card['key']) }}">
-                        <span class="dashboard-card__shape" aria-hidden="true">{{ $card['state'] === 'danger' ? '!' : ($card['state'] === 'waiting' ? '◷' : '•') }}</span>
-                        <span class="dashboard-card__label">{{ $card['label'] }}</span>
+                    <a class="dashboard-card dashboard-card--{{ $card['state'] }}"
+                       href="{{ $this->cardUrl($card['key']) }}"
+                       data-testid="dashboard-card-{{ $card['key'] }}"
+                       data-state="{{ $card['state'] }}"
+                       aria-label="{{ $card['label'] }}: {{ $card['count'] }}">
+                        <span class="dashboard-card__stripe" aria-hidden="true"></span>
+                        <span class="dashboard-card__icon" aria-hidden="true">
+                            <x-filament::icon :icon="$this->cardIcon($card['key'])" />
+                        </span>
                         <strong class="dashboard-card__value numeric-data">{{ $card['count'] }}</strong>
+                        <span class="dashboard-card__label">{{ $card['label'] }}</span>
+                        <span class="dashboard-card__status">
+                            <span class="dashboard-card__status-mark" aria-hidden="true"></span>
+                            {{ $this->cardStateLabel($card['state']) }}
+                        </span>
                     </a>
                 @endforeach
             </div>

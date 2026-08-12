@@ -93,7 +93,7 @@ final readonly class DashboardQuery
             'key' => $key,
             'label' => __("reporting.dashboard.cards.{$key}"),
             'count' => $count,
-            'state' => $state,
+            'state' => $count === 0 ? 'neutral' : $state,
         ];
     }
 }

@@ -13,11 +13,19 @@ final class MarketingOperationsView
     /** @param Builder<Lead> $query
      * @return Collection<int, Lead>
      */
-    public static function callsDue(Builder $query): Collection
+    public static function callsDue(Builder $query, string $filter = 'due'): Collection
     {
-        return $query
+        $query
             ->whereNotNull('next_call_at')
-            ->where('next_call_at', '<=', now()->endOfDay())
+            ->where('next_call_at', '<=', now()->endOfDay());
+
+        match ($filter) {
+            'today' => $query->whereBetween('next_call_at', [now()->startOfDay(), now()->endOfDay()]),
+            'overdue' => $query->where('next_call_at', '<', now()->startOfDay()),
+            default => null,
+        };
+
+        return $query
             ->with([
                 'company.contacts' => fn ($contacts) => $contacts->where('is_active', true)->orderByDesc('is_primary')->orderBy('id'),
                 'company.contacts.communicationConsents' => fn ($consents) => $consents->where('channel', 'call')->where('purpose', 'marketing')->where('effective_from', '<=', now())->latest('effective_from'),

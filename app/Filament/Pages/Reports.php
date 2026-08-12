@@ -12,6 +12,7 @@ use BackedEnum;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Url;
 
 final class Reports extends Page
 {
@@ -23,6 +24,7 @@ final class Reports extends Page
 
     protected string $view = 'filament.pages.reports';
 
+    #[Url(as: 'report')]
     public string $activeReport = 'deal_board';
 
     public static function canAccess(): bool
@@ -91,7 +93,8 @@ final class Reports extends Page
     {
         $user = Auth::user();
         abort_unless($user !== null, 403);
-        $type = ReportType::from($this->activeReport);
+        $type = ReportType::tryFrom($this->activeReport);
+        abort_unless($type !== null, 404);
 
         return [
             'reportTypes' => ReportType::cases(),

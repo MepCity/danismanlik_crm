@@ -22,6 +22,18 @@ return [
         'recent_activities' => 'Son aktiviteler',
         'no_activities' => 'Kapsamınızda henüz aktivite yok.',
         'no_business_data' => 'Bu rolün iş verisi kapsamı yok. Sistem ayarlarına menüden erişebilirsiniz.',
+        'active_filter' => 'Etkin filtre: :filter',
+        'states' => [
+            'neutral' => 'İşlem gerekmiyor',
+            'info' => 'Güncel',
+            'waiting' => 'Takip gerekli',
+            'success' => 'Tamamlandı',
+            'danger' => 'Dikkat gerekli',
+        ],
+        'filters' => [
+            'new_assignments' => 'Yeni atanan işler',
+            'customer_response' => 'Müşteri dönüşü beklenen işler',
+        ],
         'cards' => [
             'today_calls' => 'Bugün aranacaklar',
             'overdue_followups' => 'Geciken takipler',
