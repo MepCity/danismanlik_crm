@@ -6,6 +6,11 @@ namespace Database\Seeders;
 
 use App\Domain\Access\Models\Team;
 use App\Domain\Access\Models\TeamMember;
+use App\Domain\Collaboration\DTOs\SubjectReference;
+use App\Domain\Collaboration\Enums\CollaborationSubjectType;
+use App\Domain\Collaboration\Models\Activity;
+use App\Domain\Collaboration\Models\Comment;
+use App\Domain\Collaboration\Services\CommentService;
 use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
@@ -225,6 +230,10 @@ final class DemoDataSeeder extends Seeder
 
             $this->seedDealDocuments($deal, $statusCode, $projectManager);
 
+            if ($reference === 'DEMO-2026-001') {
+                $this->seedCollaborationDemo($deal, $users['marketing'], $users['project_manager']);
+            }
+
             if ($reference === 'DEMO-2026-002') {
                 $document = $deal->documents()->where('name_snapshot', 'Fizibilite Raporu')->firstOrFail();
                 DocumentRequirementSuggestion::query()->firstOrCreate(
@@ -236,6 +245,37 @@ final class DemoDataSeeder extends Seeder
                 );
             }
         }
+    }
+
+    private function seedCollaborationDemo(Deal $deal, User $marketing, User $projectManager): void
+    {
+        $subject = new SubjectReference(CollaborationSubjectType::Deal, $deal->id);
+        $comments = app(CommentService::class);
+        $internal = Comment::query()->where('deal_id', $deal->id)->where('body', 'Firma eksik imza sayfasını yarın iletecek.')->first();
+
+        if ($internal === null) {
+            $internal = $comments->create($projectManager, $subject, 'Firma eksik imza sayfasını yarın iletecek.', 'internal');
+            $comments->create($marketing, $subject, 'Takip planına eklendi; yarın yeniden kontrol edeceğim.', 'internal', $internal->id);
+        }
+
+        if (! Comment::query()->where('deal_id', $deal->id)->where('body', 'Başvuru evraklarınızı incelemeye aldık.')->exists()) {
+            $comments->create($projectManager, $subject, 'Başvuru evraklarınızı incelemeye aldık.', 'customer');
+        }
+
+        Activity::query()->firstOrCreate(
+            ['deal_id' => $deal->id, 'action' => 'deal.status_changed', 'source' => 'user'],
+            [
+                'actor_id' => $marketing->id,
+                'payload' => [
+                    'from_status' => ['label' => 'PM atandı'],
+                    'to_status' => ['label' => 'Belgeler toplanıyor'],
+                ],
+            ],
+        );
+        Activity::query()->firstOrCreate(
+            ['deal_id' => $deal->id, 'action' => 'deal.condition_documents_added', 'source' => 'automation'],
+            ['payload' => ['document_names' => ['Fizibilite Raporu']]],
+        );
     }
 
     private function seedDealDocuments(Deal $deal, string $dealStatus, ?User $projectManager): void
