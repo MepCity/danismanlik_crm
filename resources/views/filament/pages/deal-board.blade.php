@@ -1,4 +1,7 @@
 <x-filament-panels::page>
+    @if ($filterLabel !== null)
+        <div class="operations-filter-banner" role="status">{{ __('reporting.dashboard.active_filter', ['filter' => $filterLabel]) }}</div>
+    @endif
     <div class="deal-board" data-testid="deal-board">
         @foreach ($statuses as $status)
             @php($deals = $dealsByStatus->get($status->id, collect()))

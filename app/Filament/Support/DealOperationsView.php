@@ -9,9 +9,25 @@ use App\Domain\Document\Models\DealDocument;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 
 final class DealOperationsView
 {
+    /** @param Builder<Deal> $query
+     * @return Builder<Deal>
+     */
+    public static function dashboardFilter(Builder $query, string $filter, int $userId): Builder
+    {
+        return match ($filter) {
+            'new_assignments' => $query
+                ->where('pm_user_id', $userId)
+                ->where('created_at', '>=', now()->subDays((int) config('reporting.new_assignment_days'))),
+            'customer_response' => $query
+                ->whereHas('status', static fn (Builder $status): Builder => $status->where('awaits_customer_response', true)),
+            default => throw new InvalidArgumentException('Unknown dashboard filter.'),
+        };
+    }
+
     /**
      * @param  Builder<Deal>  $query
      * @return Collection<array-key, mixed>

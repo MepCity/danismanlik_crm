@@ -52,6 +52,8 @@ final class ReferenceDataSeeder extends Seeder
         'system.settings',
         'system.templates',
         'access.break_glass.grant',
+        'report.view',
+        'report.export',
     ];
 
     /** @var array<string, array{scope: string, permissions: list<string>}> */
@@ -62,6 +64,7 @@ final class ReferenceDataSeeder extends Seeder
                 'company.manage', 'lead.manage', 'interaction.manage', 'deal.create',
                 'deal.view_own', 'deal.view', 'collaboration.manage', 'task.manage',
                 'program.view', 'audit.view_own',
+                'report.view',
             ],
         ],
         'Proje Yöneticisi' => [
@@ -71,6 +74,7 @@ final class ReferenceDataSeeder extends Seeder
                 'deal.view', 'document.upload', 'document.approve', 'document.download',
                 'document.view', 'collaboration.manage', 'task.manage', 'program.view',
                 'audit.view_team',
+                'report.view', 'report.export',
             ],
         ],
         'Şirket Yetkilisi' => [
@@ -81,6 +85,7 @@ final class ReferenceDataSeeder extends Seeder
                 'document.upload', 'document.approve', 'document.download', 'document.view',
                 'collaboration.manage', 'task.manage', 'program.manage', 'program.view',
                 'audit.view_all', 'access.break_glass.grant',
+                'report.view', 'report.export',
             ],
         ],
         'Sistem Yöneticisi' => [
@@ -137,7 +142,7 @@ final class ReferenceDataSeeder extends Seeder
             ['type' => 'deal', 'code' => 'pm_assigned', 'label' => 'PM atandı', 'color' => 'info'],
             ['type' => 'deal', 'code' => 'collecting_documents', 'label' => 'Belgeler toplanıyor', 'color' => 'waiting'],
             ['type' => 'deal', 'code' => 'preparing_application', 'label' => 'Başvuru hazırlanıyor', 'color' => 'info'],
-            ['type' => 'deal', 'code' => 'awaiting_customer_approval', 'label' => 'Müşteri onayı bekleniyor', 'color' => 'waiting'],
+            ['type' => 'deal', 'code' => 'awaiting_customer_approval', 'label' => 'Müşteri onayı bekleniyor', 'color' => 'waiting', 'awaits_customer_response' => true],
             ['type' => 'deal', 'code' => 'submitted', 'label' => 'Kuruma gönderildi', 'color' => 'info'],
             ['type' => 'deal', 'code' => 'under_review', 'label' => 'Kurum değerlendirmesinde', 'color' => 'waiting'],
             ['type' => 'deal', 'code' => 'revision_requested', 'label' => 'Revizyon/ek belge bekleniyor', 'color' => 'danger'],
@@ -163,6 +168,7 @@ final class ReferenceDataSeeder extends Seeder
                     'required_fields' => $definition['required_fields'] ?? [],
                     'is_initial' => $definition['is_initial'] ?? false,
                     'converts_to_deal' => $definition['converts_to_deal'] ?? false,
+                    'awaits_customer_response' => $definition['awaits_customer_response'] ?? false,
                 ],
             );
 

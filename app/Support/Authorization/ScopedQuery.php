@@ -8,6 +8,7 @@ use App\Domain\Access\Enums\DataScope;
 use App\Domain\Access\Models\BreakGlassGrant;
 use App\Domain\Access\Services\ActiveBreakGlass;
 use App\Domain\Access\Services\EffectiveScopeResolver;
+use App\Domain\Collaboration\Models\Activity;
 use App\Domain\Collaboration\Models\Comment;
 use App\Domain\Collaboration\Models\Task;
 use App\Domain\Crm\Models\Company;
@@ -77,6 +78,7 @@ final readonly class ScopedQuery
             DealDocument::class => $this->dealDocuments($query, $userIds),
             File::class => $this->files($query, $userIds),
             Comment::class => $this->comments($query, $userIds),
+            Activity::class => $this->activities($query, $userIds),
             Task::class => $this->tasks($query, $userIds),
             default => throw new InvalidArgumentException('Unsupported scoped model: '.$model::class),
         };
@@ -192,6 +194,24 @@ final readonly class ScopedQuery
     {
         return $query->where(function (Builder $query) use ($userIds): void {
             $query->whereHas('lead', static fn (Builder $lead): Builder => $lead->whereIn('owner_user_id', $userIds))
+                ->orWhereHas('deal', function (Builder $deal) use ($userIds): Builder {
+                    return $this->deals($deal, $userIds);
+                })
+                ->orWhereHas('dealDocument.deal', function (Builder $deal) use ($userIds): Builder {
+                    return $this->deals($deal, $userIds);
+                });
+        });
+    }
+
+    /** @template T of Model
+     * @param  Builder<T>  $query
+     * @return Builder<T>
+     */
+    private function activities(Builder $query, QueryBuilder $userIds): Builder
+    {
+        return $query->where(function (Builder $query) use ($userIds): void {
+            $query->whereIn('activities.actor_id', $userIds)
+                ->orWhereHas('lead', static fn (Builder $lead): Builder => $lead->whereIn('owner_user_id', $userIds))
                 ->orWhereHas('deal', function (Builder $deal) use ($userIds): Builder {
                     return $this->deals($deal, $userIds);
                 })

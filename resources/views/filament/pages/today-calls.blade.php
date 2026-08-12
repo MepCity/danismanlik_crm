@@ -1,5 +1,8 @@
 <x-filament-panels::page>
     <div class="call-list" data-testid="today-calls">
+        @if ($filterLabel !== null)
+            <div class="operations-filter-banner" role="status">{{ __('reporting.dashboard.active_filter', ['filter' => $filterLabel]) }}</div>
+        @endif
         @forelse ($leads as $lead)
             @php($contact = $lead->company->contacts->first())
             @php($latestConsent = $contact?->communicationConsents->first())

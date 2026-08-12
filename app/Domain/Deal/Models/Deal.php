@@ -33,6 +33,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $application_no
  * @property Carbon|null $applied_at
  * @property Carbon|null $decided_at
+ * @property string|null $result_outcome
  * @property string $priority
  * @property Carbon|null $document_requested_at
  * @property Carbon|null $first_document_received_at
@@ -53,7 +54,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'company_id', 'program_version_id', 'reference_no', 'status_id', 'status_changed_at',
     'pm_user_id', 'opened_by_user_id', 'requested_amount', 'application_no',
-    'applied_at', 'decided_at', 'priority', 'document_requested_at',
+    'applied_at', 'decided_at', 'result_outcome', 'priority', 'document_requested_at',
     'first_document_received_at', 'all_required_accepted_at',
 ])]
 final class Deal extends Model
