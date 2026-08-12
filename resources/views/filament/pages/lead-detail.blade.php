@@ -1,5 +1,12 @@
 <x-filament-panels::page>
     <div class="lead-detail" data-testid="lead-detail">
+        <nav class="deal-tabs" aria-label="{{ __('marketing.detail.title', ['company' => $lead->company->legal_name]) }}">
+            @foreach (['general', 'contacts', 'interactions', 'comments', 'history'] as $tab)
+                <button type="button" wire:click="$set('activeTab', '{{ $tab }}')" class="deal-tab {{ $activeTab === $tab ? 'deal-tab--active' : '' }}">{{ __('marketing.detail.tabs.'.$tab) }}</button>
+            @endforeach
+        </nav>
+
+        @if ($activeTab === 'general')
         <section class="operations-panel operations-facts">
             <div class="operations-fact"><dt>{{ __('marketing.detail.company') }}</dt><dd>{{ $lead->company->legal_name }}</dd></div>
             <div class="operations-fact"><dt>{{ __('marketing.detail.owner') }}</dt><dd>{{ $lead->owner->name }}</dd></div>
@@ -7,7 +14,7 @@
             <div class="operations-fact"><dt>{{ __('marketing.detail.program') }}</dt><dd>{{ $lead->interestedProgramVersion?->program?->name ?? __('marketing.board.no_program') }}</dd></div>
             @if ($lead->convertedDeal)<div class="operations-fact"><dt>{{ __('marketing.detail.converted_deal') }}</dt><dd><a class="operations-link numeric-data" href="{{ \App\Filament\Pages\DealDetail::getUrl(['deal' => $lead->convertedDeal->id]) }}">{{ $lead->convertedDeal->reference_no }}</a></dd></div>@endif
         </section>
-
+        @elseif ($activeTab === 'contacts')
         <section class="contact-grid">
             @foreach ($lead->company->contacts as $contact)
                 @php($consent = $contact->communicationConsents->first())
@@ -32,7 +39,12 @@
                 </article>
             @endforeach
         </section>
-
+        @elseif ($activeTab === 'interactions')
         @include('filament.pages.partials.interactions', ['interactions' => $lead->interactions])
+        @elseif ($activeTab === 'comments')
+            <livewire:collaboration-comments subject-type="lead" :subject-id="$lead->id" :key="'lead-comments-'.$lead->id" />
+        @elseif ($activeTab === 'history')
+            <livewire:collaboration-timeline subject-type="lead" :subject-id="$lead->id" :key="'lead-timeline-'.$lead->id" />
+        @endif
     </div>
 </x-filament-panels::page>
