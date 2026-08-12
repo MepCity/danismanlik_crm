@@ -78,6 +78,8 @@ final class DealDetail extends Page
 
     public string $interactionNote = '';
 
+    public ?int $collaborationDocumentId = null;
+
     public function mount(int $deal): void
     {
         $this->dealId = $deal;
@@ -248,7 +250,7 @@ final class DealDetail extends Page
     protected function getViewData(): array
     {
         $deal = $this->deal()->load([
-            'company.contacts', 'programVersion.program', 'projectManager', 'openedBy', 'status',
+            'company.contacts', 'programVersion.program', 'projectManager.teams.members', 'openedBy', 'status',
             'interactions' => fn ($query) => $query->with('user')->latest('occurred_at'),
             'documents.files' => fn ($query) => $query->where('is_deleted', false)->orderByDesc('version_no'),
             'documents.requirementSuggestions' => fn ($query) => $query->where('status', 'pending'),
@@ -258,6 +260,12 @@ final class DealDetail extends Page
             ->filter(fn (Transition $transition): bool => $transition->required_permission === null || Auth::user()?->can($transition->required_permission) === true);
 
         return compact('deal', 'transitions');
+    }
+
+    public function selectDocumentCollaboration(int $documentId): void
+    {
+        $this->document($documentId);
+        $this->collaborationDocumentId = $documentId;
     }
 
     private function deal(): Deal

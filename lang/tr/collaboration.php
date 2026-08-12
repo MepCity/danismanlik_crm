@@ -74,4 +74,27 @@ return [
         'not_applicable' => 'Bu dosya için gerekli değil',
         'expired' => 'Süresi doldu',
     ],
+    'timeline' => [
+        'title' => 'İşlem geçmişi',
+        'description' => 'Yorumlar ve işlemler gerçekleşme sırasıyla birlikte gösterilir.',
+        'empty' => 'Bu kayıt için henüz işlem yok.',
+        'filters' => [
+            'label' => 'İşlem geçmişi filtreleri', 'all' => 'Tümü', 'status' => 'Statü',
+            'document' => 'Evrak', 'comment' => 'Yorum',
+        ],
+        'previous' => 'Önceki', 'next' => 'Sonraki', 'page' => ':current / :last sayfa',
+    ],
+    'comments' => [
+        'title' => 'Yeni yorum', 'reply_title' => 'Yanıt yaz', 'edit_title' => 'Yorumu düzenle',
+        'placeholder' => 'Ekip için kısa ve bağlama bağlı bir not yazın…',
+        'visibility' => ['internal' => 'İç not', 'customer' => 'Müşteriye açık'],
+        'mention' => 'Kişiden bahset', 'choose_person' => 'Kişi seçin', 'add_mention' => 'Bahset',
+        'publish' => 'Yorumu yayımla', 'save_edit' => 'Değişikliği kaydet', 'cancel' => 'Vazgeç',
+        'empty' => 'Henüz yorum yok.', 'edited' => 'düzenlendi', 'reply' => 'Yanıtla', 'edit' => 'Düzenle',
+    ],
+    'tasks' => [
+        'new' => 'Yeni görev', 'title' => 'Başlık', 'assignee' => 'Atanan',
+        'choose_assignee' => 'Kişi seçin', 'due_at' => 'Son tarih', 'description' => 'Açıklama',
+        'create' => 'Görev oluştur', 'empty' => 'Henüz görev yok.', 'complete' => 'Tamamla', 'reopen' => 'Yeniden aç',
+    ],
 ];

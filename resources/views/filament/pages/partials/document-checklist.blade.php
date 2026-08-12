@@ -67,6 +67,7 @@
                             <button wire:click="$set('decisionDocumentId', {{ $document->id }}); $set('decisionTarget', 'rejected')" class="operations-link">{{ __('operations.documents.reject') }}</button>
                             <button wire:click="$set('decisionDocumentId', {{ $document->id }}); $set('decisionTarget', 'new_version_expected')" class="operations-link">{{ __('operations.documents.new_version') }}</button>
                         @endif
+                        <button wire:click="selectDocumentCollaboration({{ $document->id }})" class="operations-link">{{ __('operations.documents.collaboration') }}</button>
                     </div></td>
                 </tr>
                 @if ($document->files->isNotEmpty())
@@ -89,6 +90,15 @@
             </tbody>
         </table>
     </div>
+
+    @if ($collaborationDocumentId)
+        @php($collaborationDocument = $deal->documents->firstWhere('id', $collaborationDocumentId))
+        <section class="document-collaboration" data-testid="document-collaboration">
+            <header class="collaboration-header"><div><h2>{{ $collaborationDocument?->name_snapshot }}</h2><p>{{ __('operations.documents.collaboration_description') }}</p></div><button type="button" wire:click="$set('collaborationDocumentId', null)" class="operations-link">{{ __('operations.documents.close') }}</button></header>
+            <livewire:collaboration-comments subject-type="deal_document" :subject-id="$collaborationDocumentId" :key="'document-comments-'.$collaborationDocumentId" />
+            <livewire:collaboration-timeline subject-type="deal_document" :subject-id="$collaborationDocumentId" :key="'document-timeline-'.$collaborationDocumentId" />
+        </section>
+    @endif
 
     @if (auth()->user()->can('document.upload'))
         <details class="operations-panel ad-hoc-form"><summary>{{ __('operations.documents.add_ad_hoc') }}</summary>

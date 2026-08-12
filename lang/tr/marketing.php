@@ -33,6 +33,7 @@ return [
         'status' => 'Statü',
         'program' => 'İlgilenilen program',
         'converted_deal' => 'Devralan dosya',
+        'tabs' => ['general' => 'Genel', 'contacts' => 'Kişiler', 'interactions' => 'Görüşmeler', 'comments' => 'Yorumlar', 'history' => 'İşlem geçmişi'],
     ],
     'consent' => [
         'call_allowed' => 'Arama izni var',

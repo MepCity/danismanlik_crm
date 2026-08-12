@@ -17,6 +17,13 @@
                     __('operations.detail.fields.manager') => $deal->projectManager?->name ?? __('operations.board.unassigned'),
                     __('operations.detail.fields.opened_by') => $deal->openedBy->name,
                     __('operations.detail.fields.priority') => $deal->priority,
+                    __('operations.detail.fields.amount') => $deal->requested_amount ? number_format((float) $deal->requested_amount, 2, ',', '.').' ₺' : __('operations.detail.not_recorded'),
+                    __('operations.detail.fields.application_no') => $deal->application_no ?? __('operations.detail.not_recorded'),
+                    __('operations.detail.fields.applied_at') => $deal->applied_at?->format('d.m.Y') ?? __('operations.detail.not_recorded'),
+                    __('operations.detail.fields.decided_at') => $deal->decided_at?->format('d.m.Y') ?? __('operations.detail.not_recorded'),
+                    __('operations.detail.fields.document_requested_at') => $deal->document_requested_at?->format('d.m.Y H:i') ?? __('operations.detail.not_recorded'),
+                    __('operations.detail.fields.first_document_received_at') => $deal->first_document_received_at?->format('d.m.Y H:i') ?? __('operations.detail.not_recorded'),
+                    __('operations.detail.fields.all_required_accepted_at') => $deal->all_required_accepted_at?->format('d.m.Y H:i') ?? __('operations.detail.not_recorded'),
                 ] as $label => $value)
                     <div class="operations-fact"><dt>{{ $label }}</dt><dd>{{ $value }}</dd></div>
                 @endforeach
@@ -49,13 +56,21 @@
             </section>
         @elseif ($activeTab === 'documents')
             @include('filament.pages.partials.document-checklist')
+        @elseif ($activeTab === 'tasks')
+            <livewire:subject-tasks subject-type="deal" :subject-id="$deal->id" :key="'deal-tasks-'.$deal->id" />
+        @elseif ($activeTab === 'comments')
+            <livewire:collaboration-comments subject-type="deal" :subject-id="$deal->id" :key="'deal-comments-'.$deal->id" />
         @elseif ($activeTab === 'interactions')
             @include('filament.pages.partials.interactions', ['interactions' => $deal->interactions])
-        @else
-            <section class="operations-panel operations-placeholder">
-                <span aria-hidden="true">◇</span>
-                <p>{{ __('operations.detail.placeholder') }}</p>
+        @elseif ($activeTab === 'team')
+            @php($teamMembers = $deal->projectManager?->teams->flatMap->members->unique('id') ?? collect())
+            <section class="team-grid" data-testid="deal-team">
+                <article class="operations-panel team-card"><span>{{ __('operations.detail.team.manager') }}</span><strong>{{ $deal->projectManager?->name ?? __('operations.board.unassigned') }}</strong></article>
+                <article class="operations-panel team-card"><span>{{ __('operations.detail.team.opened_by') }}</span><strong>{{ $deal->openedBy->name }}</strong></article>
+                @foreach ($teamMembers as $member)<article class="operations-panel team-card"><span>{{ __('operations.detail.team.member') }}</span><strong>{{ $member->name }}</strong></article>@endforeach
             </section>
+        @elseif ($activeTab === 'history')
+            <livewire:collaboration-timeline subject-type="deal" :subject-id="$deal->id" :key="'deal-timeline-'.$deal->id" />
         @endif
     </div>
 </x-filament-panels::page>

@@ -36,6 +36,8 @@ final class LeadDetail extends Page
 
     public string $interactionNote = '';
 
+    public string $activeTab = 'general';
+
     public function mount(int $lead): void
     {
         $this->leadId = $lead;
