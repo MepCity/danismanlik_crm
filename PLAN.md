@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
-> **Durum:** Karar aşaması tamamlandı, geliştirme başlamadı
-> **Sürüm:** 1.4 — 12.08.2026
+> **Durum:** Ana operasyon akışı uygulanıyor
+> **Sürüm:** 1.5 — 12.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -27,6 +27,8 @@ Teşvik/hibe danışmanlığı yapan bir şirket. Firmalara KOSGEB, TÜBİTAK, Y
 3. PM firmayı arar, başvurulacak programa özgü **evrakları** ister.
 4. Evraklar toplanır, kontrol edilir, eksikler tamamlanır.
 5. Başvuru kuruma yapılır, sonuç beklenir, onay/ret/revizyon gelir.
+
+**Kayıt granülerliği:** Firma ana kayıttır; statü firmaya verilmez. Her program ilgisi ayrı bir `lead`, alınan her iş ayrı bir `deal` olur. Aynı firma aynı veya farklı programlarda, eş zamanlı ya da farklı tarihlerde sınırsız sayıda bağımsız fırsat ve proje taşıyabilir. Görüşülen kişi fırsata ve her görüşme satırına açıkça bağlanır; şirket içi unvanı ile satın alma kararındaki rolü ayrı alanlardır. Firma geneli yorum/görevler firma kaydında, belirli bir sürece ait olanlar ilgili fırsat veya projede kalır.
 
 ### 1.3 Müşterinin açık talepleri
 
@@ -581,7 +583,8 @@ Kurallar:
 ```
 companies ──< contacts ──< communication_consents      (append-only izin defteri)
     │
-    ├──< leads ──< interactions
+    ├──< leads ──> primary_contact
+    │       ├──< interactions ──> contact
     │       └──> (dönüşüm) deals
     │
     └──< deals ──< deal_documents ──< files
@@ -596,16 +599,18 @@ statuses ──< transitions          workflow_revisions (değişmez akış anl�
 teams ──< team_members
 users >──< roles >──< permissions ──< role_permission_history
 notifications · outbox · audit_log
+
+companies / leads / deals / deal_documents ──< comments · tasks · activities
 ```
 
 ### 10.0 Polymorphic subject kuralı
 
-`comments`, `tasks` ve `activities` üç farklı nesneye bağlanabilmeli: **lead**, **deal**, **deal_document**. Metin bunu söylüyordu, v1.1 şeması söylemiyordu — düzeltildi.
+`comments`, `tasks` ve `activities` dört farklı nesneye bağlanabilmeli: **company**, **lead**, **deal**, **deal_document**. Firma geneli notlar şirket öznesinde; programa veya projeye ait notlar kendi öznesinde kalır.
 
 Kullanılacak desen — **kontrollü polymorphic**, serbest string değil:
 
 ```
-subject_type  ENUM('lead','deal','deal_document')   -- CHECK ile sınırlı
+subject_type  ENUM('company','lead','deal','deal_document')   -- CHECK ile sınırlı
 subject_id    BIGINT
 INDEX (subject_type, subject_id)
 ```
@@ -617,10 +622,10 @@ Alternatif (daha katı, daha çok kolon): her hedef için ayrı nullable FK + `C
 | Tablo | Kritik alanlar | Not |
 |---|---|---|
 | `companies` | unvan, **vergi_no (tekil)**, vergi_dairesi, nace_kodu, il/ilçe, ölçek, personel_sayısı, kaynak | Tekil indeks mükerrer firmayı kökten engeller |
-| `contacts` | ad, unvan, telefon, e-posta, birincil_mi + **güncel izin özeti** (izin_arama, izin_sms, izin_eposta, `aranmasın`) | Buradaki alanlar yalnızca **hızlı sorgu için denormalize özet**. Gerçek kaynak `communication_consents` |
+| `contacts` | ad, unvan, **karardaki_rol**, telefon, e-posta, birincil_mi + **güncel izin özeti** (izin_arama, izin_sms, izin_eposta, `aranmasın`) | Unvan organizasyonel görevi, karardaki rol bu satın alma sürecindeki etkisini anlatır. İzin alanları yalnızca hızlı sorgu için denormalize özet; gerçek kaynak `communication_consents` |
 | `communication_consents` | contact_id, **kanal** (arama/sms/eposta), **amaç** (pazarlama/hizmet), **durum** (onay/ret), hukuki_sebep, kaynak (form/telefon/liste/referans/İYS), aydınlatma_tarihi + yöntemi, kanıt (JSONB/dosya ref), İYS_referansı, geçerlilik_başlangıç, kayıt_zamanı, kaydeden | **Append-only.** Satır güncellenmez, yeni satır eklenir; güncel durum en son satırdır. Mutable kolonla tutulursa **önceki onayın kaynağı, hukuki sebebi ve kanıtı kaybolur** — KVKK/İYS savunmasının tamamı bu kanıta dayanıyor |
-| `leads` | company_id, sahip_user_id, kaynak, ilgilenilen_program, statü, tekrar_arama_tarihi, kayıp_nedeni | **Fırsatın kendisi**, tek bir aramanın kaydı değil |
-| `interactions` | lead_id / deal_id, user_id, tip (telefon/toplantı/e-posta), tarih, süre, sonuç, not | Bir firma beş kez aranır |
+| `leads` | company_id, **primary_contact_id**, sahip_user_id, kaynak, ilgilenilen_program, statü, tekrar_arama_tarihi, kayıp_nedeni | **Programa özel fırsatın kendisi**, tek bir aramanın veya firmanın statüsü değil |
+| `interactions` | lead_id / deal_id, **contact_id**, user_id, tip (telefon/toplantı/e-posta), tarih, süre, sonuç, not | Bir firma beş kez aranır; her satırda gerçekten görüşülen kişi bellidir |
 | `programs` | ad, kurum, kod, aktif_mi | KOSGEB / TÜBİTAK / Sanayi Bak. / Kalkınma Ajansı |
 | `program_versions` | program_id, çağrı_dönemi, başvuru_açılış, başvuru_kapanış, aktif_mi | Sürümleme şart |
 | `doc_templates` | program_version_id, ad, açıklama, zorunlu_mu, koşul (JSONB), kabul_edilen_format, geçerlilik_süresi_gün, sıra | Motorun kalbi |
@@ -628,9 +633,9 @@ Alternatif (daha katı, daha çok kolon): her hedef için ayrı nullable FK + `C
 | `status_history` | deal_id, status_id, **status_label_snapshot**, entered_at, exited_at, changed_by, transition_id, gerekçe | Zorunlu — §5.6 |
 | `deal_documents` | deal_id, **source_doc_template_id (nullable)**, source_program_version_id, ad/açıklama/zorunluluk/koşul anlık görüntüleri, durum, teslim_tarihi, son_tarih, geçerlilik_bitiş, notlar | §6.5 |
 | `files` | **deal_document_id (FK, zorunlu)**, storage_key (opaque UUID), orijinal_ad, mime, boyut, **sha256**, sürüm_no, yükleyen, tarama_sonucu, silindi_mi | v1.1'de FK eksikti — dosya hangi belge gereksinimine ait olduğunu bilmiyordu. `(deal_document_id, sürüm_no)` tekil |
-| `activities` | actor_id, **subject_type + subject_id**, action, changes (JSONB), **kaynak** (kullanıcı/otomasyon/entegrasyon/system-unknown), ip, user_agent, created_at | Asla güncellenmez/silinmez |
-| `comments` | **subject_type + subject_id** (lead/deal/deal_document), user_id, gövde, mentions (JSONB), **görünürlük (iç/dışa açık)**, parent_id, düzenlendi_mi | §10.0 — yalnız `deal_id` yetmiyordu |
-| `tasks` | **subject_type + subject_id** (lead/deal/deal_document), atanan, başlık, son_tarih, tamamlandı_mı, hatırlatma_zamanı | "3 gün sonra tekrar ara" bir **lead** görevidir — v1.1'de yalnız `deal_id` vardı |
+| `activities` | actor_id, **subject_type + subject_id** (company/lead/deal/deal_document), action, changes (JSONB), **kaynak** (kullanıcı/otomasyon/entegrasyon/system-unknown), ip, user_agent, created_at | Asla güncellenmez/silinmez |
+| `comments` | **subject_type + subject_id** (company/lead/deal/deal_document), user_id, gövde, mentions (JSONB), **görünürlük (iç/dışa açık)**, parent_id, düzenlendi_mi | Firma notuyla belirli işin notu birbirine karışmaz |
+| `tasks` | **subject_type + subject_id** (company/lead/deal/deal_document), atanan, başlık, son_tarih, tamamlandı_mı, hatırlatma_zamanı | "3 gün sonra tekrar ara" bir **lead** görevidir; firma geneli görev ayrıca mümkündür |
 | `teams` / `team_members` | ad, yönetici_user_id / team_id, user_id, rol | `own/team/all` kapsamındaki **team** bunlar olmadan tanımsızdı |
 | `notifications` | user_id, tip, subject_type + subject_id, gövde, okundu_mu, kanal, gönderim_durumu | Uygulama içi zil + e-posta kuyruğu |
 | `outbox` | olay_tipi, payload (JSONB), oluşturulma, işlenme_zamanı, deneme_sayısı, hata | §13.1 — v1'de kurulur |
@@ -938,6 +943,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.5 | 12.08.2026 | Ana akışın kayıt granülerliği kesinleştirildi: firma ana kayıt; statü fırsat/proje seviyesinde; görüşülen kişi ve karardaki rol açık bağ; firma geneli işbirliği öznesi; aynı firmada aynı/farklı program için bağımsız çoklu proje. Tek ekran potansiyel müşteri girişi, Firma 360° ve atama iş istasyonu bu karara göre hizalandı |
 | 1.0 | 10.08.2026 | İlk teknik fizibilite. Web+PWA, sıfırdan geliştirme, DB tabanlı statü, program sürümleme, e-TUYS tespiti |
 | 1.4 | 12.08.2026 | Ürün adı **Bizlife CRM** olarak belirlendi. TOTP müşteri talebiyle isteğe bağlı yapıldı; Şirket Yetkilisi hesabının geniş erişim riski bilinerek kabul edildi |
 | 1.1 | 10.08.2026 | İkinci bağımsız rapor + karşılıklı değerlendirme sonrası: takvim düzeltmesi (pilot/üretim ayrımı, 11–15 hafta) · `status_history` tablosu · `interactions` ayrıldı · belge deposu SPOF düzeltmesi · Media Library revizyon iddiası düzeltildi · İYS izin/ret alanları v1'e · KVKK alt işleyen envanteri · e-TUYS ifadesi yumuşatıldı · altyapı/TCO ayrımı · RLS ertelendi · rol sayısı 4'e indi · dosya statüsü 10'a indi · kopyalama+referans mekanizması · iş akışı sürümleme reddedildi |
