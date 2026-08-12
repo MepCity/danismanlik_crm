@@ -68,7 +68,14 @@ return [
         'suggestion_decided' => 'Gereklilik önerisi karara bağlandı.', 'ad_hoc_added' => 'Dosyaya özel evrak eklendi.',
         'no_email_contact' => 'E-posta izni olan aktif birincil firma yetkilisi bulunamadı.',
         'no_missing_documents' => 'Gönderilecek eksik zorunlu evrak yok.',
-        'email_queued' => ':count eksik evrak içeren e-posta kuyruğa alındı.',
+        'email_queued' => ':count eksik evrak içeren e-posta kuyruğa alındı.', 'assigned' => 'Proje yöneticisi atandı.',
+    ],
+    'assignment' => [
+        'manager' => 'Proje yöneticisi', 'choose_manager' => 'Proje yöneticisi seçin', 'assign' => 'Ata ve süreci başlat',
+        'forbidden' => 'Bu dosyaya proje yöneticisi atama yetkiniz yoktur.',
+        'invalid_manager' => 'Etkin bir proje yöneticisi seçilmelidir.',
+        'notification_title' => 'Yeni dosya atandı',
+        'notification_body' => ':reference numaralı dosya size atandı.',
     ],
     'email' => [
         'subject' => ':reference dosyası eksik evrak listesi',

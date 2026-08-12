@@ -9,6 +9,7 @@ use App\Domain\Collaboration\Enums\CollaborationSubjectType;
 use App\Domain\Collaboration\Services\EmailNotificationService;
 use App\Domain\Crm\Actions\RecordInteraction;
 use App\Domain\Crm\Models\Interaction;
+use App\Domain\Deal\Actions\AssignDeal;
 use App\Domain\Deal\Exceptions\StatusTransitionRejected;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Transition;
@@ -22,6 +23,7 @@ use App\Domain\Document\Services\DocumentRequirementDecisionService;
 use App\Domain\Document\Services\DocumentStatusService;
 use App\Domain\Document\Services\DocumentUploadService;
 use App\Filament\Support\DealOperationsView;
+use App\Models\User;
 use App\Support\Authorization\ScopedQuery;
 use App\Support\Workflow\StatusTransition;
 use App\Support\Workflow\SubjectType;
@@ -80,6 +82,8 @@ final class DealDetail extends Page
 
     public ?int $collaborationDocumentId = null;
 
+    public ?int $projectManagerId = null;
+
     public function mount(int $deal): void
     {
         $this->dealId = $deal;
@@ -114,6 +118,13 @@ final class DealDetail extends Page
         } catch (StatusTransitionRejected $exception) {
             $this->transitionError = $exception->getMessage();
         }
+    }
+
+    public function assignProjectManager(int $targetStatusId, AssignDeal $assignments): void
+    {
+        $this->validate(['projectManagerId' => ['required', 'integer']]);
+        $assignments->handle($this->dealId, (int) $this->projectManagerId, $targetStatusId, (int) Auth::id());
+        $this->success(__('operations.messages.assigned'));
     }
 
     public function addInteraction(RecordInteraction $interactions): void
@@ -259,7 +270,11 @@ final class DealDetail extends Page
             ->where('from_status_id', $deal->status_id)->where('is_active', true)->get()
             ->filter(fn (Transition $transition): bool => $transition->required_permission === null || Auth::user()?->can($transition->required_permission) === true);
 
-        return compact('deal', 'transitions');
+        $projectManagers = Auth::user()?->can('deal.assign') === true
+            ? User::role('Proje Yöneticisi')->where('is_active', true)->orderBy('name')->get()
+            : collect();
+
+        return compact('deal', 'transitions', 'projectManagers');
     }
 
     public function selectDocumentCollaboration(int $documentId): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Crm\Actions;
 
+use App\Domain\Collaboration\Services\ActivityRecorder;
 use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Interaction;
@@ -15,6 +16,8 @@ use InvalidArgumentException;
 
 final class RecordInteraction
 {
+    public function __construct(private readonly ActivityRecorder $activities) {}
+
     public function forLead(int $leadId, int $actorId, string $type, Carbon $occurredAt, ?int $duration, ?string $outcome, ?string $note): Interaction
     {
         return DB::transaction(function () use ($leadId, $actorId, $type, $occurredAt, $duration, $outcome, $note): Interaction {
@@ -43,16 +46,29 @@ final class RecordInteraction
             throw new InvalidArgumentException('Unsupported interaction type.');
         }
 
-        return Interaction::query()->create($subject + [
-            'user_id' => $actorId,
-            'type' => $type,
-            'direction' => $type === 'call' ? $direction : null,
-            'purpose' => $type === 'call' ? $purpose : null,
-            'occurred_at' => $occurredAt,
-            'duration_minutes' => $duration,
-            'outcome' => filled($outcome) ? $outcome : null,
-            'note' => filled($note) ? $note : null,
-        ]);
+        return DB::transaction(function () use ($subject, $actorId, $type, $occurredAt, $duration, $outcome, $note, $direction, $purpose): Interaction {
+            $interaction = Interaction::query()->create($subject + [
+                'user_id' => $actorId,
+                'type' => $type,
+                'direction' => $type === 'call' ? $direction : null,
+                'purpose' => $type === 'call' ? $purpose : null,
+                'occurred_at' => $occurredAt,
+                'duration_minutes' => $duration,
+                'outcome' => filled($outcome) ? $outcome : null,
+                'note' => filled($note) ? $note : null,
+            ]);
+            $this->activities->record(
+                action: 'interaction.recorded',
+                payload: ['type' => $type, 'outcome' => $outcome, 'duration_minutes' => $duration],
+                actorId: $actorId,
+                leadId: $subject['lead_id'] ?? null,
+                dealId: $subject['deal_id'] ?? null,
+                occurredAt: $occurredAt,
+                defaultSource: 'user',
+            );
+
+            return $interaction;
+        });
     }
 
     private function ensureMarketingCallAllowed(int $leadId, Carbon $occurredAt): void

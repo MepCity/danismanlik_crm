@@ -20,6 +20,18 @@ final class NotificationWriter
         ]);
     }
 
+    public function dealAssigned(int $userId, int $dealId, string $reference): void
+    {
+        Notification::query()->create([
+            'user_id' => $userId,
+            'type' => 'deal.assigned',
+            'deal_id' => $dealId,
+            'title' => trans('operations.assignment.notification_title'),
+            'body' => trans('operations.assignment.notification_body', ['reference' => $reference]),
+            'channel' => 'in_app',
+        ]);
+    }
+
     public function conditionDocumentsAdded(int $userId, int $dealId, int $count, string $documentNames): void
     {
         Notification::query()->create([

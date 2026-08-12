@@ -19,8 +19,8 @@ USER_ID     ?= $(shell id -u)
 GROUP_ID    ?= $(shell id -g)
 
 .PHONY: help up down restart build rebuild logs ps shell \
-        artisan composer php tinker migrate fresh seed seed-demo test \
-        minio-bucket clean \
+        artisan composer php tinker migrate fresh fresh-test seed seed-demo test \
+        minio-bucket clean purge-demo \
         lint lint-fix analyse test test-coverage prod-build prod-preflight
 
 help: ## Bu yardımı göster
@@ -91,8 +91,15 @@ seed: ## Yalnız üretimde güvenli referans/yapılandırma verisini yükle
 seed-demo: ## Referans verisiyle birlikte kurgusal demo verisini yükle
 	$(COMPOSE) exec $(APP) php artisan db:seed --class=DemoDataSeeder --force
 
+purge-demo: ## Korumalı onayla yalnız demo iş verisini temizle
+	$(COMPOSE) exec $(APP) php artisan demo:purge --confirm="DEMO VERİYİ TEMİZLE"
+
 fresh: ## Şemayı sıfırla ve yalnız referans/yapılandırma verisini yükle
 	$(COMPOSE) exec $(APP) php artisan migrate:fresh --seed --force
+
+fresh-test: ## Test şemasını güvenli biçimde sıfırla
+	$(COMPOSE) run --rm db-init
+	$(COMPOSE) exec $(APP) php artisan migrate:fresh --env=testing --seed --force
 
 # --- Kalite / test ---
 

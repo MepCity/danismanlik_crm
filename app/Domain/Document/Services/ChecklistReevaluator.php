@@ -27,6 +27,7 @@ final readonly class ChecklistReevaluator implements ChecklistReevaluatorContrac
         private DealConditionContextFactory $contexts,
         private DocumentTransaction $transactions,
         private ActivityRecorder $activities,
+        private DealDocumentCompletion $completion,
     ) {}
 
     public function reevaluate(int $dealId): ReevaluationResult
@@ -104,6 +105,7 @@ final readonly class ChecklistReevaluator implements ChecklistReevaluatorContrac
             $this->notifyProjectManager($deal, $createdDocuments, $createdNames);
 
             if ($createdDocuments !== [] || $createdSuggestions !== []) {
+                $this->completion->refresh($deal->id);
                 event(new ChecklistReevaluated($deal->id, $createdDocuments, $createdSuggestions));
             }
 

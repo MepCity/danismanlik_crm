@@ -8,4 +8,4 @@ ADR olarak eklenir. Yeni kayıt için `0000-sablon.md` kopyalanır. Kabul edilmi
 bir karar sessizce değiştirilmez; yerine geçen ADR eskisini “Değiştirildi”
 durumuna getirir ve iki kayıt birbirine bağlantı verir.
 
-Son kayıt: [ADR-0024 — Üretim tüneli, yedek ve belge deposu](0024-uretim-tunel-yedek-ve-depolama.md).
+Son kayıt: [ADR-0025 — Kabul testi ve canlıya çıkış kapısı](0025-kabul-testi-ve-canliya-cikis-kapisi.md).

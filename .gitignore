@@ -1,9 +1,7 @@
 # --- Secrets / local config (DEPO PUBLIC — asla commit edilmez) ---
-.env
-.env.backup
-.env.production
-.env.production.drill
-.env.*.local
+.env*
+!.env.example
+!.env.testing
 auth.json
 
 # --- Geçici kurulum dizini ---

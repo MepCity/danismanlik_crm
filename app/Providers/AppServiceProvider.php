@@ -44,6 +44,9 @@ use App\Domain\Program\Models\ProgramVersion;
 use App\Domain\Program\ProgramServiceProvider;
 use App\Models\User;
 use App\Support\Conditions\ConditionDefinitionObserver;
+use App\Support\Database\Console\SafeFreshCommand;
+use App\Support\Database\Console\SafeRefreshCommand;
+use App\Support\Database\Console\SafeWipeCommand;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -56,6 +59,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                SafeFreshCommand::class,
+                SafeRefreshCommand::class,
+                SafeWipeCommand::class,
+            ]);
+        }
+
         $this->app->register(SupportServiceProvider::class);
         $this->app->register(DomainEventServiceProvider::class);
         $this->app->register(AccessServiceProvider::class);

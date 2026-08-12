@@ -39,9 +39,22 @@
                     <h3>{{ __('operations.detail.allowed_transitions') }}</h3>
                     <div class="operations-actions">
                         @forelse ($transitions as $transition)
-                            <button type="button" wire:click="transitionDeal({{ $transition->to_status_id }})" class="operations-button operations-button--primary">
-                                {{ $transition->toStatus->label }}
-                            </button>
+                            @if ($transition->required_permission === 'deal.assign' && $deal->pm_user_id === null)
+                                <label>
+                                    {{ __('operations.assignment.manager') }}
+                                    <select wire:model="projectManagerId" required>
+                                        <option value="">{{ __('operations.assignment.choose_manager') }}</option>
+                                        @foreach ($projectManagers as $projectManager)<option value="{{ $projectManager->id }}">{{ $projectManager->name }}</option>@endforeach
+                                    </select>
+                                </label>
+                                <button type="button" wire:click="assignProjectManager({{ $transition->to_status_id }})" class="operations-button operations-button--primary">
+                                    {{ __('operations.assignment.assign') }}
+                                </button>
+                            @else
+                                <button type="button" wire:click="transitionDeal({{ $transition->to_status_id }})" class="operations-button operations-button--primary">
+                                    {{ $transition->toStatus->label }}
+                                </button>
+                            @endif
                         @empty
                             <p class="operations-muted">{{ __('operations.detail.no_transitions') }}</p>
                         @endforelse
