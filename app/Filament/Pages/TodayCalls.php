@@ -17,6 +17,7 @@ use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Url;
 
 final class TodayCalls extends Page
 {
@@ -27,6 +28,9 @@ final class TodayCalls extends Page
     protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.pages.today-calls';
+
+    #[Url(as: 'filter')]
+    public string $filter = 'due';
 
     public ?int $activeLeadId = null;
 
@@ -90,10 +94,12 @@ final class TodayCalls extends Page
     {
         $user = Auth::user();
         abort_unless($user !== null, 403);
+        abort_unless(in_array($this->filter, ['due', 'today', 'overdue'], true), 404);
 
         return [
-            'leads' => MarketingOperationsView::callsDue(app(ScopedQuery::class)->apply(Lead::query(), $user, 'viewAny')),
+            'leads' => MarketingOperationsView::callsDue(app(ScopedQuery::class)->apply(Lead::query(), $user, 'viewAny'), $this->filter),
             'outcomes' => __('marketing.interactions.outcomes'),
+            'filterLabel' => $this->filter === 'due' ? null : __("marketing.calls.filters.{$this->filter}"),
         ];
     }
 

@@ -16,6 +16,10 @@ return [
         'no_contact' => 'Aktif kişi yok',
         'no_phone' => 'Telefon kaydı yok',
         'blocked_reason' => 'Arama engellendi: geçerli pazarlama araması izni yok veya izin geri çekilmiş.',
+        'filters' => [
+            'today' => 'Bugün aranacaklar',
+            'overdue' => 'Geciken takipler',
+        ],
     ],
     'board' => [
         'navigation' => 'Fırsat panosu',

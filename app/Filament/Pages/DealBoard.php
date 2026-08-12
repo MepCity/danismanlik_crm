@@ -12,6 +12,7 @@ use BackedEnum;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Url;
 
 final class DealBoard extends Page
 {
@@ -22,6 +23,9 @@ final class DealBoard extends Page
     protected static ?int $navigationSort = 10;
 
     protected string $view = 'filament.pages.deal-board';
+
+    #[Url(as: 'filter')]
+    public string $filter = '';
 
     public static function canAccess(): bool
     {
@@ -48,13 +52,19 @@ final class DealBoard extends Page
     {
         $user = Auth::user();
         abort_unless($user !== null, 403);
+        abort_unless(in_array($this->filter, ['', 'new_assignments', 'customer_response'], true), 404);
 
         $query = app(ScopedQuery::class)->apply(Deal::query(), $user, 'viewAny');
+
+        if ($this->filter !== '') {
+            $query = DealOperationsView::dashboardFilter($query, $this->filter, $user->id);
+        }
 
         return [
             'statuses' => Status::query()->where('type', 'deal')->where('is_active', true)->orderBy('sort_order')->get(),
             'dealsByStatus' => DealOperationsView::board($query),
             'delayedStatusDays' => (int) config('operations.delayed_status_days'),
+            'filterLabel' => $this->filter === '' ? null : __("reporting.dashboard.filters.{$this->filter}"),
         ];
     }
 }
