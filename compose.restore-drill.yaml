@@ -1,0 +1,38 @@
+name: tesvik-crm
+
+services:
+  restore:
+    image: tesvik-crm/backup:${APP_IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: docker/backup/Dockerfile
+    entrypoint: ["/usr/local/bin/restore-postgres.sh"]
+    environment:
+      RESTIC_REPOSITORY: ${BACKUP_RESTIC_REPOSITORY}
+      RESTIC_PASSWORD: ${BACKUP_RESTIC_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${BACKUP_AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${BACKUP_AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${BACKUP_AWS_DEFAULT_REGION:-}
+      ALERT_WEBHOOK_URL: ""
+    volumes:
+      - restore_drill_pgdata:/restore-pgdata
+      - backup_work:/work
+
+  restore-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - restore_drill_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  restore_drill_pgdata:
+  backup_work:

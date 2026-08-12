@@ -21,7 +21,7 @@ GROUP_ID    ?= $(shell id -g)
 .PHONY: help up down restart build rebuild logs ps shell \
         artisan composer php tinker migrate fresh seed seed-demo test \
         minio-bucket clean \
-        lint lint-fix analyse test test-coverage
+        lint lint-fix analyse test test-coverage prod-build prod-preflight
 
 help: ## Bu yardımı göster
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -110,3 +110,10 @@ minio-bucket: ## MinIO bucket'ını elle oluştur (normalde minio-init yapar)
 
 clean: ## Dangling imajları ve build önbelleğini temizle
 	docker image prune -f
+
+prod-preflight: ## Üretim sırlarını ve dışa kapalı ağı doğrula
+	./scripts/production-preflight.sh .env.production
+	docker compose --env-file .env.production -f compose.prod.yaml config --quiet
+
+prod-build: ## Üretim app, web ve operasyon imajlarını gerçekten derle
+	docker compose --env-file .env.production -f compose.prod.yaml build app web backup
