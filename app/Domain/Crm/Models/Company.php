@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Crm\Models;
 
+use App\Domain\Collaboration\Models\Activity;
+use App\Domain\Collaboration\Models\Comment;
+use App\Domain\Collaboration\Models\Task;
 use App\Domain\Deal\Models\Deal;
 use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -56,6 +59,24 @@ final class Company extends Model
     public function deals(): HasMany
     {
         return $this->hasMany(Deal::class);
+    }
+
+    /** @return HasMany<Activity, $this> */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
+    /** @return HasMany<Comment, $this> */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    /** @return HasMany<Task, $this> */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 
     /** @return array<string, string> */

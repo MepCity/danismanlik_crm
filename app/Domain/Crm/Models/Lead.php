@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $company_id
+ * @property int|null $primary_contact_id
  * @property int $owner_user_id
  * @property string|null $source
  * @property int|null $interested_program_version_id
@@ -31,6 +32,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $lost_reason
  * @property int|null $converted_deal_id
  * @property-read Company $company
+ * @property-read Contact|null $primaryContact
  * @property-read User $owner
  * @property-read ProgramVersion|null $interestedProgramVersion
  * @property-read Collection<int, Interaction> $interactions
@@ -44,6 +46,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'company_id',
+    'primary_contact_id',
     'owner_user_id',
     'source',
     'interested_program_version_id',
@@ -58,6 +61,12 @@ final class Lead extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /** @return BelongsTo<Contact, $this> */
+    public function primaryContact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class, 'primary_contact_id');
     }
 
     /** @return BelongsTo<User, $this> */

@@ -100,7 +100,7 @@ final readonly class TaskService
         $this->activities->record($action, [
             'task' => ['id' => $task->id, 'title' => $task->title],
             ...$payload,
-        ], $actor->id, $task->lead_id, $task->deal_id, $task->deal_document_id, defaultSource: 'user');
+        ], $actor->id, $task->lead_id, $task->deal_id, $task->deal_document_id, defaultSource: 'user', companyId: $task->company_id);
     }
 
     private function referenceFor(Task $task): SubjectReference

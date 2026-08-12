@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Collaboration\Models;
 
+use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Document\Models\DealDocument;
@@ -30,11 +31,17 @@ use Illuminate\Support\Carbon;
  * @property string|null $error
  */
 #[Fillable([
-    'user_id', 'recipient_email', 'recipient_name', 'type', 'lead_id', 'deal_id', 'deal_document_id', 'title',
+    'user_id', 'recipient_email', 'recipient_name', 'type', 'company_id', 'lead_id', 'deal_id', 'deal_document_id', 'title',
     'body', 'channel', 'read_at', 'delivery_status', 'error',
 ])]
 final class Notification extends Model
 {
+    /** @return BelongsTo<Company, $this> */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {

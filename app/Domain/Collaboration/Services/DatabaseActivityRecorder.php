@@ -22,10 +22,12 @@ final readonly class DatabaseActivityRecorder implements ActivityRecorder
         ?int $dealDocumentId = null,
         ?Carbon $occurredAt = null,
         ?string $defaultSource = null,
+        ?int $companyId = null,
     ): void {
         $actor = $this->actors->current();
 
         Activity::query()->create([
+            'company_id' => $companyId,
             'actor_id' => $actorId,
             'lead_id' => $leadId,
             'deal_id' => $dealId,

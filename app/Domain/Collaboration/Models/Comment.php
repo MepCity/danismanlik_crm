@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Collaboration\Models;
 
+use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Document\Models\DealDocument;
@@ -27,11 +28,17 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $edited_at
  */
 #[Fillable([
-    'lead_id', 'deal_id', 'deal_document_id', 'user_id', 'body', 'mentions',
+    'company_id', 'lead_id', 'deal_id', 'deal_document_id', 'user_id', 'body', 'mentions',
     'visibility', 'parent_id', 'edited_at',
 ])]
 final class Comment extends Model
 {
+    /** @return BelongsTo<Company, $this> */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {

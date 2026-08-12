@@ -24,7 +24,7 @@ final readonly class DailyDigestService
                 ->leftJoin('deals as document_deals', 'document_deals.id', '=', 'deal_documents.deal_id')
                 ->leftJoin('leads', 'leads.id', '=', 'tasks.lead_id')
                 ->leftJoin('companies', function ($join): void {
-                    $join->on('companies.id', '=', DB::raw('coalesce(deals.company_id, document_deals.company_id, leads.company_id)'));
+                    $join->on('companies.id', '=', DB::raw('coalesce(tasks.company_id, deals.company_id, document_deals.company_id, leads.company_id)'));
                 })
                 ->where('tasks.assigned_to', $user->id)
                 ->whereNull('tasks.completed_at')

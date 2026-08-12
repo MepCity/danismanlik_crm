@@ -193,7 +193,8 @@ final readonly class ScopedQuery
     private function comments(Builder $query, QueryBuilder $userIds): Builder
     {
         return $query->where(function (Builder $query) use ($userIds): void {
-            $query->whereHas('lead', static fn (Builder $lead): Builder => $lead->whereIn('owner_user_id', $userIds))
+            $query->whereHas('company', fn (Builder $company): Builder => $this->companies($company, $userIds))
+                ->orWhereHas('lead', static fn (Builder $lead): Builder => $lead->whereIn('owner_user_id', $userIds))
                 ->orWhereHas('deal', function (Builder $deal) use ($userIds): Builder {
                     return $this->deals($deal, $userIds);
                 })
@@ -211,6 +212,7 @@ final readonly class ScopedQuery
     {
         return $query->where(function (Builder $query) use ($userIds): void {
             $query->whereIn('activities.actor_id', $userIds)
+                ->orWhereHas('company', fn (Builder $company): Builder => $this->companies($company, $userIds))
                 ->orWhereHas('lead', static fn (Builder $lead): Builder => $lead->whereIn('owner_user_id', $userIds))
                 ->orWhereHas('deal', function (Builder $deal) use ($userIds): Builder {
                     return $this->deals($deal, $userIds);
@@ -230,6 +232,7 @@ final readonly class ScopedQuery
         return $query->where(function (Builder $query) use ($userIds): void {
             $query->whereIn('tasks.assigned_to', $userIds)
                 ->orWhereIn('tasks.created_by', $userIds)
+                ->orWhereHas('company', fn (Builder $company): Builder => $this->companies($company, $userIds))
                 ->orWhereHas('lead', static fn (Builder $lead): Builder => $lead->whereIn('owner_user_id', $userIds))
                 ->orWhereHas('deal', function (Builder $deal) use ($userIds): Builder {
                     return $this->deals($deal, $userIds);

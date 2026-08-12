@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Collaboration\Models;
 
+use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Document\Models\DealDocument;
@@ -27,12 +28,18 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  */
 #[Fillable([
-    'actor_id', 'lead_id', 'deal_id', 'deal_document_id', 'action', 'payload',
+    'actor_id', 'company_id', 'lead_id', 'deal_id', 'deal_document_id', 'action', 'payload',
     'source', 'ip_address', 'user_agent',
 ])]
 final class Activity extends Model
 {
     public $timestamps = false;
+
+    /** @return BelongsTo<Company, $this> */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     /** @return BelongsTo<User, $this> */
     public function actor(): BelongsTo
