@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
  * @property int|null $deal_id
  * @property int $user_id
  * @property string $type
+ * @property string|null $direction
+ * @property string|null $purpose
  * @property Carbon $occurred_at
  * @property int|null $duration_minutes
  * @property string|null $outcome
@@ -30,6 +32,8 @@ use Illuminate\Support\Carbon;
     'deal_id',
     'user_id',
     'type',
+    'direction',
+    'purpose',
     'occurred_at',
     'duration_minutes',
     'outcome',

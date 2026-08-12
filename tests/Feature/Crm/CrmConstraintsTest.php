@@ -15,7 +15,7 @@ uses(RefreshDatabase::class);
 it('rejects updates to communication consents', function (): void {
     $user = User::factory()->create(['email' => 'consent-update@example.invalid']);
     $company = Company::query()->create(['legal_name' => 'Kurgusal Alfa Ltd.', 'city' => '06']);
-    $contact = Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal Yetkili']);
+    $contact = Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal Yetkili', 'data_source' => 'other']);
     $consent = CommunicationConsent::query()->create([
         'contact_id' => $contact->id,
         'channel' => 'call',
@@ -34,7 +34,7 @@ it('rejects updates to communication consents', function (): void {
 it('rejects deletes from communication consents', function (): void {
     $user = User::factory()->create(['email' => 'consent-delete@example.invalid']);
     $company = Company::query()->create(['legal_name' => 'Kurgusal Beta Ltd.', 'city' => '34']);
-    $contact = Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal İrtibat']);
+    $contact = Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal İrtibat', 'data_source' => 'other']);
     $consent = CommunicationConsent::query()->create([
         'contact_id' => $contact->id,
         'channel' => 'email',
@@ -83,19 +83,21 @@ it('allows only one primary contact per company', function (): void {
     Contact::query()->create([
         'company_id' => $company->id,
         'full_name' => 'Kurgusal Birincil A',
+        'data_source' => 'other',
         'is_primary' => true,
     ]);
 
     expect(fn () => Contact::query()->create([
         'company_id' => $company->id,
         'full_name' => 'Kurgusal Birincil B',
+        'data_source' => 'other',
         'is_primary' => true,
     ]))->toThrow(QueryException::class, 'contacts_one_primary_per_company');
 });
 
 it('restricts deletion of companies referenced by contacts', function (): void {
     $company = Company::query()->create(['legal_name' => 'Kurgusal Kappa Ltd.', 'city' => '55']);
-    Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal Bağlı Kişi']);
+    Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal Bağlı Kişi', 'data_source' => 'other']);
 
     expect(fn () => $company->delete())->toThrow(QueryException::class);
 });
@@ -103,7 +105,7 @@ it('restricts deletion of companies referenced by contacts', function (): void {
 it('restricts deletion of contacts referenced by consents', function (): void {
     $user = User::factory()->create(['email' => 'restrict-recorder@example.invalid']);
     $company = Company::query()->create(['legal_name' => 'Kurgusal Lambda Ltd.', 'city' => '61']);
-    $contact = Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal Kayıt Sahibi']);
+    $contact = Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal Kayıt Sahibi', 'data_source' => 'other']);
     CommunicationConsent::query()->create([
         'contact_id' => $contact->id,
         'channel' => 'sms',
@@ -124,6 +126,8 @@ it('requires exactly one interaction subject', function (): void {
     expect(fn () => Interaction::query()->create([
         'user_id' => $user->id,
         'type' => 'call',
+        'direction' => 'outbound',
+        'purpose' => 'marketing',
         'occurred_at' => now(),
     ]))->toThrow(QueryException::class, 'interactions_exactly_one_subject');
 });

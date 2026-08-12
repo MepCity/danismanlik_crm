@@ -7,6 +7,8 @@ namespace App\Filament\Pages;
 use App\Domain\Collaboration\DTOs\SubjectReference;
 use App\Domain\Collaboration\Enums\CollaborationSubjectType;
 use App\Domain\Collaboration\Services\EmailNotificationService;
+use App\Domain\Crm\Actions\RecordInteraction;
+use App\Domain\Crm\Models\Interaction;
 use App\Domain\Deal\Exceptions\StatusTransitionRejected;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Transition;
@@ -26,6 +28,7 @@ use App\Support\Workflow\SubjectType;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
@@ -65,9 +68,20 @@ final class DealDetail extends Page
 
     public ?string $transitionError = null;
 
+    public string $interactionType = 'call';
+
+    public string $interactionOccurredAt = '';
+
+    public ?int $interactionDuration = null;
+
+    public string $interactionOutcome = '';
+
+    public string $interactionNote = '';
+
     public function mount(int $deal): void
     {
         $this->dealId = $deal;
+        $this->interactionOccurredAt = now()->format('Y-m-d\TH:i');
         $this->authorizeDeal();
     }
 
@@ -98,6 +112,23 @@ final class DealDetail extends Page
         } catch (StatusTransitionRejected $exception) {
             $this->transitionError = $exception->getMessage();
         }
+    }
+
+    public function addInteraction(RecordInteraction $interactions): void
+    {
+        $this->validate([
+            'interactionType' => ['required', 'in:call,meeting,email'],
+            'interactionOccurredAt' => ['required', 'date'],
+            'interactionDuration' => ['nullable', 'integer', 'min:0', 'max:1440'],
+            'interactionOutcome' => ['nullable', 'string', 'max:255'],
+            'interactionNote' => ['nullable', 'string', 'max:5000'],
+        ]);
+        $deal = $this->deal();
+        Gate::authorize('create', Interaction::class);
+        $interactions->forDeal($deal->id, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null);
+        $this->interactionOccurredAt = now()->format('Y-m-d\TH:i');
+        $this->reset('interactionDuration', 'interactionOutcome', 'interactionNote');
+        $this->success(__('marketing.messages.interaction_saved'));
     }
 
     public function uploadDocument(DocumentUploadService $documents): void
@@ -218,6 +249,7 @@ final class DealDetail extends Page
     {
         $deal = $this->deal()->load([
             'company.contacts', 'programVersion.program', 'projectManager', 'openedBy', 'status',
+            'interactions' => fn ($query) => $query->with('user')->latest('occurred_at'),
             'documents.files' => fn ($query) => $query->where('is_deleted', false)->orderByDesc('version_no'),
             'documents.requirementSuggestions' => fn ($query) => $query->where('status', 'pending'),
         ]);

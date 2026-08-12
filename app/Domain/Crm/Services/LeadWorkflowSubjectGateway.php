@@ -4,14 +4,36 @@ declare(strict_types=1);
 
 namespace App\Domain\Crm\Services;
 
+use App\Domain\Crm\DTOs\LeadStatusTarget;
 use App\Domain\Crm\Models\Lead;
 use App\Support\Workflow\SubjectType;
 use App\Support\Workflow\WorkflowSubject;
 use App\Support\Workflow\WorkflowSubjectGateway;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 final class LeadWorkflowSubjectGateway implements WorkflowSubjectGateway
 {
+    public function target(int $statusId): LeadStatusTarget
+    {
+        $row = DB::table('statuses')->where('type', 'lead')->where('id', $statusId)->first([
+            'id', 'required_fields', 'converts_to_deal',
+        ]);
+
+        if ($row === null) {
+            throw new ModelNotFoundException;
+        }
+
+        $required = json_decode((string) $row->required_fields, true, flags: JSON_THROW_ON_ERROR);
+
+        return new LeadStatusTarget(
+            (int) $row->id,
+            is_array($required) ? array_values(array_filter($required, 'is_string')) : [],
+            (bool) $row->converts_to_deal,
+        );
+    }
+
     /** @return list<int> */
     public function lockIdsByStatus(int $statusId): array
     {

@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $title
  * @property string|null $phone
  * @property string|null $email
+ * @property string $data_source
  * @property bool $is_primary
  * @property bool $is_active
  * @property bool|null $consent_call
@@ -32,6 +33,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'title',
     'phone',
     'email',
+    'data_source',
     'is_primary',
     'is_active',
     'consent_call',

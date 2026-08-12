@@ -6,8 +6,10 @@ namespace Database\Seeders;
 
 use App\Domain\Access\Models\Team;
 use App\Domain\Access\Models\TeamMember;
+use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
+use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Status;
@@ -116,26 +118,41 @@ final class DemoDataSeeder extends Seeder
         ];
 
         foreach ($companies as $index => $company) {
-            Contact::query()->updateOrCreate(
+            $contact = Contact::query()->updateOrCreate(
                 ['company_id' => $company->id, 'email' => 'yetkili'.($index + 1).'@firma.invalid'],
                 [
                     'full_name' => 'Kurgusal Yetkili '.($index + 1),
                     'title' => 'Demo Yetkilisi',
-                    'phone' => null,
+                    'phone' => '+90 000 000 00 0'.($index + 1),
+                    'data_source' => $index === 1 ? 'referral' : 'form',
                     'is_primary' => true,
                     'is_active' => true,
+                    'consent_call' => $index !== 2,
                     'consent_email' => true,
+                    'do_not_call' => $index === 2,
+                ],
+            );
+            CommunicationConsent::query()->firstOrCreate(
+                ['contact_id' => $contact->id, 'channel' => 'call', 'purpose' => 'marketing'],
+                [
+                    'status' => $index === 2 ? 'withdrawn' : 'granted',
+                    'legal_basis' => $index === 2 ? 'explicit_withdrawal' : 'explicit_consent',
+                    'source' => $index === 1 ? 'referral' : 'form',
+                    'disclosure_date' => now()->subDays(20 + $index)->toDateString(),
+                    'disclosure_method' => $index === 1 ? 'phone' : 'form',
+                    'effective_from' => now()->subDays(10 + $index),
+                    'recorded_by' => $users['marketing']->id,
                 ],
             );
         }
 
         $leadStatuses = Status::query()->where('type', 'lead')->get()->keyBy('code');
         foreach ([
-            [$companies[0], 'interested'],
-            [$companies[1], 'proposal_sent'],
-            [$companies[2], 'callback'],
-        ] as [$company, $statusCode]) {
-            Lead::query()->firstOrCreate(
+            [$companies[0], 'interested', now()->subDay()->setTime(10, 0)],
+            [$companies[1], 'proposal_sent', now()->setTime(13, 30)],
+            [$companies[2], 'callback', now()->subDays(3)->setTime(9, 15)],
+        ] as $index => [$company, $statusCode, $nextCallAt]) {
+            $lead = Lead::query()->updateOrCreate(
                 [
                     'company_id' => $company->id,
                     'owner_user_id' => $users['marketing']->id,
@@ -144,7 +161,30 @@ final class DemoDataSeeder extends Seeder
                 [
                     'source' => 'demo',
                     'status_id' => $leadStatuses[$statusCode]->id,
-                    'next_call_at' => $statusCode === 'callback' ? now()->addWeek() : null,
+                    'next_call_at' => $nextCallAt,
+                ],
+            );
+            StatusHistory::query()->firstOrCreate(
+                ['lead_id' => $lead->id, 'exited_at' => null],
+                [
+                    'status_id' => $leadStatuses[$statusCode]->id,
+                    'status_label_snapshot' => $leadStatuses[$statusCode]->label,
+                    'workflow_revision_id' => $revision->id,
+                    'entered_at' => now()->subDays(6 - $index),
+                    'changed_by' => $users['marketing']->id,
+                    'reason' => 'demo veri kurulumu',
+                ],
+            );
+            Interaction::query()->firstOrCreate(
+                ['lead_id' => $lead->id, 'occurred_at' => now()->subDays(4 - $index)->setTime(11, 0)],
+                [
+                    'user_id' => $users['marketing']->id,
+                    'type' => 'call',
+                    'direction' => 'outbound',
+                    'purpose' => 'marketing',
+                    'duration_minutes' => 3 + $index,
+                    'outcome' => $index === 0 ? 'contacted' : 'unreachable',
+                    'note' => 'Kurgusal demo görüşme notu.',
                 ],
             );
         }

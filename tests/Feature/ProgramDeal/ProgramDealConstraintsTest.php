@@ -287,6 +287,8 @@ it('requires interactions to reference exactly one real lead or deal', function 
     $attributes = [
         'user_id' => $user->id,
         'type' => 'call',
+        'direction' => 'outbound',
+        'purpose' => 'service',
         'occurred_at' => now(),
     ];
 
@@ -299,4 +301,18 @@ it('requires interactions to reference exactly one real lead or deal', function 
             ...$attributes,
             'deal_id' => PHP_INT_MAX,
         ]))->toThrow(QueryException::class);
+});
+
+it('rejects an invalid call direction at the database boundary', function (): void {
+    $user = User::factory()->create();
+    $deal = createDeal(createProgramVersion());
+
+    expect(fn () => Interaction::query()->create([
+        'deal_id' => $deal->id,
+        'user_id' => $user->id,
+        'type' => 'call',
+        'direction' => 'sideways',
+        'purpose' => 'service',
+        'occurred_at' => now(),
+    ]))->toThrow(QueryException::class, 'interactions_call_context');
 });
