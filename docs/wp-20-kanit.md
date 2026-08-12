@@ -103,9 +103,9 @@ ClamAV kararı yok/servis kapalı => failed
 ## Kod kalite doğrulaması
 
 ```text
-Laravel Pint => PASS (345 dosya)
+Laravel Pint => PASS (364 dosya)
 Larastan => PASS (hata yok)
-Pest => 258 test geçti (1.080 doğrulama)
+Pest => 278 test geçti (1.159 doğrulama)
 ```
 
 GitHub Actions sonucu PR açıldıktan sonra uzak CI üzerinden ayrıca izlenir.
