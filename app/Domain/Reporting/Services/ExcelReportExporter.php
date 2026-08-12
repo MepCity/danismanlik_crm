@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Reporting\Services;
 
+use App\Domain\Access\Services\OperationPermissionChecker;
 use App\Domain\Reporting\DTOs\ReportColumn;
 use App\Domain\Reporting\Enums\ReportType;
 use App\Domain\Reporting\Models\ReportExport;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
 use OpenSpout\Common\Entity\Row;
@@ -21,11 +23,16 @@ final readonly class ExcelReportExporter
     public function __construct(
         private ReportQuery $reports,
         private Filesystem $files,
+        private OperationPermissionChecker $permissions,
     ) {}
 
     /** @return array{path: string, filename: string, row_count: int} */
     public function export(ReportType $type, User $actor): array
     {
+        if (! $this->permissions->allows($actor, 'report.export')) {
+            throw new AuthorizationException((string) trans('reporting.export_forbidden'));
+        }
+
         $directory = storage_path('app/report-exports');
         $this->files->ensureDirectoryExists($directory);
         $path = $directory.'/'.Str::uuid().'.xlsx';

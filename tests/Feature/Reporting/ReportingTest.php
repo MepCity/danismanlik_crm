@@ -16,6 +16,7 @@ use App\Domain\Reporting\Services\ExcelReportExporter;
 use App\Domain\Reporting\Services\ReportQuery;
 use App\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use OpenSpout\Reader\XLSX\Reader;
@@ -189,6 +190,27 @@ it('ayrı dışa aktarma izni olmadan indirmeyi reddeder', function (): void {
     $this->actingAs($marketing)
         ->get(route('reports.export', ['report' => ReportType::DealBoard->value]))
         ->assertForbidden();
+});
+
+it('servis doğrudan çağrıldığında dışa aktarma iznini zorunlu tutar', function (): void {
+    $marketing = reportingUser('Pazarlama', 'Servis İzinsiz Excel');
+
+    expect(fn () => app(ExcelReportExporter::class)->export(ReportType::DealBoard, $marketing))
+        ->toThrow(AuthorizationException::class, 'Bu raporu Excel olarak dışa aktarma izniniz yok.')
+        ->and(ReportExport::query()->count())->toBe(0);
+});
+
+it('servis doğrudan çağrıldığında izinli kullanıcı için excel üretir', function (): void {
+    $marketing = reportingUser('Pazarlama', 'Servis İzinli Excel');
+    $marketing->givePermissionTo('report.export');
+    reportingDeal($marketing, 'SERVICE-ALLOWED');
+
+    $export = app(ExcelReportExporter::class)->export(ReportType::DealBoard, $marketing);
+
+    expect(is_file($export['path']))->toBeTrue()
+        ->and($export['row_count'])->toBe(1)
+        ->and(ReportExport::query()->where('actor_id', $marketing->id)->exists())->toBeTrue();
+    unlink($export['path']);
 });
 
 it('dışa aktarımı satır sayısıyla salt ekleme kaydına ve audit loga yazar', function (): void {

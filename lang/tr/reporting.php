@@ -7,6 +7,7 @@ return [
     'title' => 'Raporlar',
     'report_selector' => 'Sabit rapor görünümleri',
     'export' => 'Excel indir',
+    'export_forbidden' => 'Bu raporu Excel olarak dışa aktarma izniniz yok.',
     'export_permission_required' => 'Excel indirme izni gerekli',
     'row_summary' => ':total satırın :shown satırı gösteriliyor.',
     'not_available' => '—',
