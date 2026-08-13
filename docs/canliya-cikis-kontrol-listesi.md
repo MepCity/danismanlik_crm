@@ -49,7 +49,7 @@ Bu belge yayın kapısıdır. Her madde kanıtı ve sorumlusu yazılarak işaret
 - [ ] Müşterinin gerçek programları, sürümleri, evrak listeleri ve koşulları müşteriyle girilip kontrol edildi. Programlar/onay: ______
 - [ ] KOSGEB Yeşil Sanayi kaydının müşterice doğrulanmamış örnek olduğu teyit edildi; gerçek veri diye kullanılmıyor veya müşteri doğruladı. Karar: ______
 - [ ] Veri göçü tamamlanıp sayı/alan kontrolü yapıldı veya göç olmadığı yazılı teyit edildi. Kanıt: ______
-- [ ] `make purge-demo` çalıştı; demo firma, dosya, belge nesnesi ve `@demo.invalid` kullanıcı kalmadı. Tarih: ______
+- [ ] `make purge-demo` çalıştı; demo firma, dosya, belge nesnesi ve Bizlife demo hesabı kalmadı. Tarih: ______
 - [ ] Temizlik sonrası statü, geçiş, rol, izin, program ve evrak şablonu referansları korundu. Kontrol eden: ______
 - [ ] [Müşteri kabul betiği](kabul-testi.md) eksiksiz yürütüldü ve imzalandı. Tarih/belge yeri: ______
 

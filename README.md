@@ -62,15 +62,14 @@ pasif `system-seeder@localhost.invalid` teknik kimliğini oluşturur.
 
 `make seed-demo`, önce aynı referans verisini, ardından tamamen kurgusal firma,
 kişi, fırsat, dosya ve evrak satırlarını yükler. Komut `production` ortamında
-herhangi bir demo verisi yazmadan hata verir. Tüm demo hesaplarının parolası
-`Demo123!` değeridir:
+herhangi bir demo verisi yazmadan hata verir. Üç demo hesabının parolası
+`admin` değeridir:
 
 | Rol | E-posta |
 |---|---|
-| Pazarlama | `pazarlama@demo.invalid` |
-| Proje Yöneticisi | `proje.yoneticisi@demo.invalid` |
-| Şirket Yetkilisi | `sirket.yetkilisi@demo.invalid` |
-| Sistem Yöneticisi | `sistem.yoneticisi@demo.invalid` |
+| Pazarlama | `pazarlama@bizlife` |
+| Proje Yöneticisi | `proje@bizlife` |
+| Yönetici (Şirket Yetkilisi) | `admin@bizlife` |
 
 `make fresh`, mevcut şemayı ve içindeki veriyi siler; migration'ları yeniden
 çalıştırır ve yalnız referans verisini yükler. Demo veri yüklemez.
