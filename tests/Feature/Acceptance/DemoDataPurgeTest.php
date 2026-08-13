@@ -48,6 +48,7 @@ it('demo iş grafiğini silerken referans veriyi ve gerçek işaretli kaydı kor
         'templates' => DocTemplate::query()->count(),
     ];
     $realUser = User::factory()->create(['email' => 'gercek-isaretli-olmayan@firma.invalid']);
+    User::factory()->create(['email' => 'pazarlama@demo.invalid']);
     $storageKeys = File::query()->pluck('storage_key')->all();
     expect($storageKeys)->not->toBeEmpty();
 
@@ -57,6 +58,7 @@ it('demo iş grafiğini silerken referans veriyi ve gerçek işaretli kaydı kor
 
     expect(DB::table('companies')->where('source', 'demo')->count())->toBe(0)
         ->and(Deal::query()->where('reference_no', 'like', 'DEMO-%')->count())->toBe(0)
+        ->and(User::query()->whereIn('email', ['pazarlama@bizlife', 'proje@bizlife', 'admin@bizlife'])->count())->toBe(0)
         ->and(User::query()->where('email', 'like', '%@demo.invalid')->count())->toBe(0)
         ->and(User::query()->whereKey($realUser->id)->exists())->toBeTrue()
         ->and(DB::table('statuses')->count())->toBe($referenceCounts['statuses'])
@@ -74,7 +76,7 @@ it('demo iş grafiğini silerken referans veriyi ve gerçek işaretli kaydı kor
 
 it('demo hesabı demo olmayan dosyaya bağlıysa temizliği kırmızıya düşürür', function (): void {
     /** @var TestCase $this */
-    $demoUser = User::query()->where('email', 'pazarlama@demo.invalid')->sole();
+    $demoUser = User::query()->where('email', 'pazarlama@bizlife')->sole();
     $realCompany = DB::table('companies')->insertGetId([
         'legal_name' => 'Kurgusal Korunan İşletme', 'city' => '06', 'source' => 'manual',
         'created_at' => now(), 'updated_at' => now(),

@@ -40,9 +40,9 @@ it('tamamen kurgusal demo grafiğini ve sabit hesapları kurar', function (): vo
     Queue::fake();
     (new DemoDataSeeder)->setContainer(app())->run();
 
-    $marketing = User::query()->where('email', 'pazarlama@demo.invalid')->firstOrFail();
+    $marketing = User::query()->where('email', 'pazarlama@bizlife')->firstOrFail();
 
-    expect(User::query()->where('email', 'like', '%@demo.invalid')->count())->toBe(5)
+    expect(User::query()->whereIn('email', ['pazarlama@bizlife', 'proje@bizlife', 'admin@bizlife'])->count())->toBe(3)
         ->and($marketing->hasRole('Pazarlama'))->toBeTrue()
         ->and(Hash::check(DemoDataSeeder::PASSWORD, $marketing->password))->toBeTrue()
         ->and(Team::query()->count())->toBe(2)
@@ -82,7 +82,7 @@ it('demo evraklarını gerçek yükleme akışıyla sürümlendirir ve panelde g
         ->and(File::query()->count())->toBeGreaterThan($documentsWithFiles->count());
 
     Filament::setCurrentPanel(Filament::getPanel('operations'));
-    Auth::login(User::query()->where('email', 'sirket.yetkilisi@demo.invalid')->sole());
+    Auth::login(User::query()->where('email', 'admin@bizlife')->sole());
 
     Livewire::test(DealDetail::class, ['deal' => $versioned->deal_id])
         ->set('activeTab', 'documents')

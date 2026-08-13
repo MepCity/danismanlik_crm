@@ -34,7 +34,7 @@ use RuntimeException;
 
 final class DemoDataSeeder extends Seeder
 {
-    public const PASSWORD = 'Demo123!';
+    public const PASSWORD = 'admin';
 
     public function run(): void
     {
@@ -55,11 +55,9 @@ final class DemoDataSeeder extends Seeder
     private function seedUsers(): array
     {
         $definitions = [
-            'marketing' => ['Demo Pazarlama Kullanıcısı', 'pazarlama@demo.invalid', 'Pazarlama'],
-            'project_manager' => ['Demo Proje Yöneticisi', 'proje.yoneticisi@demo.invalid', 'Proje Yöneticisi'],
-            'company_authority' => ['Demo Şirket Yetkilisi', 'sirket.yetkilisi@demo.invalid', 'Şirket Yetkilisi'],
-            'system_admin' => ['Demo Sistem Yöneticisi', 'sistem.yoneticisi@demo.invalid', 'Sistem Yöneticisi'],
-            'second_project_manager' => ['Demo İkinci Proje Yöneticisi', 'ikinci.proje.yoneticisi@demo.invalid', 'Proje Yöneticisi'],
+            'marketing' => ['Pazarlama', 'pazarlama@bizlife', 'Pazarlama'],
+            'project_manager' => ['Proje Yöneticisi', 'proje@bizlife', 'Proje Yöneticisi'],
+            'company_authority' => ['Yönetici', 'admin@bizlife', 'Şirket Yetkilisi'],
         ];
         $users = [];
 
@@ -84,13 +82,13 @@ final class DemoDataSeeder extends Seeder
         );
         $applications = Team::query()->updateOrCreate(
             ['name' => 'Demo Başvuru Takımı'],
-            ['manager_id' => $users['second_project_manager']->id, 'is_active' => true],
+            ['manager_id' => $users['project_manager']->id, 'is_active' => true],
         );
 
         foreach ([
             [$operations, $users['project_manager'], 'manager'],
             [$operations, $users['marketing'], 'member'],
-            [$applications, $users['second_project_manager'], 'manager'],
+            [$applications, $users['project_manager'], 'manager'],
             [$applications, $users['company_authority'], 'member'],
         ] as [$team, $user, $role]) {
             TeamMember::query()->updateOrCreate(
@@ -200,9 +198,9 @@ final class DemoDataSeeder extends Seeder
         $dealStatuses = Status::query()->where('type', 'deal')->get()->keyBy('code');
         $dealDefinitions = [
             [$companies[0], 'DEMO-2026-001', 'collecting_documents', $users['project_manager'], '6500000.00'],
-            [$companies[1], 'DEMO-2026-002', 'preparing_application', $users['second_project_manager'], '2400000.00'],
+            [$companies[1], 'DEMO-2026-002', 'preparing_application', $users['project_manager'], '2400000.00'],
             [$companies[2], 'DEMO-2026-003', 'awaiting_assignment', null, '950000.00'],
-            [$companies[0], 'DEMO-2026-004', 'collecting_documents', $users['second_project_manager'], '1750000.00'],
+            [$companies[0], 'DEMO-2026-004', 'collecting_documents', $users['project_manager'], '1750000.00'],
         ];
 
         foreach ($dealDefinitions as [$company, $reference, $statusCode, $projectManager, $amount]) {
