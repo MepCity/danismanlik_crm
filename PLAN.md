@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.5 — 12.08.2026
+> **Sürüm:** 1.6 — 13.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -943,6 +943,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.6 | 13.08.2026 | Operasyon arayüzü “sakin operasyon merkezi” tasarım sistemine geçirildi: ortak marka kabuğu, mavi-gri yüzey hiyerarşisi, tek indigo vurgu, 36 px operasyon yoğunluğu, açık/koyu tema, 120–240 ms mikro hareket sözleşmesi, hareket azaltma desteği ve mobil kırılım kuralları kalıcılaştırıldı |
 | 1.5 | 12.08.2026 | Ana akışın kayıt granülerliği kesinleştirildi: firma ana kayıt; statü fırsat/proje seviyesinde; görüşülen kişi ve karardaki rol açık bağ; firma geneli işbirliği öznesi; aynı firmada aynı/farklı program için bağımsız çoklu proje. Tek ekran potansiyel müşteri girişi, Firma 360° ve atama iş istasyonu bu karara göre hizalandı |
 | 1.0 | 10.08.2026 | İlk teknik fizibilite. Web+PWA, sıfırdan geliştirme, DB tabanlı statü, program sürümleme, e-TUYS tespiti |
 | 1.4 | 12.08.2026 | Ürün adı **Bizlife CRM** olarak belirlendi. TOTP müşteri talebiyle isteğe bağlı yapıldı; Şirket Yetkilisi hesabının geniş erişim riski bilinerek kabul edildi |

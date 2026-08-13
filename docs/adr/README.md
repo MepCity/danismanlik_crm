@@ -8,4 +8,4 @@ ADR olarak eklenir. Yeni kayıt için `0000-sablon.md` kopyalanır. Kabul edilmi
 bir karar sessizce değiştirilmez; yerine geçen ADR eskisini “Değiştirildi”
 durumuna getirir ve iki kayıt birbirine bağlantı verir.
 
-Son kayıt: [ADR-0026 — Firma, fırsat, kişi ve çoklu proje granülerliği](0026-firma-firsat-kisi-ve-coklu-proje-granulerligi.md).
+Son kayıt: [ADR-0027 — Operasyon arayüzü tasarım sistemi](0027-operasyon-arayuzu-tasarim-sistemi.md).
