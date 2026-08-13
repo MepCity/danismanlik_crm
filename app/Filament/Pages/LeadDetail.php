@@ -59,6 +59,16 @@ final class LeadDetail extends Page
         return __('marketing.detail.title', ['company' => $this->lead()->company->legal_name]);
     }
 
+    public function getSubheading(): string
+    {
+        $lead = $this->lead()->loadMissing(['status', 'interestedProgramVersion.program']);
+
+        return __('marketing.detail.subtitle', [
+            'status' => $lead->status->label,
+            'program' => $lead->interestedProgramVersion?->program->name ?? __('marketing.board.no_program'),
+        ]);
+    }
+
     public function addInteraction(RecordInteraction $interactions): void
     {
         $this->validate([

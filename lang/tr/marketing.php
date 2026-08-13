@@ -6,6 +6,7 @@ return [
     'intake' => [
         'navigation' => 'Potansiyel müşteri ekle',
         'title' => 'Potansiyel müşteri kaydı',
+        'subtitle' => 'Firma, kişi, fırsat ve ilk görüşmeyi tek akışta oluşturun.',
         'choose' => 'Seçin',
         'save' => 'Kaydı ve görüşmeyi oluştur',
         'saved' => 'Firma, kişi, fırsat ve görüşme kaydedildi.',
@@ -95,6 +96,7 @@ return [
         'waiting_days' => ':count gündür açık',
     ],
     'company' => [
+        'subtitle' => ':contacts kişi · :opportunities açık fırsat · :projects proje',
         'tabs' => [
             'overview' => 'Genel bakış', 'contacts' => 'Kişiler', 'opportunities' => 'Fırsatlar',
             'projects' => 'Projeler', 'comments' => 'Firma notları', 'tasks' => 'Görevler', 'history' => 'İşlem geçmişi',
@@ -107,6 +109,7 @@ return [
     ],
     'detail' => [
         'title' => ':company fırsatı',
+        'subtitle' => ':status · :program',
         'company' => 'Firma',
         'owner' => 'Sahip',
         'status' => 'Statü',

@@ -114,6 +114,11 @@ final class ProspectIntake extends Page
         return __('marketing.intake.title');
     }
 
+    public function getSubheading(): string
+    {
+        return __('marketing.intake.subtitle');
+    }
+
     public function updatedCompanyId(): void
     {
         $this->contactId = null;

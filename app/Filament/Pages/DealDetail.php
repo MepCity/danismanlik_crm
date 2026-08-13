@@ -108,6 +108,16 @@ final class DealDetail extends Page
         return __('operations.detail.title', ['reference' => $this->deal()->reference_no]);
     }
 
+    public function getSubheading(): string
+    {
+        $deal = $this->deal();
+
+        return __('operations.detail.subtitle', [
+            'company' => $deal->company->legal_name,
+            'program' => $deal->programVersion->program->name,
+        ]);
+    }
+
     public function transitionDeal(int $targetStatusId, StatusMachineContract $machine): void
     {
         $deal = $this->deal();

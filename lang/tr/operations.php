@@ -16,6 +16,7 @@ return [
     ],
     'detail' => [
         'title' => ':reference dosyası',
+        'subtitle' => ':company · :program',
         'tabs' => [
             'general' => 'Genel', 'process' => 'Süreç', 'documents' => 'Belge listesi',
             'tasks' => 'Görevler', 'comments' => 'Yorumlar', 'interactions' => 'Görüşmeler',
@@ -75,6 +76,7 @@ return [
     'assignment' => [
         'navigation' => 'Atama bekleyen işler',
         'title' => 'Atama bekleyen işler',
+        'subtitle' => 'Yeni alınan işleri inceleyin ve uygun proje yöneticisine aktarın.',
         'manager' => 'Proje yöneticisi', 'choose_manager' => 'Proje yöneticisi seçin', 'assign' => 'Ata ve süreci başlat',
         'active_workload' => ':count açık dosya',
         'workload' => 'Proje yöneticisi iş yükü',

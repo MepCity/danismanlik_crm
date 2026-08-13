@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Companies\Pages;
 
 use App\Domain\Crm\Actions\SaveContact;
 use App\Domain\Crm\Actions\WithdrawCallConsent;
+use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Filament\Resources\Companies\CompanyResource;
 use Filament\Notifications\Notification;
@@ -38,6 +39,29 @@ final class ViewCompany extends ViewRecord
     public string $contactDisclosureMethod = '';
 
     public string $activeTab = 'overview';
+
+    public function getTitle(): string
+    {
+        return $this->company()->legal_name;
+    }
+
+    public function getSubheading(): string
+    {
+        $company = $this->company();
+
+        return __('marketing.company.subtitle', [
+            'contacts' => $company->contacts()->count(),
+            'opportunities' => $company->leads()->whereNull('converted_deal_id')->count(),
+            'projects' => $company->deals()->count(),
+        ]);
+    }
+
+    private function company(): Company
+    {
+        abort_unless($this->record instanceof Company, 404);
+
+        return $this->record;
+    }
 
     public function addContact(SaveContact $contacts): void
     {

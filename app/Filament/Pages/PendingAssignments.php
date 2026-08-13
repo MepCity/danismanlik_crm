@@ -46,6 +46,11 @@ final class PendingAssignments extends Page
         return __('operations.assignment.title');
     }
 
+    public function getSubheading(): string
+    {
+        return __('operations.assignment.subtitle');
+    }
+
     public function assign(int $dealId, AssignDeal $assignments): void
     {
         $this->validate(["projectManagerIds.{$dealId}" => ['required', 'integer']]);
