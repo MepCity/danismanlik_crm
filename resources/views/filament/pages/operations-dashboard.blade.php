@@ -1,5 +1,16 @@
 <x-filament-panels::page>
     <div class="dashboard-layout" data-testid="operations-dashboard">
+        <header class="workspace-hero">
+            <div>
+                <span class="workspace-hero__eyebrow">{{ __('panel.shell.workspace') }}</span>
+                <h2>{{ __('panel.shell.greeting', ['name' => auth()->user()?->name]) }}</h2>
+                <p>{{ __('panel.shell.today_summary') }}</p>
+            </div>
+            <time class="workspace-hero__date numeric-data" datetime="{{ now()->toDateString() }}">
+                <strong>{{ now()->translatedFormat('d') }}</strong>
+                <span>{{ now()->translatedFormat('F Y') }}</span>
+            </time>
+        </header>
         @if (count($cards) > 0)
             <div class="dashboard-cards">
                 @foreach ($cards as $card)

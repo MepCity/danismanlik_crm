@@ -332,3 +332,36 @@ it('zaman tünelini kapsamlı, filtrelenebilir ve sabit sorgu sayısıyla sayfal
         ->and($query->paginate($fixture['owner'], $subject, 'status')->total())->toBe(12)
         ->and(fn () => $query->paginate($fixture['outsider'], $subject))->toThrow(AuthorizationException::class);
 });
+
+it('firma zaman tünelinde firma fırsat proje ve evrak hareketlerini birleştirir', function (): void {
+    $fixture = collaborationFixture();
+    $subject = new SubjectReference(CollaborationSubjectType::Company, $fixture['company']->id);
+
+    app(CommentService::class)->create($fixture['owner'], $subject, 'Firma geneli kurgusal not.');
+    Activity::query()->create([
+        'actor_id' => $fixture['owner']->id,
+        'lead_id' => $fixture['lead']->id,
+        'action' => 'lead.created',
+        'payload' => ['company' => ['label' => $fixture['company']->legal_name]],
+        'source' => 'user',
+    ]);
+    Activity::query()->create([
+        'actor_id' => $fixture['officer']->id,
+        'deal_id' => $fixture['deal']->id,
+        'action' => 'deal.assigned',
+        'payload' => ['assignee' => ['label' => $fixture['officer']->name]],
+        'source' => 'user',
+    ]);
+    Activity::query()->create([
+        'actor_id' => $fixture['officer']->id,
+        'deal_document_id' => $fixture['document']->id,
+        'action' => 'document.requested',
+        'payload' => ['document' => ['label' => $fixture['document']->name_snapshot]],
+        'source' => 'user',
+    ]);
+
+    $timeline = app(TimelineQuery::class)->paginate($fixture['owner'], $subject);
+
+    expect($timeline->total())->toBe(4)
+        ->and($timeline->getCollection()->pluck('type')->all())->toContain('comment', 'activity');
+});

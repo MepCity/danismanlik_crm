@@ -21,7 +21,7 @@ final class EmailNotificationService
         $notification = Notification::query()->create([
             'user_id' => $recipient->id,
             'type' => $type,
-            ...($subject?->columns() ?? ['lead_id' => null, 'deal_id' => null, 'deal_document_id' => null]),
+            ...($subject?->columns() ?? ['company_id' => null, 'lead_id' => null, 'deal_id' => null, 'deal_document_id' => null]),
             'title' => $title,
             'body' => $body,
             'channel' => 'email',
@@ -45,7 +45,7 @@ final class EmailNotificationService
             'recipient_email' => $email,
             'recipient_name' => $name,
             'type' => $type,
-            ...($subject?->columns() ?? ['lead_id' => null, 'deal_id' => null, 'deal_document_id' => null]),
+            ...($subject?->columns() ?? ['company_id' => null, 'lead_id' => null, 'deal_id' => null, 'deal_document_id' => null]),
             'title' => $title,
             'body' => $body,
             'channel' => 'email',

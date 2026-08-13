@@ -36,13 +36,17 @@ final class LeadDetail extends Page
 
     public string $interactionNote = '';
 
+    public ?int $interactionContactId = null;
+
     public string $activeTab = 'general';
 
     public function mount(int $lead): void
     {
         $this->leadId = $lead;
         $this->interactionOccurredAt = now()->format('Y-m-d\TH:i');
-        $this->lead();
+        $leadModel = $this->lead();
+        $this->interactionContactId = $leadModel->primary_contact_id
+            ?? $leadModel->company->contacts()->where('is_primary', true)->value('id');
     }
 
     public function hydrate(): void
@@ -55,6 +59,16 @@ final class LeadDetail extends Page
         return __('marketing.detail.title', ['company' => $this->lead()->company->legal_name]);
     }
 
+    public function getSubheading(): string
+    {
+        $lead = $this->lead()->loadMissing(['status', 'interestedProgramVersion.program']);
+
+        return __('marketing.detail.subtitle', [
+            'status' => $lead->status->label,
+            'program' => $lead->interestedProgramVersion?->program->name ?? __('marketing.board.no_program'),
+        ]);
+    }
+
     public function addInteraction(RecordInteraction $interactions): void
     {
         $this->validate([
@@ -63,12 +77,13 @@ final class LeadDetail extends Page
             'interactionDuration' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'interactionOutcome' => ['nullable', 'string', 'max:255'],
             'interactionNote' => ['nullable', 'string', 'max:5000'],
+            'interactionContactId' => ['required', 'integer'],
         ]);
         Gate::authorize('create', Interaction::class);
         if ($this->interactionType === 'incoming_call') {
-            $interactions->forInboundLeadCall($this->leadId, (int) Auth::id(), Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null);
+            $interactions->forInboundLeadCall($this->leadId, (int) Auth::id(), Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null, $this->interactionContactId);
         } else {
-            $interactions->forLead($this->leadId, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null);
+            $interactions->forLead($this->leadId, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null, $this->interactionContactId);
         }
         $this->interactionOccurredAt = now()->format('Y-m-d\TH:i');
         $this->reset('interactionDuration', 'interactionOutcome', 'interactionNote');
@@ -89,8 +104,8 @@ final class LeadDetail extends Page
     {
         return ['lead' => $this->lead()->load([
             'company.contacts.communicationConsents' => fn ($query) => $query->where('channel', 'call')->where('purpose', 'marketing')->latest('effective_from'),
-            'owner', 'status', 'interestedProgramVersion.program',
-            'interactions' => fn ($query) => $query->with('user')->latest('occurred_at'),
+            'owner', 'status', 'interestedProgramVersion.program', 'primaryContact',
+            'interactions' => fn ($query) => $query->with(['user', 'contact'])->latest('occurred_at'),
             'convertedDeal',
         ])];
     }

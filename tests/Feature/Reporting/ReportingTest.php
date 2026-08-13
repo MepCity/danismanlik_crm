@@ -240,6 +240,9 @@ it('altı sabit raporun tamamını excel olarak üretebilir', function (): void 
 });
 
 it('rol panellerindeki iş kartlarını kapsamdan geçirir ve sistem yöneticisini boş bırakır', function (): void {
+    /** @var TestCase $this */
+    $this->travelTo(now()->startOfDay()->addHours(12));
+
     $marketing = reportingUser('Pazarlama', 'Panel Pazarlama');
     $other = reportingUser('Pazarlama', 'Panel Diğer');
     $pm = reportingUser('Proje Yöneticisi', 'Panel PM');

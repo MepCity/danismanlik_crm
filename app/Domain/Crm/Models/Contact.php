@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $company_id
  * @property string $full_name
  * @property string|null $title
+ * @property string|null $decision_role
  * @property string|null $phone
  * @property string|null $email
  * @property string $data_source
@@ -31,6 +32,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'company_id',
     'full_name',
     'title',
+    'decision_role',
     'phone',
     'email',
     'data_source',

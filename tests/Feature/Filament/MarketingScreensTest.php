@@ -13,6 +13,7 @@ use App\Domain\Deal\Models\WorkflowRevision;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Filament\Pages\LeadBoard;
 use App\Filament\Pages\LeadDetail;
+use App\Filament\Pages\ProspectIntake;
 use App\Filament\Pages\TodayCalls;
 use App\Filament\Resources\Companies\Pages\ViewCompany;
 use App\Models\User;
@@ -126,6 +127,9 @@ it('engelli fırsatta gelen aramayı ayrı işaretle kaydeder', function (): voi
 });
 
 it('bugün ve geçmiş aramaları geciken önce sıralar ve geleceği dışarıda bırakır', function (): void {
+    /** @var TestCase $this */
+    $this->travelTo(now()->startOfDay()->addHours(12));
+
     $owner = User::factory()->create(['email' => 'ekran-siralama@example.invalid']);
     $owner->assignRole('Pazarlama');
     $overdue = marketingScreenLead($owner, 'Geciken', nextCallAt: now()->subDays(2)->toDateTimeString());
@@ -196,10 +200,40 @@ it('kişi kartında izin kaynağını gösterir ve kaynak seçmeden yeni kişi k
     Auth::login($owner);
 
     Livewire::test(ViewCompany::class, ['record' => $fixture['company']->getRouteKey()])
+        ->set('activeTab', 'contacts')
         ->assertSee('Veri kaynağı')
         ->assertSee('Arama izni var')
         ->set('contactFullName', 'Kurgusal Yeni Yetkili')
         ->set('contactDataSource', '')
         ->call('addContact')
         ->assertHasErrors(['contactDataSource' => 'required']);
+});
+
+it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-intake@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $version = ProgramVersion::query()->firstOrFail();
+    $interested = Status::query()->where('type', 'lead')->where('code', 'interested')->sole();
+    Auth::login($owner);
+
+    Livewire::test(ProspectIntake::class)
+        ->assertSee('Potansiyel müşteri kaydı')
+        ->set('companyName', 'Kurgusal Tek Ekran AŞ')
+        ->set('city', '34')
+        ->set('contactName', 'Kurgusal Karar Verici')
+        ->set('contactTitle', 'Genel Müdür')
+        ->set('decisionRole', 'decision_maker')
+        ->set('phone', '+90 000 000 00 00')
+        ->set('email', 'karar-verici@firma.invalid')
+        ->set('programVersionId', $version->id)
+        ->set('targetStatusId', $interested->id)
+        ->set('callNote', 'İhtiyaç, program kapsamı ve sonraki adım görüşüldü.')
+        ->set('companyComment', 'Firma geneli kurgusal not.')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $lead = Lead::query()->whereHas('company', fn ($query) => $query->where('legal_name', 'Kurgusal Tek Ekran AŞ'))->sole();
+    expect($lead->primaryContact?->full_name)->toBe('Kurgusal Karar Verici')
+        ->and($lead->status_id)->toBe($interested->id)
+        ->and($lead->interactions()->whereNotNull('contact_id')->exists())->toBeTrue();
 });

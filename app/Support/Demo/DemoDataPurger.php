@@ -11,11 +11,23 @@ use Throwable;
 
 final class DemoDataPurger
 {
+    /** @var list<string> */
+    private const DEMO_ACCOUNT_EMAILS = [
+        'pazarlama@bizlife',
+        'proje@bizlife',
+        'admin@bizlife',
+        'pazarlama@demo.invalid',
+        'proje.yoneticisi@demo.invalid',
+        'sirket.yetkilisi@demo.invalid',
+        'sistem.yoneticisi@demo.invalid',
+        'ikinci.proje.yoneticisi@demo.invalid',
+    ];
+
     /** @return array{companies: int, deals: int, users: int, files: int} */
     public function purge(): array
     {
         $companyIds = $this->ids('companies', 'source', 'demo');
-        $userIds = DB::table('users')->where('email', 'like', '%@demo.invalid')->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
+        $userIds = DB::table('users')->whereIn('email', self::DEMO_ACCOUNT_EMAILS)->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
 
         if ($companyIds === [] && $userIds === []) {
             return ['companies' => 0, 'deals' => 0, 'users' => 0, 'files' => 0];

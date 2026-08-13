@@ -120,6 +120,23 @@ final readonly class TimelineQuery
 
     private function subjectWhere(Builder $query, SubjectReference $subject, string $table, string $document): void
     {
+        if ($subject->type === CollaborationSubjectType::Company) {
+            $query->where(function (Builder $query) use ($subject, $table, $document): void {
+                $query->where($table.'.company_id', $subject->id)
+                    ->orWhereIn($table.'.lead_id', function (Builder $query) use ($subject): void {
+                        $query->from('leads')->select('id')->where('company_id', $subject->id);
+                    })
+                    ->orWhereIn($table.'.deal_id', function (Builder $query) use ($subject): void {
+                        $query->from('deals')->select('id')->where('company_id', $subject->id);
+                    })
+                    ->orWhereIn($document.'.deal_id', function (Builder $query) use ($subject): void {
+                        $query->from('deals')->select('id')->where('company_id', $subject->id);
+                    });
+            });
+
+            return;
+        }
+
         if ($subject->type === CollaborationSubjectType::Deal) {
             $query->where(function (Builder $query) use ($subject, $table, $document): void {
                 $query->where($table.'.deal_id', $subject->id)

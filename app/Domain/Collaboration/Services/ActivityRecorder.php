@@ -19,6 +19,7 @@ interface ActivityRecorder
         ?int $dealDocumentId = null,
         ?Carbon $occurredAt = null,
         ?string $defaultSource = null,
+        ?int $companyId = null,
     ): void;
 
     /**

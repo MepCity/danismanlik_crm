@@ -18,36 +18,38 @@ final class RecordInteraction
 {
     public function __construct(private readonly ActivityRecorder $activities) {}
 
-    public function forLead(int $leadId, int $actorId, string $type, Carbon $occurredAt, ?int $duration, ?string $outcome, ?string $note): Interaction
+    public function forLead(int $leadId, int $actorId, string $type, Carbon $occurredAt, ?int $duration, ?string $outcome, ?string $note, ?int $contactId = null): Interaction
     {
-        return DB::transaction(function () use ($leadId, $actorId, $type, $occurredAt, $duration, $outcome, $note): Interaction {
+        return DB::transaction(function () use ($leadId, $actorId, $type, $occurredAt, $duration, $outcome, $note, $contactId): Interaction {
             if ($type === 'call') {
-                $this->ensureMarketingCallAllowed($leadId, $occurredAt);
+                $this->ensureMarketingCallAllowed($leadId, $occurredAt, $contactId);
             }
 
-            return $this->create(['lead_id' => $leadId], $actorId, $type, $occurredAt, $duration, $outcome, $note, 'outbound', 'marketing');
+            return $this->create(['lead_id' => $leadId], $actorId, $type, $occurredAt, $duration, $outcome, $note, 'outbound', 'marketing', $contactId);
         });
     }
 
-    public function forInboundLeadCall(int $leadId, int $actorId, Carbon $occurredAt, ?int $duration, ?string $outcome, ?string $note): Interaction
+    public function forInboundLeadCall(int $leadId, int $actorId, Carbon $occurredAt, ?int $duration, ?string $outcome, ?string $note, ?int $contactId = null): Interaction
     {
-        return $this->create(['lead_id' => $leadId], $actorId, 'call', $occurredAt, $duration, $outcome, $note, 'inbound', 'marketing');
+        return $this->create(['lead_id' => $leadId], $actorId, 'call', $occurredAt, $duration, $outcome, $note, 'inbound', 'marketing', $contactId);
     }
 
-    public function forDeal(int $dealId, int $actorId, string $type, Carbon $occurredAt, ?int $duration, ?string $outcome, ?string $note): Interaction
+    public function forDeal(int $dealId, int $actorId, string $type, Carbon $occurredAt, ?int $duration, ?string $outcome, ?string $note, ?int $contactId = null): Interaction
     {
-        return $this->create(['deal_id' => $dealId], $actorId, $type, $occurredAt, $duration, $outcome, $note, 'outbound', 'service');
+        return $this->create(['deal_id' => $dealId], $actorId, $type, $occurredAt, $duration, $outcome, $note, 'outbound', 'service', $contactId);
     }
 
     /** @param array{lead_id?: int, deal_id?: int} $subject */
-    private function create(array $subject, int $actorId, string $type, Carbon $occurredAt, ?int $duration, ?string $outcome, ?string $note, string $direction, string $purpose): Interaction
+    private function create(array $subject, int $actorId, string $type, Carbon $occurredAt, ?int $duration, ?string $outcome, ?string $note, string $direction, string $purpose, ?int $contactId = null): Interaction
     {
         if (! in_array($type, ['call', 'meeting', 'email'], true)) {
             throw new InvalidArgumentException('Unsupported interaction type.');
         }
 
-        return DB::transaction(function () use ($subject, $actorId, $type, $occurredAt, $duration, $outcome, $note, $direction, $purpose): Interaction {
+        return DB::transaction(function () use ($subject, $actorId, $type, $occurredAt, $duration, $outcome, $note, $direction, $purpose, $contactId): Interaction {
+            $contact = $contactId === null ? null : Contact::query()->findOrFail($contactId);
             $interaction = Interaction::query()->create($subject + [
+                'contact_id' => $contactId,
                 'user_id' => $actorId,
                 'type' => $type,
                 'direction' => $type === 'call' ? $direction : null,
@@ -59,7 +61,12 @@ final class RecordInteraction
             ]);
             $this->activities->record(
                 action: 'interaction.recorded',
-                payload: ['type' => $type, 'outcome' => $outcome, 'duration_minutes' => $duration],
+                payload: [
+                    'type' => $type,
+                    'outcome' => $outcome,
+                    'duration_minutes' => $duration,
+                    'contact' => $contact === null ? null : ['id' => $contact->id, 'name' => $contact->full_name],
+                ],
                 actorId: $actorId,
                 leadId: $subject['lead_id'] ?? null,
                 dealId: $subject['deal_id'] ?? null,
@@ -71,12 +78,13 @@ final class RecordInteraction
         });
     }
 
-    private function ensureMarketingCallAllowed(int $leadId, Carbon $occurredAt): void
+    private function ensureMarketingCallAllowed(int $leadId, Carbon $occurredAt, ?int $contactId): void
     {
         $companyId = Lead::query()->findOrFail($leadId)->company_id;
         $contact = Contact::query()
             ->where('company_id', $companyId)
-            ->where('is_primary', true)
+            ->when($contactId !== null, fn ($query) => $query->whereKey($contactId))
+            ->when($contactId === null, fn ($query) => $query->where('is_primary', true))
             ->where('is_active', true)
             ->lockForUpdate()
             ->first();

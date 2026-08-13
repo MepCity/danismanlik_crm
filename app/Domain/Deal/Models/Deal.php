@@ -10,6 +10,7 @@ use App\Domain\Collaboration\Models\Notification;
 use App\Domain\Collaboration\Models\Task;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Interaction;
+use App\Domain\Crm\Models\Lead;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Models\User;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -44,6 +46,7 @@ use Illuminate\Support\Carbon;
  * @property-read User $openedBy
  * @property-read Collection<int, DealDocument> $documents
  * @property-read Collection<int, Interaction> $interactions
+ * @property-read Lead|null $originatingLead
  * @property-read Status $status
  * @property-read Collection<int, StatusHistory> $statusHistory
  * @property-read Collection<int, Activity> $activities
@@ -93,6 +96,12 @@ final class Deal extends Model
     public function interactions(): HasMany
     {
         return $this->hasMany(Interaction::class);
+    }
+
+    /** @return HasOne<Lead, $this> */
+    public function originatingLead(): HasOne
+    {
+        return $this->hasOne(Lead::class, 'converted_deal_id');
     }
 
     /** @return BelongsTo<Status, $this> */

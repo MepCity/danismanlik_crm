@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int|null $lead_id
  * @property int|null $deal_id
+ * @property int|null $contact_id
  * @property int $user_id
  * @property string $type
  * @property string|null $direction
@@ -25,11 +26,13 @@ use Illuminate\Support\Carbon;
  * @property string|null $note
  * @property-read Lead|null $lead
  * @property-read Deal|null $deal
+ * @property-read Contact|null $contact
  * @property-read User $user
  */
 #[Fillable([
     'lead_id',
     'deal_id',
+    'contact_id',
     'user_id',
     'type',
     'direction',
@@ -51,6 +54,12 @@ final class Interaction extends Model
     public function deal(): BelongsTo
     {
         return $this->belongsTo(Deal::class);
+    }
+
+    /** @return BelongsTo<Contact, $this> */
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class);
     }
 
     /** @return BelongsTo<User, $this> */

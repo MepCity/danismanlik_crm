@@ -10,10 +10,11 @@ final readonly class SubjectReference
 {
     public function __construct(public CollaborationSubjectType $type, public int $id) {}
 
-    /** @return array{lead_id: int|null, deal_id: int|null, deal_document_id: int|null} */
+    /** @return array{company_id: int|null, lead_id: int|null, deal_id: int|null, deal_document_id: int|null} */
     public function columns(): array
     {
         return [
+            'company_id' => $this->type === CollaborationSubjectType::Company ? $this->id : null,
             'lead_id' => $this->type === CollaborationSubjectType::Lead ? $this->id : null,
             'deal_id' => $this->type === CollaborationSubjectType::Deal ? $this->id : null,
             'deal_document_id' => $this->type === CollaborationSubjectType::DealDocument ? $this->id : null,

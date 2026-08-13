@@ -40,13 +40,14 @@ it('tamamen kurgusal demo grafiğini ve sabit hesapları kurar', function (): vo
     Queue::fake();
     (new DemoDataSeeder)->setContainer(app())->run();
 
-    $marketing = User::query()->where('email', 'pazarlama@demo.invalid')->firstOrFail();
+    $marketing = User::query()->where('email', 'pazarlama@bizlife')->firstOrFail();
 
-    expect(User::query()->where('email', 'like', '%@demo.invalid')->count())->toBe(5)
+    expect(User::query()->whereIn('email', ['pazarlama@bizlife', 'proje@bizlife', 'admin@bizlife'])->count())->toBe(3)
         ->and($marketing->hasRole('Pazarlama'))->toBeTrue()
         ->and(Hash::check(DemoDataSeeder::PASSWORD, $marketing->password))->toBeTrue()
         ->and(Team::query()->count())->toBe(2)
-        ->and(Deal::query()->count())->toBe(3)
+        ->and(Deal::query()->count())->toBe(4)
+        ->and(Deal::query()->whereHas('company', fn ($query) => $query->where('legal_name', 'Kurgusal Ufuk Teknoloji Ltd. Şti.'))->count())->toBe(2)
         ->and(Deal::query()->withCount('documents')->get()->pluck('documents_count')->all())
         ->each->toBe(7);
 });
@@ -65,10 +66,14 @@ it('demo evraklarını gerçek yükleme akışıyla sürümlendirir ve panelde g
         ->get();
     $versioned = DealDocument::query()
         ->where('status', 'accepted')
+        ->whereHas('deal', fn ($query) => $query->where('reference_no', 'DEMO-2026-001'))
         ->whereHas('files', fn ($query) => $query->where('version_no', 2))
         ->with(['deal', 'files'])
         ->sole();
-    $rejected = DealDocument::query()->where('status', 'rejected')->sole();
+    $rejected = DealDocument::query()
+        ->where('status', 'rejected')
+        ->whereHas('deal', fn ($query) => $query->where('reference_no', 'DEMO-2026-001'))
+        ->sole();
 
     expect($documentsWithFiles)->not->toBeEmpty()
         ->and($documentsWithFiles->pluck('files_count')->min())->toBeGreaterThan(0)
@@ -77,7 +82,7 @@ it('demo evraklarını gerçek yükleme akışıyla sürümlendirir ve panelde g
         ->and(File::query()->count())->toBeGreaterThan($documentsWithFiles->count());
 
     Filament::setCurrentPanel(Filament::getPanel('operations'));
-    Auth::login(User::query()->where('email', 'sirket.yetkilisi@demo.invalid')->sole());
+    Auth::login(User::query()->where('email', 'admin@bizlife')->sole());
 
     Livewire::test(DealDetail::class, ['deal' => $versioned->deal_id])
         ->set('activeTab', 'documents')

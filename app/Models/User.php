@@ -12,6 +12,7 @@ use App\Domain\Access\Models\TeamMember;
 use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
+use App\Domain\Deal\Models\Deal;
 use Database\Factories\UserFactory;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
@@ -103,6 +104,12 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public function ownedLeads(): HasMany
     {
         return $this->hasMany(Lead::class, 'owner_user_id');
+    }
+
+    /** @return HasMany<Deal, $this> */
+    public function managedDeals(): HasMany
+    {
+        return $this->hasMany(Deal::class, 'pm_user_id');
     }
 
     /** @return HasMany<Interaction, $this> */
