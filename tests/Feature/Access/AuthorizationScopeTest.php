@@ -44,7 +44,7 @@ function scopedWorkGraph(User $owner, string $slug, ?User $pm = null): array
 {
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal '.$slug.' İşletmesi',
-        'city' => '06',
+        'city' => 'Ankara',
     ]);
     $leadStatus = Status::query()->where('type', 'lead')->firstOrFail();
     $dealStatus = Status::query()->where('type', 'deal')->firstOrFail();

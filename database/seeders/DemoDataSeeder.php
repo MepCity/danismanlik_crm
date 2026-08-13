@@ -108,15 +108,15 @@ final class DemoDataSeeder extends Seeder
         $companies = [
             Company::query()->updateOrCreate(
                 ['legal_name' => 'Kurgusal Ufuk Teknoloji Ltd. Şti.'],
-                ['tax_number' => null, 'city' => '31', 'size' => 'medium', 'source' => 'demo', 'is_active' => true],
+                ['tax_number' => null, 'city' => 'Hatay', 'size' => 'medium', 'source' => 'demo', 'is_active' => true],
             ),
             Company::query()->updateOrCreate(
                 ['legal_name' => 'Kurgusal Mavi Üretim A.Ş.'],
-                ['tax_number' => null, 'city' => '06', 'size' => 'small', 'source' => 'demo', 'is_active' => true],
+                ['tax_number' => null, 'city' => 'Ankara', 'size' => 'small', 'source' => 'demo', 'is_active' => true],
             ),
             Company::query()->updateOrCreate(
                 ['legal_name' => 'Kurgusal Pusula Sanayi Ltd. Şti.'],
-                ['tax_number' => null, 'city' => '34', 'size' => 'micro', 'source' => 'demo', 'is_active' => true],
+                ['tax_number' => null, 'city' => 'İstanbul', 'size' => 'micro', 'source' => 'demo', 'is_active' => true],
             ),
         ];
 
@@ -126,7 +126,6 @@ final class DemoDataSeeder extends Seeder
                 [
                     'full_name' => 'Kurgusal Yetkili '.($index + 1),
                     'title' => 'Demo Yetkilisi',
-                    'decision_role' => $index === 0 ? 'decision_maker' : 'authorized_contact',
                     'phone' => '+90 000 000 00 0'.($index + 1),
                     'data_source' => $index === 1 ? 'referral' : 'form',
                     'is_primary' => true,
@@ -143,7 +142,6 @@ final class DemoDataSeeder extends Seeder
                     'legal_basis' => $index === 2 ? 'explicit_withdrawal' : 'explicit_consent',
                     'source' => $index === 1 ? 'referral' : 'form',
                     'disclosure_date' => now()->subDays(20 + $index)->toDateString(),
-                    'disclosure_method' => $index === 1 ? 'phone' : 'form',
                     'effective_from' => now()->subDays(10 + $index),
                     'recorded_by' => $users['marketing']->id,
                 ],
@@ -188,7 +186,6 @@ final class DemoDataSeeder extends Seeder
                     'type' => 'call',
                     'direction' => 'outbound',
                     'purpose' => 'marketing',
-                    'duration_minutes' => 3 + $index,
                     'outcome' => $index === 0 ? 'contacted' : 'unreachable',
                     'note' => 'Kurgusal demo görüşme notu.',
                 ],
@@ -261,7 +258,6 @@ final class DemoDataSeeder extends Seeder
                     'type' => 'call',
                     'direction' => 'outbound',
                     'purpose' => 'marketing',
-                    'duration_minutes' => 14,
                     'outcome' => 'interested',
                     'note' => 'Kurgusal satış görüşmesinde program kapsamı, hizmet ve sonraki adımlar üzerinde anlaşıldı.',
                 ],

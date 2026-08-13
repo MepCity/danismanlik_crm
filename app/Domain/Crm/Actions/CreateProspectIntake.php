@@ -68,8 +68,8 @@ final readonly class CreateProspectIntake
             );
 
             $interaction = $data->callDirection === 'inbound'
-                ? $this->interactions->forInboundLeadCall($lead->id, $actor->id, $data->calledAt, $data->durationMinutes, $data->outcome, $data->callNote, $contact->id)
-                : $this->interactions->forLead($lead->id, $actor->id, 'call', $data->calledAt, $data->durationMinutes, $data->outcome, $data->callNote, $contact->id);
+                ? $this->interactions->forInboundLeadCall($lead->id, $actor->id, $data->calledAt, $data->outcome, $data->callNote, $contact->id)
+                : $this->interactions->forLead($lead->id, $actor->id, 'call', $data->calledAt, $data->outcome, $data->callNote, $contact->id);
 
             $path = $this->workflow->transitionPath($initial->statusId, $data->targetStatusId);
             foreach ($path as $step => $targetStatusId) {
@@ -150,8 +150,6 @@ final readonly class CreateProspectIntake
             $data->contactTitle,
             $data->callConsent,
             $data->disclosureDate,
-            $data->disclosureMethod,
-            $data->decisionRole,
             ! $company->contacts()->where('is_primary', true)->exists(),
             $data->calledAt,
         );
@@ -160,7 +158,6 @@ final readonly class CreateProspectIntake
             [
                 'contact' => ['id' => $contact->id, 'name' => $contact->full_name],
                 'title' => $contact->title,
-                'decision_role' => $contact->decision_role,
             ],
             $actor->id,
             defaultSource: 'user',
@@ -173,10 +170,10 @@ final readonly class CreateProspectIntake
     private function validate(ProspectIntakeData $data): void
     {
         $errors = [];
-        if ($data->companyId === null && (blank($data->companyName) || ! preg_match('/^(0[1-9]|[1-7][0-9]|8[01])$/', (string) $data->city))) {
+        if ($data->companyId === null && (blank($data->companyName) || ! in_array($data->city, config('turkey.provinces'), true))) {
             $errors['company'] = trans('marketing.validation.company_required');
         }
-        if ($data->contactId === null && (blank($data->contactName) || blank($data->contactTitle) || blank($data->decisionRole) || blank($data->phone) || blank($data->email))) {
+        if ($data->contactId === null && (blank($data->contactName) || blank($data->contactTitle) || blank($data->phone) || blank($data->email))) {
             $errors['contact'] = trans('marketing.validation.contact_details_required');
         }
         if (! in_array($data->callDirection, ['inbound', 'outbound'], true)) {

@@ -66,7 +66,7 @@ function documentServiceFixture(bool $withValidity = false): array
     $pm = User::factory()->create(['email' => fake()->unique()->userName().'@pm-belge.invalid']);
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Belge İşletmesi '.fake()->unique()->numerify('####'),
-        'city' => '06',
+        'city' => 'Ankara',
     ]);
     $program = Program::query()->where('code', 'KOSGEB-YESIL-SANAYI')->firstOrFail();
     $version = $program->versions()->firstOrFail();

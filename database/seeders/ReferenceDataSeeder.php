@@ -139,7 +139,7 @@ final class ReferenceDataSeeder extends Seeder
             ['type' => 'lead', 'code' => 'callback', 'label' => 'Sonra aranacak', 'color' => 'waiting', 'required_fields' => ['next_call_at', 'owner_user_id']],
             ['type' => 'lead', 'code' => 'do_not_contact', 'label' => 'Aranmak istemiyor', 'color' => 'danger', 'is_terminal' => true],
             ['type' => 'deal', 'code' => 'awaiting_assignment', 'label' => 'Atama bekliyor', 'color' => 'waiting', 'is_initial' => true],
-            ['type' => 'deal', 'code' => 'pm_assigned', 'label' => 'PM atandı', 'color' => 'info'],
+            ['type' => 'deal', 'code' => 'pm_assigned', 'label' => 'PM atandı', 'color' => 'info', 'required_fields' => ['project_manager_id']],
             ['type' => 'deal', 'code' => 'collecting_documents', 'label' => 'Belgeler toplanıyor', 'color' => 'waiting'],
             ['type' => 'deal', 'code' => 'preparing_application', 'label' => 'Başvuru hazırlanıyor', 'color' => 'info'],
             ['type' => 'deal', 'code' => 'awaiting_customer_approval', 'label' => 'Müşteri onayı bekleniyor', 'color' => 'waiting', 'awaits_customer_response' => true],
@@ -322,7 +322,7 @@ final class ReferenceDataSeeder extends Seeder
             ],
         );
 
-        $earthquakeCities = ['01', '02', '21', '23', '27', '31', '44', '46', '63', '79', '80'];
+        $earthquakeCities = ['Adana', 'Adıyaman', 'Diyarbakır', 'Elazığ', 'Gaziantep', 'Hatay', 'Malatya', 'Kahramanmaraş', 'Şanlıurfa', 'Kilis', 'Osmaniye'];
         $templates = [
             ['YMM / Bağımsız Denetçi Bildirim Formu', true, null, ['pdf'], null],
             ['Bağlantı Anlaşmasına Çağrı Mektubu', true, null, ['pdf'], null],

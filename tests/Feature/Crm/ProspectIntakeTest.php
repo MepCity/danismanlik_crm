@@ -39,22 +39,19 @@ function intakeData(string $suffix, int $programVersionId, int $targetStatusId, 
         companyId: $companyId,
         companyName: $companyId === null ? "Kurgusal Akış {$suffix} AŞ" : null,
         taxNumber: null,
-        city: $companyId === null ? '34' : null,
+        city: $companyId === null ? 'İstanbul' : null,
         source: 'phone',
         contactId: null,
         contactName: "Kurgusal Yetkili {$suffix}",
         contactTitle: 'Genel Müdür',
-        decisionRole: 'decision_maker',
         phone: '+90 000 000 00 00',
         email: "yetkili-{$suffix}@firma.invalid",
         callConsent: true,
         disclosureDate: now()->toDateString(),
-        disclosureMethod: 'Telefon görüşmesi',
         programVersionId: $programVersionId,
         targetStatusId: $targetStatusId,
         calledAt: Carbon::now()->subMinute(),
         callDirection: 'outbound',
-        durationMinutes: 12,
         outcome: 'interested',
         callNote: 'Program kapsamı, ihtiyaç ve sonraki adım ayrıntılı biçimde görüşüldü.',
         companyComment: 'Firmanın satın alma kararını genel müdür veriyor.',
@@ -73,7 +70,7 @@ it('tek işlemde firma kişi fırsat görüşme yorum görev ve aktör izini olu
     $result = app(CreateProspectIntake::class)->handle($actor, intakeData('tek', $version->id, $interested->id));
 
     expect($result->company->legal_name)->toBe('Kurgusal Akış tek AŞ')
-        ->and($result->contact->decision_role)->toBe('decision_maker')
+        ->and($result->contact->title)->toBe('Genel Müdür')
         ->and($result->lead->primary_contact_id)->toBe($result->contact->id)
         ->and($result->lead->status_id)->toBe($interested->id)
         ->and($result->interaction->contact_id)->toBe($result->contact->id)
@@ -89,8 +86,8 @@ it('tek işlemde firma kişi fırsat görüşme yorum görev ve aktör izini olu
 
 it('fırsat ve görüşmeye başka firmanın kişisinin bağlanmasını veritabanında reddeder', function (): void {
     $actor = User::factory()->create();
-    $first = Company::query()->create(['legal_name' => 'Kurgusal Birinci Firma', 'city' => '06']);
-    $second = Company::query()->create(['legal_name' => 'Kurgusal İkinci Firma', 'city' => '35']);
+    $first = Company::query()->create(['legal_name' => 'Kurgusal Birinci Firma', 'city' => 'Ankara']);
+    $second = Company::query()->create(['legal_name' => 'Kurgusal İkinci Firma', 'city' => 'İzmir']);
     $foreignContact = Contact::query()->create(['company_id' => $second->id, 'full_name' => 'Kurgusal Yabancı Kişi', 'data_source' => 'other']);
     $status = Status::query()->where('type', 'lead')->where('is_initial', true)->sole();
 

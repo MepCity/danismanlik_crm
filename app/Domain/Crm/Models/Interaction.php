@@ -21,7 +21,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $direction
  * @property string|null $purpose
  * @property Carbon $occurred_at
- * @property int|null $duration_minutes
  * @property string|null $outcome
  * @property string|null $note
  * @property-read Lead|null $lead
@@ -38,7 +37,6 @@ use Illuminate\Support\Carbon;
     'direction',
     'purpose',
     'occurred_at',
-    'duration_minutes',
     'outcome',
     'note',
 ])]
@@ -73,7 +71,6 @@ final class Interaction extends Model
     {
         return [
             'occurred_at' => 'datetime',
-            'duration_minutes' => 'integer',
         ];
     }
 }

@@ -51,8 +51,6 @@ final class ProspectIntake extends Page
 
     public string $contactTitle = '';
 
-    public string $decisionRole = '';
-
     public string $phone = '';
 
     public string $email = '';
@@ -61,8 +59,6 @@ final class ProspectIntake extends Page
 
     public string $disclosureDate = '';
 
-    public string $disclosureMethod = 'Telefon görüşmesi';
-
     public ?int $programVersionId = null;
 
     public ?int $targetStatusId = null;
@@ -70,8 +66,6 @@ final class ProspectIntake extends Page
     public string $calledAt = '';
 
     public string $callDirection = 'outbound';
-
-    public ?int $durationMinutes = null;
 
     public string $outcome = 'interested';
 
@@ -134,12 +128,11 @@ final class ProspectIntake extends Page
             'companyId' => $newCompany ? ['nullable'] : ['required', 'integer'],
             'companyName' => $newCompany ? ['required', 'string', 'max:255'] : ['nullable'],
             'taxNumber' => ['nullable', 'regex:/^[0-9]{10}([0-9])?$/'],
-            'city' => $newCompany ? ['required', 'regex:/^(0[1-9]|[1-7][0-9]|8[01])$/'] : ['nullable'],
+            'city' => $newCompany ? ['required', 'string', 'in:'.implode(',', config('turkey.provinces'))] : ['nullable'],
             'source' => ['required', 'in:form,phone,list,referral,iys,other'],
             'contactId' => $newContact ? ['nullable'] : ['required', 'integer'],
             'contactName' => $newContact ? ['required', 'string', 'max:255'] : ['nullable'],
             'contactTitle' => $newContact ? ['required', 'string', 'max:255'] : ['nullable'],
-            'decisionRole' => $newContact ? ['required', 'in:decision_maker,authorized_contact,technical_contact,financial_contact,information_provider,other'] : ['nullable'],
             'phone' => $newContact ? ['required', 'string', 'max:40'] : ['nullable'],
             'email' => $newContact ? ['required', 'email', 'max:255'] : ['nullable'],
             'callConsent' => $newContact ? ['required', 'in:unknown,granted,denied'] : ['nullable'],
@@ -147,7 +140,6 @@ final class ProspectIntake extends Page
             'targetStatusId' => ['required', 'integer'],
             'calledAt' => ['required', 'date'],
             'callDirection' => ['required', 'in:inbound,outbound'],
-            'durationMinutes' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'outcome' => ['nullable', 'string', 'max:255'],
             'callNote' => ['required', 'string', 'min:3', 'max:5000'],
             'nextCallAt' => $this->targetRequires('next_call_at') ? ['required', 'date', 'after:calledAt'] : ['nullable', 'date'],
@@ -168,19 +160,16 @@ final class ProspectIntake extends Page
             contactId: $newContact ? null : $this->contactId,
             contactName: $newContact ? $this->contactName : null,
             contactTitle: $newContact ? $this->contactTitle : null,
-            decisionRole: $newContact ? $this->decisionRole : null,
             phone: $newContact ? $this->phone : null,
             email: $newContact ? $this->email : null,
             callConsent: $newContact ? match ($this->callConsent) {
                 'granted' => true, 'denied' => false, default => null
             } : null,
             disclosureDate: $newContact && filled($this->disclosureDate) ? $this->disclosureDate : null,
-            disclosureMethod: $newContact && filled($this->disclosureMethod) ? $this->disclosureMethod : null,
             programVersionId: (int) $this->programVersionId,
             targetStatusId: (int) $this->targetStatusId,
             calledAt: Carbon::parse($this->calledAt),
             callDirection: $this->callDirection,
-            durationMinutes: $this->durationMinutes,
             outcome: $this->outcome ?: null,
             callNote: $this->callNote,
             nextCallAt: filled($this->nextCallAt) ? Carbon::parse($this->nextCallAt) : null,
@@ -209,6 +198,7 @@ final class ProspectIntake extends Page
             'statusOptions' => $this->statusOptions(),
             'selectedStatus' => $this->targetStatusId === null ? null : Status::query()->find($this->targetStatusId),
             'duplicateCompanies' => app(CompanyDuplicateFinder::class)->find($companies, $this->companyName, $this->taxNumber),
+            'provinces' => config('turkey.provinces'),
         ];
     }
 

@@ -14,7 +14,7 @@ uses(RefreshDatabase::class);
 
 it('rejects updates to communication consents', function (): void {
     $user = User::factory()->create(['email' => 'consent-update@example.invalid']);
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Alfa Ltd.', 'city' => '06']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Alfa Ltd.', 'city' => 'Ankara']);
     $contact = Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal Yetkili', 'data_source' => 'other']);
     $consent = CommunicationConsent::query()->create([
         'contact_id' => $contact->id,
@@ -33,7 +33,7 @@ it('rejects updates to communication consents', function (): void {
 
 it('rejects deletes from communication consents', function (): void {
     $user = User::factory()->create(['email' => 'consent-delete@example.invalid']);
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Beta Ltd.', 'city' => '34']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Beta Ltd.', 'city' => 'İstanbul']);
     $contact = Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal İrtibat', 'data_source' => 'other']);
     $consent = CommunicationConsent::query()->create([
         'contact_id' => $contact->id,
@@ -51,35 +51,35 @@ it('rejects deletes from communication consents', function (): void {
 });
 
 it('enforces unique tax numbers while allowing multiple null values', function (): void {
-    Company::query()->create(['legal_name' => 'Kurgusal Gama Ltd.', 'tax_number' => null, 'city' => '35']);
-    Company::query()->create(['legal_name' => 'Kurgusal Delta Ltd.', 'tax_number' => null, 'city' => '16']);
-    Company::query()->create(['legal_name' => 'Kurgusal Epsilon Ltd.', 'tax_number' => '0000000000', 'city' => '01']);
+    Company::query()->create(['legal_name' => 'Kurgusal Gama Ltd.', 'tax_number' => null, 'city' => 'İzmir']);
+    Company::query()->create(['legal_name' => 'Kurgusal Delta Ltd.', 'tax_number' => null, 'city' => 'Bursa']);
+    Company::query()->create(['legal_name' => 'Kurgusal Epsilon Ltd.', 'tax_number' => '0000000000', 'city' => 'Adana']);
 
     expect(Company::query()->whereNull('tax_number')->count())->toBe(2)
         ->and(fn () => Company::query()->create([
             'legal_name' => 'Kurgusal Zeta Ltd.',
             'tax_number' => '0000000000',
-            'city' => '07',
+            'city' => 'Antalya',
         ]))->toThrow(QueryException::class);
 });
 
-it('accepts only controlled city codes', function (): void {
+it('accepts only selectable provinces', function (): void {
     expect(fn () => Company::query()->create([
         'legal_name' => 'Kurgusal İl Testi Ltd.',
-        'city' => '82',
-    ]))->toThrow(QueryException::class, 'companies_city_code');
+        'city' => 'Geçersiz',
+    ]))->toThrow(QueryException::class, 'companies_city_valid');
 });
 
 it('accepts only ten or eleven digit tax numbers', function (): void {
     expect(fn () => Company::query()->create([
         'legal_name' => 'Kurgusal Vergi Biçimi Ltd.',
         'tax_number' => 'ABC0000000',
-        'city' => '45',
+        'city' => 'Manisa',
     ]))->toThrow(QueryException::class, 'companies_tax_number_format');
 });
 
 it('allows only one primary contact per company', function (): void {
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Eta Ltd.', 'city' => '46']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Eta Ltd.', 'city' => 'Kahramanmaraş']);
     Contact::query()->create([
         'company_id' => $company->id,
         'full_name' => 'Kurgusal Birincil A',
@@ -96,7 +96,7 @@ it('allows only one primary contact per company', function (): void {
 });
 
 it('restricts deletion of companies referenced by contacts', function (): void {
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Kappa Ltd.', 'city' => '55']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Kappa Ltd.', 'city' => 'Samsun']);
     Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal Bağlı Kişi', 'data_source' => 'other']);
 
     expect(fn () => $company->delete())->toThrow(QueryException::class);
@@ -104,7 +104,7 @@ it('restricts deletion of companies referenced by contacts', function (): void {
 
 it('restricts deletion of contacts referenced by consents', function (): void {
     $user = User::factory()->create(['email' => 'restrict-recorder@example.invalid']);
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Lambda Ltd.', 'city' => '61']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Lambda Ltd.', 'city' => 'Trabzon']);
     $contact = Contact::query()->create(['company_id' => $company->id, 'full_name' => 'Kurgusal Kayıt Sahibi', 'data_source' => 'other']);
     CommunicationConsent::query()->create([
         'contact_id' => $contact->id,

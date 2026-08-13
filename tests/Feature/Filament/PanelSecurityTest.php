@@ -48,7 +48,7 @@ function panelCompany(User $owner, string $slug): Company
 {
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal '.$slug.' İşletmesi',
-        'city' => '06',
+        'city' => 'Ankara',
     ]);
     $status = Status::query()->where('type', 'lead')->firstOrFail();
     Lead::query()->create([

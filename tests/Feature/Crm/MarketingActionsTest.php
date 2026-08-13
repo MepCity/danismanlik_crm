@@ -44,7 +44,7 @@ function marketingActionFixture(string $statusCode = 'proposal_sent', string $su
     $actor->assignRole('Pazarlama');
     $officer = User::factory()->create(['email' => "yetkili-aksiyon-{$suffix}@example.invalid"]);
     $officer->assignRole('Şirket Yetkilisi');
-    $company = Company::query()->create(['legal_name' => "Kurgusal Pazarlama {$suffix}", 'city' => '06', 'source' => 'test']);
+    $company = Company::query()->create(['legal_name' => "Kurgusal Pazarlama {$suffix}", 'city' => 'Ankara', 'source' => 'test']);
     $contact = Contact::query()->create([
         'company_id' => $company->id,
         'full_name' => 'Kurgusal İrtibat',
@@ -119,7 +119,6 @@ it('geri çekilmiş izinde giden pazarlama aramasını doğrudan action seviyesi
         $fixture['actor']->id,
         'call',
         Carbon::now(),
-        null,
         'contacted',
         'Kaydedilmemesi gereken kurgusal arama',
     ))->toThrow(ValidationException::class, 'Giden pazarlama araması reddedildi')
@@ -130,9 +129,9 @@ it('izinli giden aramayı ve ret sonrasındaki gelen aramayı ayrı bağlamla ka
     $fixture = marketingActionFixture(suffix: 'arama-baglam');
     $action = app(RecordInteraction::class);
 
-    $outbound = $action->forLead($fixture['lead']->id, $fixture['actor']->id, 'call', Carbon::now(), 3, 'contacted', null);
+    $outbound = $action->forLead($fixture['lead']->id, $fixture['actor']->id, 'call', Carbon::now(), 'contacted', null);
     app(WithdrawCallConsent::class)->handle($fixture['contact']->id, $fixture['actor']->id);
-    $inbound = $action->forInboundLeadCall($fixture['lead']->id, $fixture['actor']->id, Carbon::now(), 4, 'contacted', 'Kişi kendisi aradı.');
+    $inbound = $action->forInboundLeadCall($fixture['lead']->id, $fixture['actor']->id, Carbon::now(), 'contacted', 'Kişi kendisi aradı.');
 
     expect($outbound->direction)->toBe('outbound')
         ->and($outbound->purpose)->toBe('marketing')
@@ -176,7 +175,7 @@ it('beş görüşmeyi fırsattan ayrı satırlar olarak kaydeder ve statüyü de
     $action = app(RecordInteraction::class);
 
     foreach (range(1, 5) as $index) {
-        $action->forLead($fixture['lead']->id, $fixture['actor']->id, 'call', Carbon::now()->addMinutes($index), $index, 'contacted', "Kurgusal not {$index}");
+        $action->forLead($fixture['lead']->id, $fixture['actor']->id, 'call', Carbon::now()->addMinutes($index), 'contacted', "Kurgusal not {$index}");
     }
 
     expect(Interaction::query()->where('lead_id', $fixture['lead']->id)->count())->toBe(5)

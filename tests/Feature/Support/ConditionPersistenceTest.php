@@ -39,13 +39,13 @@ it('model kaydında geçersiz koşul tanımını reddeder', function (string $mo
         ->toThrow(InvalidConditionDefinition::class);
 })->with([
     'evrak şablonunda bilinmeyen operatör' => [DocTemplate::class, [
-        'all' => [['field' => 'company.city', 'op' => 'kesinlikle_yok', 'value' => ['06']]],
+        'all' => [['field' => 'company.city', 'op' => 'kesinlikle_yok', 'value' => ['Ankara']]],
     ]],
     'evrak şablonunda çözülemeyen alan' => [DocTemplate::class, [
-        'all' => [['field' => 'company.kurgusal_alan', 'op' => 'in', 'value' => ['06']]],
+        'all' => [['field' => 'company.kurgusal_alan', 'op' => 'in', 'value' => ['Ankara']]],
     ]],
     'geçişte bilinmeyen operatör' => [Transition::class, [
-        'all' => [['field' => 'company.city', 'op' => 'kesinlikle_yok', 'value' => ['06']]],
+        'all' => [['field' => 'company.city', 'op' => 'kesinlikle_yok', 'value' => ['Ankara']]],
     ]],
     'geçişte çözülemeyen alan' => [Transition::class, [
         'all' => [['field' => 'deal.kurgusal_alan', 'op' => 'gt', 'value' => 1]],

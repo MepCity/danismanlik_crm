@@ -49,7 +49,7 @@ function statusMachineDealFixture(array $transitionAttributes = []): array
     $actor->givePermissionTo($permission);
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Statü Makinesi İşletmesi '.fake()->unique()->numerify('####'),
-        'city' => '31',
+        'city' => 'Hatay',
     ]);
     $program = Program::query()->create([
         'name' => 'Kurgusal Statü Makinesi Programı '.fake()->unique()->numerify('####'),
@@ -276,7 +276,7 @@ it('runs the same status machine effects for a lead', function (): void {
         'data_scope' => 'own',
     ]);
     $actor->givePermissionTo(Permission::findOrCreate('lead.manage', 'web'));
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Fırsat İşletmesi', 'city' => '06']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Fırsat İşletmesi', 'city' => 'Ankara']);
     $from = Status::query()->create([
         'code' => 'firsat_yeni', 'label' => 'Yeni', 'type' => 'lead', 'color' => 'info',
     ]);

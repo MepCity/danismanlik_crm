@@ -9,7 +9,7 @@ use App\Support\Conditions\JsonConditionEvaluator;
 
 it('evaluates seeded condition DSL forms without database queries', function (): void {
     $context = new ArrayConditionContext([
-        'company' => ['city' => '31'],
+        'company' => ['city' => 'Hatay'],
         'deal' => [
             'requested_amount' => '6000000.00',
             'required_documents' => [
@@ -21,7 +21,7 @@ it('evaluates seeded condition DSL forms without database queries', function ():
     $evaluator = new JsonConditionEvaluator;
 
     expect($evaluator->evaluate([
-        'all' => [['op' => 'in', 'field' => 'company.city', 'value' => ['01', '31']]],
+        'all' => [['op' => 'in', 'field' => 'company.city', 'value' => ['Adana', 'Hatay']]],
     ], $context)->passed)->toBeTrue()
         ->and($evaluator->evaluate([
             'all' => [['op' => 'gt', 'field' => 'deal.requested_amount', 'value' => 5000000]],
@@ -37,7 +37,7 @@ it('evaluates seeded condition DSL forms without database queries', function ():
 
 it('supports any and reports failed collection values', function (): void {
     $context = new ArrayConditionContext([
-        'company' => ['city' => '06'],
+        'company' => ['city' => 'Ankara'],
         'deal' => ['required_documents' => [
             ['status' => 'accepted'],
             ['status' => 'requested'],
@@ -45,7 +45,7 @@ it('supports any and reports failed collection values', function (): void {
     ]);
     $result = (new JsonConditionEvaluator)->evaluate([
         'any' => [
-            ['op' => 'in', 'field' => 'company.city', 'value' => ['31']],
+            ['op' => 'in', 'field' => 'company.city', 'value' => ['Hatay']],
             ['op' => 'all_in', 'field' => 'deal.required_documents.status', 'value' => ['accepted']],
         ],
     ], $context);
@@ -57,16 +57,16 @@ it('supports any and reports failed collection values', function (): void {
 
 it('throws an explicit error for an unknown operator', function (): void {
     $evaluate = fn () => (new JsonConditionEvaluator)->evaluate([
-        'all' => [['op' => 'contains_magic', 'field' => 'company.city', 'value' => '06']],
-    ], new ArrayConditionContext(['company' => ['city' => '06']]));
+        'all' => [['op' => 'contains_magic', 'field' => 'company.city', 'value' => 'Ankara']],
+    ], new ArrayConditionContext(['company' => ['city' => 'Ankara']]));
 
     expect($evaluate)->toThrow(UnknownConditionOperator::class, 'contains_magic');
 });
 
 it('throws an explicit error for an unresolvable field path', function (): void {
     $evaluate = fn () => (new JsonConditionEvaluator)->evaluate([
-        'all' => [['op' => 'in', 'field' => 'company.unknown', 'value' => ['06']]],
-    ], new ArrayConditionContext(['company' => ['city' => '06']]));
+        'all' => [['op' => 'in', 'field' => 'company.unknown', 'value' => ['Ankara']]],
+    ], new ArrayConditionContext(['company' => ['city' => 'Ankara']]));
 
     expect($evaluate)->toThrow(UnresolvableConditionField::class, 'company.unknown');
 });

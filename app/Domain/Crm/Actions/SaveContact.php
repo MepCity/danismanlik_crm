@@ -22,8 +22,6 @@ final class SaveContact
         ?string $title = null,
         ?bool $callConsent = null,
         ?string $disclosureDate = null,
-        ?string $disclosureMethod = null,
-        ?string $decisionRole = null,
         bool $isPrimary = false,
         ?Carbon $consentEffectiveAt = null,
     ): Contact {
@@ -33,7 +31,7 @@ final class SaveContact
             throw ValidationException::withMessages(['contactDataSource' => trans('marketing.validation.data_source_required')]);
         }
 
-        return DB::transaction(function () use ($companyId, $actorId, $fullName, $source, $phone, $email, $title, $callConsent, $disclosureDate, $disclosureMethod, $decisionRole, $isPrimary, $consentEffectiveAt): Contact {
+        return DB::transaction(function () use ($companyId, $actorId, $fullName, $source, $phone, $email, $title, $callConsent, $disclosureDate, $isPrimary, $consentEffectiveAt): Contact {
             $contact = Contact::query()->create([
                 'company_id' => $companyId,
                 'full_name' => trim($fullName),
@@ -41,7 +39,6 @@ final class SaveContact
                 'phone' => filled($phone) ? trim((string) $phone) : null,
                 'email' => filled($email) ? trim((string) $email) : null,
                 'title' => filled($title) ? trim((string) $title) : null,
-                'decision_role' => filled($decisionRole) ? $decisionRole : null,
                 'is_primary' => $isPrimary,
                 'is_active' => true,
                 'consent_call' => $callConsent,
@@ -57,7 +54,6 @@ final class SaveContact
                     'legal_basis' => $callConsent ? 'explicit_consent' : 'explicit_rejection',
                     'source' => $this->ledgerSource($source),
                     'disclosure_date' => $disclosureDate,
-                    'disclosure_method' => filled($disclosureMethod) ? $disclosureMethod : null,
                     'effective_from' => $consentEffectiveAt ?? now(),
                     'recorded_by' => $actorId,
                 ]);

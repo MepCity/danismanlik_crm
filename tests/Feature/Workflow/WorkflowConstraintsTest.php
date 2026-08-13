@@ -33,7 +33,7 @@ function workflowLead(Status $status): Lead
     $owner = User::factory()->create();
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Fırsat Firması '.Str::random(6),
-        'city' => '06',
+        'city' => 'Ankara',
     ]);
 
     return Lead::query()->create([
@@ -48,7 +48,7 @@ function workflowDeal(Status $status): Deal
     $user = User::factory()->create();
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Dosya Firması '.Str::random(6),
-        'city' => '34',
+        'city' => 'İstanbul',
     ]);
     $program = Program::query()->create([
         'name' => 'Kurgusal İş Akışı Programı '.Str::random(6),

@@ -26,7 +26,7 @@ function orphanDealFixture(int $dealCount = 2): array
     $actor = User::factory()->create(['email' => 'yetim-kontrol@example.invalid']);
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Yetim Kontrol İşletmesi',
-        'city' => '06',
+        'city' => 'Ankara',
     ]);
     $program = Program::query()->create([
         'name' => 'Kurgusal Yetim Kontrol Programı',
@@ -165,7 +165,7 @@ it('reports both occupied status and predecessor orphaned by status deactivation
 
 it('counts leads through the CRM service boundary', function (): void {
     $actor = User::factory()->create(['email' => 'yetim-firsat@example.invalid']);
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Yetim Fırsat', 'city' => '35']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Yetim Fırsat', 'city' => 'İzmir']);
     $from = Status::query()->create([
         'code' => 'firsat_bekliyor', 'label' => 'Fırsat bekliyor', 'type' => 'lead', 'color' => 'waiting',
     ]);

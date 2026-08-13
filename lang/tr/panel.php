@@ -30,7 +30,7 @@ return [
     ],
     'fields' => [
         'legal_name' => 'Firma unvanı',
-        'city' => 'İl kodu',
+        'city' => 'İl',
         'status' => 'Durum',
     ],
 ];

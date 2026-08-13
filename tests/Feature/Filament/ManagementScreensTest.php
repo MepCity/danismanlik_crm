@@ -61,8 +61,8 @@ it('koşul önizlemesini yöneticiye Türkçe cümle olarak verir', function ():
     expect(ConditionDefinition::preview(['all' => [[
         'field' => 'company.city',
         'op' => 'in',
-        'value' => ['01', '02', '31'],
-    ]]]))->toBe('Firma ili 01, 02, 31 illerinden biriyse zorunlu');
+        'value' => ['Adana', 'Adıyaman', 'Hatay'],
+    ]]]))->toBe('Firma ili Adana, Adıyaman, Hatay illerinden biriyse zorunlu');
 });
 
 it('yönetim kaynaklarının model etiketlerini açık ve tutarlı tanımlar', function (string $resource, string $singular, string $plural): void {
@@ -94,7 +94,7 @@ it('bilinmeyen operatörlü koşulu evrak şablonu ekranında kaydetmez', functi
             'condition_rules' => [[
                 'field' => 'company.city',
                 'op' => 'unknown',
-                'list_value' => ['06'],
+                'list_value' => ['Ankara'],
             ]],
             'is_active' => true,
         ])
@@ -119,7 +119,7 @@ it('çözülemeyen alan yoluna sahip koşulu evrak şablonu ekranında kaydetmez
             'condition_rules' => [[
                 'field' => 'company.unknown',
                 'op' => 'in',
-                'list_value' => ['06'],
+                'list_value' => ['Ankara'],
             ]],
             'is_active' => true,
         ])

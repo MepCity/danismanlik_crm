@@ -19,7 +19,6 @@ use Illuminate\Support\Carbon;
  * @property string $legal_basis
  * @property string $source
  * @property Carbon|null $disclosure_date
- * @property string|null $disclosure_method
  * @property array<string, mixed>|null $evidence
  * @property string|null $iys_reference
  * @property Carbon $effective_from
@@ -36,7 +35,6 @@ use Illuminate\Support\Carbon;
     'legal_basis',
     'source',
     'disclosure_date',
-    'disclosure_method',
     'evidence',
     'iys_reference',
     'effective_from',

@@ -111,7 +111,7 @@ it('koşullu şablonları gerçek kolon alanlarıyla tanımlar', function (): vo
 
     expect(data_get($conditions, 'Hasar Durumu Belgesi.all.0.field'))->toBe('company.city')
         ->and(data_get($conditions, 'Hasar Durumu Belgesi.all.0.value'))->toBe([
-            '01', '02', '21', '23', '27', '31', '44', '46', '63', '79', '80',
+            'Adana', 'Adıyaman', 'Diyarbakır', 'Elazığ', 'Gaziantep', 'Hatay', 'Malatya', 'Kahramanmaraş', 'Şanlıurfa', 'Kilis', 'Osmaniye',
         ])
         ->and(data_get($conditions, 'Fizibilite Raporu.all.0.field'))->toBe('deal.requested_amount')
         ->and(data_get($conditions, 'Fizibilite Raporu.all.0.op'))->toBe('gt');

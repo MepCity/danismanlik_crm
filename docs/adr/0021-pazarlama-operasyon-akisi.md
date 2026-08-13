@@ -17,7 +17,7 @@ defteri salt-ekleme kalmalı; `contacts` üzerindeki alanlar yalnız güncel sor
 
 ## Karar
 
-“Bugün aranacaklar” ekranı mobil öncelikli kart düzenidir. `next_call_at` bugün
+“Bugün aranacaklar” ekranı yoğun, satır tabanlı çalışma düzenidir. `next_call_at` bugün
 veya geçmişte olan, kullanıcının kapsamındaki fırsatlar alınır; en eski tarih
 önce gelir. Kart firma, kişi, telefon, son görüşme sonucu, arama sırası ve izin
 durumunu birlikte gösterir. Telefon `tel:` bağlantısıdır. `do_not_call=true`
@@ -50,7 +50,8 @@ anda defterde izin varsa sonradan girilebilir; böylece daha sonra verilen ret
 geçmişte hukuka uygun yapılmış temasın kaydını bozmaz. Çağrı bağlamı veritabanı
 CHECK kısıtıyla yalnız telefon görüşmelerinde ve geçerli değerlerle tutulur.
 
-Fırsat panosunun sütunları etkin `lead` statülerinden üretilir. Hedef statünün
+Takip panosunun sütunları etkin `lead` statülerinden üretilir. Kartlar doğrudan
+geçiş bulunan statüler arasında sürüklenebilir ve tıklanınca hızlı detay açar. Hedef statünün
 form gereksinimleri `statuses.required_fields` JSONB alanında tutulur.
 `callback`, `lost` ve dönüşüm alanları bu yapılandırmadan okunur; ayrıca aynı
 kurallar PostgreSQL trigger'ıyla doğrudan yazımlarda korunur.
@@ -70,7 +71,7 @@ ikinci dönüşümü veritabanında da engeller.
 
 ## Sonuçlar
 
-- Geciken aramalar ilk sırada ve dar ekranda kullanılabilir durumdadır.
+- Geciken aramalar ilk sırada, yoğun listede taranabilir ve dar ekranda kullanılabilir durumdadır.
 - Pazarlama kullanıcısı yalnız kendi fırsatlarını görür; doğrudan URL de aynı
   kapsam kontrolünden geçer.
 - Görüşmeler fırsat/dosyadan ayrı, her temas için yeni satırdır ve fırsat
@@ -82,8 +83,8 @@ ikinci dönüşümü veritabanında da engeller.
 
 ## Alternatifler
 
-Masaüstü tabloyu mobilde yatay kaydırmak reddedildi; sahada tek elle kullanım
-için kart düzeni gerekir. Fırsat dönüşümünü Filament sayfasında ardışık model
+Yoğun listenin dar ekranda kolonları taşırması reddedildi; kolonlar anlamlı
+satır bloklarına dönüşür. Fırsat dönüşümünü Filament sayfasında ardışık model
 yazımlarıyla yapmak reddedildi; atomiklik ve gelecekteki mobil/portal tüketimi
 bozulurdu. İzin durumunu yalnız renk veya gizlenmiş aksiyonla anlatmak
 reddedildi; ret sebebi ve zamanı metin olarak görünmelidir.

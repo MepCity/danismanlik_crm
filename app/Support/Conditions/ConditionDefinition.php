@@ -89,7 +89,7 @@ final class ConditionDefinition
         }
 
         $evaluator->evaluate($condition, new ArrayConditionContext([
-            'company' => ['city' => '06'],
+            'company' => ['city' => 'Ankara'],
             'deal' => [
                 'requested_amount' => 1_000_000,
                 'required_documents' => [['status' => 'accepted']],

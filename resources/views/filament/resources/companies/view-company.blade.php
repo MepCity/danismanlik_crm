@@ -14,7 +14,7 @@
         @if ($activeTab === 'overview')
         <section class="operations-panel operations-facts">
             <div class="operations-fact"><dt>{{ __('panel.fields.legal_name') }}</dt><dd>{{ $company->legal_name }}</dd></div>
-            <div class="operations-fact"><dt>{{ __('panel.fields.city') }}</dt><dd class="numeric-data">{{ $company->city }}</dd></div>
+            <div class="operations-fact"><dt>{{ __('panel.fields.city') }}</dt><dd>{{ $company->city }}</dd></div>
             <div class="operations-fact"><dt>{{ __('marketing.company.open_opportunities') }}</dt><dd class="numeric-data">{{ $company->leads->whereNull('converted_deal_id')->count() }}</dd></div>
             <div class="operations-fact"><dt>{{ __('marketing.company.projects') }}</dt><dd class="numeric-data">{{ $company->deals->count() }}</dd></div>
         </section>
@@ -25,10 +25,9 @@
                 @php($rejection = $contact->communicationConsents->first(fn ($item) => in_array($item->status, ['denied', 'withdrawn'], true)))
                 <article class="operations-panel contact-card">
                     <header><strong>{{ $contact->full_name }}</strong><span>{{ $contact->title }}</span></header>
-                    <div>{{ __('marketing.intake.contact.decision_role') }}: {{ $contact->decision_role ? __('marketing.intake.contact.roles.'.$contact->decision_role) : __('marketing.consent.not_recorded') }}</div>
                     <div class="numeric-data">{{ $contact->phone ?? __('marketing.calls.no_phone') }}</div>
                     <div>{{ __('marketing.consent.source') }}: {{ $contact->data_source }}</div>
-                    <div>{{ __('marketing.consent.disclosure') }}: {{ $consent?->disclosure_date?->format('d.m.Y') ?? __('marketing.consent.not_recorded') }} · {{ $consent?->disclosure_method ?? __('marketing.consent.not_recorded') }}</div>
+                    <div>{{ __('marketing.consent.disclosure') }}: {{ $consent?->disclosure_date?->format('d.m.Y') ?? __('marketing.consent.not_recorded') }}</div>
                     <div class="consent-strip {{ $contact->consent_call === true && ! $contact->do_not_call ? 'consent-strip--allowed' : 'consent-strip--blocked' }}">
                         <strong>{{ $contact->consent_call === true && ! $contact->do_not_call ? __('marketing.consent.call_allowed') : __('marketing.consent.call_not_allowed') }}</strong>
                         @if ($rejection)<span class="numeric-data">{{ __('marketing.consent.rejected_at') }}: {{ $rejection->effective_from->format('d.m.Y H:i') }}</span>@endif
@@ -47,7 +46,6 @@
             <form wire:submit="addContact" class="operations-inline-form contact-form">
                 <label>{{ __('marketing.contacts.full_name') }}<input wire:model="contactFullName" required></label>
                 <label>{{ __('marketing.contacts.title') }}<input wire:model="contactTitle"></label>
-                <label>{{ __('marketing.intake.contact.decision_role') }}<select wire:model="contactDecisionRole"><option value="">{{ __('marketing.intake.choose') }}</option>@foreach(__('marketing.intake.contact.roles') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></label>
                 <label>{{ __('marketing.contacts.phone') }}<input class="numeric-data" wire:model="contactPhone"></label>
                 <label>{{ __('marketing.contacts.email') }}<input type="email" wire:model="contactEmail"></label>
                 <label>{{ __('marketing.contacts.data_source') }}
@@ -61,7 +59,6 @@
                     <select wire:model="contactCallConsent">@foreach (__('marketing.contacts.consent_options') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
                 </label>
                 <label>{{ __('marketing.contacts.disclosure_date') }}<input type="date" wire:model="contactDisclosureDate"></label>
-                <label>{{ __('marketing.contacts.disclosure_method') }}<input wire:model="contactDisclosureMethod"></label>
                 <button class="operations-button operations-button--primary" type="submit">{{ __('marketing.contacts.save') }}</button>
             </form>
         </section>

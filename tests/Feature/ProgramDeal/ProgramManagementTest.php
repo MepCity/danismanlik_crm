@@ -22,7 +22,7 @@ it('önceki sürümden şablonları bağımsız kopyalar ve açık dosyaları et
     $source = ProgramVersion::query()->with('docTemplates')->firstOrFail();
     $sourceTemplate = $source->docTemplates->firstOrFail();
     $actor = User::factory()->create(['email' => 'surum-kopya-aktor@example.invalid']);
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Sürüm İşletmesi', 'city' => '35']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Sürüm İşletmesi', 'city' => 'İzmir']);
     $status = Status::query()->where('type', 'deal')->firstOrFail();
     $deal = Deal::query()->create([
         'company_id' => $company->id,

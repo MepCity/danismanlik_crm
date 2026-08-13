@@ -44,7 +44,7 @@ function collaborationScreenFixture(): array
     $officer->assignRole('Şirket Yetkilisi');
     $outsider = User::factory()->create(['name' => 'Kurgusal Gizli Kullanıcı', 'email' => 'gizli-ekran@example.invalid']);
     $outsider->assignRole('Pazarlama');
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Pusula Teknoloji', 'city' => '06']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Pusula Teknoloji', 'city' => 'Ankara']);
     $lead = Lead::query()->create([
         'company_id' => $company->id,
         'owner_user_id' => $owner->id,

@@ -51,7 +51,7 @@ function collaborationFixture(string $suffix = 'bir'): array
     $officer->assignRole('Şirket Yetkilisi');
     $outsider = User::factory()->create(['name' => 'Kurgusal Dış Kullanıcı', 'email' => "dis-{$suffix}@example.invalid"]);
     $outsider->assignRole('Pazarlama');
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Ufuk İşletmesi '.$suffix, 'city' => '06']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Ufuk İşletmesi '.$suffix, 'city' => 'Ankara']);
     $leadStatus = Status::query()->where('type', 'lead')->firstOrFail();
     $dealStatus = Status::query()->where('type', 'deal')->firstOrFail();
     $version = ProgramVersion::query()->firstOrFail();
