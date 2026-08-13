@@ -31,6 +31,9 @@ final class AdminPanelProvider extends PanelProvider
             ->id('operations')
             ->path('operasyon')
             ->brandName(__('panel.brand'))
+            ->brandLogo(fn () => view('filament.components.brand-logo'))
+            ->darkModeBrandLogo(fn () => view('filament.components.brand-logo'))
+            ->brandLogoHeight('2.25rem')
             ->login()
             ->profile()
             ->revealablePasswords(false)
@@ -40,6 +43,8 @@ final class AdminPanelProvider extends PanelProvider
             ->strictAuthorization()
             ->maxContentWidth(Width::Full)
             ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('17rem')
+            ->collapsedSidebarWidth('4.5rem')
             ->navigationGroups([
                 NavigationGroup::make()->label(__('panel.navigation.groups.overview')),
                 NavigationGroup::make()->label(__('panel.navigation.groups.marketing')),

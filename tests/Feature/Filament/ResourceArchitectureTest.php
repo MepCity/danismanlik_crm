@@ -75,3 +75,30 @@ it('tablo yoğunluğunu gerçek hücre sarmalayıcılarında uygular', function 
         ->and($theme)->toContain('.fi-ta-ctn .fi-pagination')
         ->and($theme)->toContain('height: var(--crm-pagination-height);');
 });
+
+it('tasarım paketi ortak hareket ve erişilebilirlik sözleşmesini uygular', function (): void {
+    $tokens = file_get_contents(resource_path('css/filament/operations/tokens.css'));
+    $theme = file_get_contents(resource_path('css/filament/operations/theme.css'));
+
+    expect($tokens)->not->toBeFalse()
+        ->and($theme)->not->toBeFalse()
+        ->and($tokens)->toContain('--crm-duration-base: 180ms;')
+        ->and($tokens)->toContain('--crm-ease-out: cubic-bezier(0.16, 1, 0.3, 1);')
+        ->and($theme)->toContain('@media (prefers-reduced-motion: reduce)')
+        ->and($theme)->toContain(':where(a, button, input, select, textarea, [tabindex]):focus-visible')
+        ->and($theme)->toContain('outline: 2px solid var(--crm-focus-ring);')
+        ->and($theme)->toContain('.operations-button:active')
+        ->and($theme)->toContain('transform: translateY(0) scale(0.985);');
+});
+
+it('panel markasını ve ürün alanını özel kabukta gösterir', function (): void {
+    $logo = file_get_contents(resource_path('views/filament/components/brand-logo.blade.php'));
+    $provider = file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+
+    expect($logo)->not->toBeFalse()
+        ->and($provider)->not->toBeFalse()
+        ->and($logo)->toContain("__('panel.brand')")
+        ->and($logo)->toContain("__('panel.shell.product_area')")
+        ->and($provider)->toContain("->brandLogo(fn () => view('filament.components.brand-logo'))")
+        ->and($provider)->toContain("->darkModeBrandLogo(fn () => view('filament.components.brand-logo'))");
+});

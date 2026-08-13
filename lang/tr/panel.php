@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 return [
     'brand' => 'Bizlife CRM',
+    'shell' => [
+        'product_area' => 'Operasyon merkezi',
+        'workspace' => 'Günlük çalışma alanı',
+        'greeting' => 'İyi çalışmalar, :name',
+        'today_summary' => 'Bugünün öncelikleri ve son hareketler tek bakışta.',
+    ],
     'navigation' => [
         'groups' => [
             'overview' => 'Genel Bakış',
