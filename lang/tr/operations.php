@@ -6,6 +6,13 @@ return [
     'board' => [
         'navigation' => 'Dosya panosu',
         'title' => 'Dosya panosu',
+        'eyebrow' => 'Proje operasyonu',
+        'description' => 'Dosyaları süreç aşamaları arasında taşıyın; ayrıntı için karta tıklayın.',
+        'drag_hint' => 'Kartları sürükleyerek statüyü değiştirin',
+        'invalid_drop' => 'Bu iki statü arasında izinli bir geçiş yok.',
+        'detail_title' => 'Dosya ayrıntısı',
+        'documents_short' => 'evrak',
+        'complete_move' => 'Taşımayı tamamla',
         'empty_column' => 'Bu statüde dosya yok.',
         'unassigned' => 'Atanmadı',
         'days' => ':count gün',

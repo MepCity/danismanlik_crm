@@ -37,7 +37,7 @@ beforeEach(function (): void {
 /** @return array{owner: User, company: Company, contact: Contact, lead: Lead} */
 function marketingScreenLead(User $owner, string $suffix, string $statusCode = 'called', ?string $nextCallAt = null, bool $blocked = false): array
 {
-    $company = Company::query()->create(['legal_name' => "Kurgusal Ekran {$suffix}", 'city' => '34']);
+    $company = Company::query()->create(['legal_name' => "Kurgusal Ekran {$suffix}", 'city' => 'İstanbul']);
     $contact = Contact::query()->create([
         'company_id' => $company->id,
         'full_name' => "Kurgusal Kişi {$suffix}",
@@ -55,7 +55,6 @@ function marketingScreenLead(User $owner, string $suffix, string $statusCode = '
         'legal_basis' => $blocked ? 'explicit_withdrawal' : 'explicit_consent',
         'source' => 'list',
         'disclosure_date' => now()->subDays(5)->toDateString(),
-        'disclosure_method' => 'phone',
         'effective_from' => now()->subDays(2),
         'recorded_by' => $owner->id,
     ]);
@@ -92,6 +91,38 @@ it('pazarlamacıya yalnız kendi fırsatlarını listeler ve doğrudan URL eriş
         ->assertSee($own['company']->legal_name)
         ->assertDontSee($foreign['company']->legal_name);
     Livewire::test(LeadDetail::class, ['lead' => $foreign['lead']->id])->assertForbidden();
+});
+
+it('takip panosunda kart detayını açar ve geçerli bırakmada statüyü değiştirir', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-surukle@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $fixture = marketingScreenLead($owner, 'Sürükle');
+    $interested = Status::query()->where('type', 'lead')->where('code', 'interested')->sole();
+    Auth::login($owner);
+
+    Livewire::test(LeadBoard::class)
+        ->call('openLead', $fixture['lead']->id)
+        ->assertSet('selectedLeadId', $fixture['lead']->id)
+        ->assertSee('Kurgusal Ekran Sürükle')
+        ->assertSee('lead-detail-drawer')
+        ->call('moveLead', $fixture['lead']->id, $interested->id)
+        ->assertHasNoErrors();
+
+    expect($fixture['lead']->refresh()->status_id)->toBe($interested->id);
+});
+
+it('takip panosunda alan isteyen bırakmayı veri formuna yönlendirir', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-surukle-form@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $fixture = marketingScreenLead($owner, 'Sürükle Form');
+    $callback = Status::query()->where('type', 'lead')->where('code', 'callback')->sole();
+    Auth::login($owner);
+
+    Livewire::test(LeadBoard::class)
+        ->call('moveLead', $fixture['lead']->id, $callback->id)
+        ->assertSet('transitionLeadId', $fixture['lead']->id)
+        ->assertSet('transitionTargetId', $callback->id)
+        ->assertSee('lead-transition-form');
 });
 
 it('aranmaması gereken kişide tel aksiyonunu engeller ve sebebini gösterir', function (): void {
@@ -219,10 +250,9 @@ it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', fu
     Livewire::test(ProspectIntake::class)
         ->assertSee('Potansiyel müşteri kaydı')
         ->set('companyName', 'Kurgusal Tek Ekran AŞ')
-        ->set('city', '34')
+        ->set('city', 'İstanbul')
         ->set('contactName', 'Kurgusal Karar Verici')
         ->set('contactTitle', 'Genel Müdür')
-        ->set('decisionRole', 'decision_maker')
         ->set('phone', '+90 000 000 00 00')
         ->set('email', 'karar-verici@firma.invalid')
         ->set('programVersionId', $version->id)
