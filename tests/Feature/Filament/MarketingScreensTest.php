@@ -127,6 +127,9 @@ it('engelli fırsatta gelen aramayı ayrı işaretle kaydeder', function (): voi
 });
 
 it('bugün ve geçmiş aramaları geciken önce sıralar ve geleceği dışarıda bırakır', function (): void {
+    /** @var TestCase $this */
+    $this->travelTo(now()->startOfDay()->addHours(12));
+
     $owner = User::factory()->create(['email' => 'ekran-siralama@example.invalid']);
     $owner->assignRole('Pazarlama');
     $overdue = marketingScreenLead($owner, 'Geciken', nextCallAt: now()->subDays(2)->toDateTimeString());
