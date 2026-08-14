@@ -26,7 +26,6 @@
                 <article class="operations-panel contact-card">
                     <header><strong>{{ $contact->full_name }}</strong><span>{{ $contact->title }}</span></header>
                     <div class="numeric-data">{{ $contact->phone ?? __('marketing.calls.no_phone') }}</div>
-                    <div>{{ __('marketing.consent.source') }}: {{ $contact->data_source }}</div>
                     <div>{{ __('marketing.consent.disclosure') }}: {{ $consent?->disclosure_date?->format('d.m.Y') ?? __('marketing.consent.not_recorded') }}</div>
                     <div class="consent-strip {{ $contact->consent_call === true && ! $contact->do_not_call ? 'consent-strip--allowed' : 'consent-strip--blocked' }}">
                         <strong>{{ $contact->consent_call === true && ! $contact->do_not_call ? __('marketing.consent.call_allowed') : __('marketing.consent.call_not_allowed') }}</strong>
@@ -48,13 +47,6 @@
                 <label>{{ __('marketing.contacts.title') }}<input wire:model="contactTitle"></label>
                 <label>{{ __('marketing.contacts.phone') }}<input class="numeric-data" wire:model="contactPhone"></label>
                 <label>{{ __('marketing.contacts.email') }}<input type="email" wire:model="contactEmail"></label>
-                <label>{{ __('marketing.contacts.data_source') }}
-                    <select wire:model="contactDataSource" required>
-                        <option value="">{{ __('marketing.contacts.choose_source') }}</option>
-                        @foreach (__('marketing.contacts.sources') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
-                    </select>
-                </label>
-                @error('contactDataSource')<span class="operations-error">{{ $message }}</span>@enderror
                 <label>{{ __('marketing.contacts.call_consent') }}
                     <select wire:model="contactCallConsent">@foreach (__('marketing.contacts.consent_options') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
                 </label>

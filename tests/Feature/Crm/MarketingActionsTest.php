@@ -140,11 +140,12 @@ it('izinli giden aramayı ve ret sonrasındaki gelen aramayı ayrı bağlamla ka
         ->and(Interaction::query()->where('lead_id', $fixture['lead']->id)->count())->toBe(2);
 });
 
-it('veri kaynağı boş kişiyi action ve veritabanı katmanında reddeder', function (): void {
+it('kişiyi sistem kaynağıyla oluşturur ve boş iç kaydı veritabanında reddeder', function (): void {
     $fixture = marketingActionFixture(suffix: 'kaynak');
 
-    expect(fn () => app(SaveContact::class)->create($fixture['company']->id, $fixture['actor']->id, 'Kurgusal Yeni Kişi', ''))
-        ->toThrow(ValidationException::class, 'Veri kaynağı zorunludur')
+    $contact = app(SaveContact::class)->create($fixture['company']->id, $fixture['actor']->id, 'Kurgusal Yeni Kişi');
+
+    expect($contact->data_source)->toBe('other')
         ->and(fn () => Contact::query()->create([
             'company_id' => $fixture['company']->id,
             'full_name' => 'Kurgusal Kaynaksız Kişi',

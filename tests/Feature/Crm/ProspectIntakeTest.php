@@ -75,6 +75,8 @@ it('tek işlemde firma kişi fırsat görüşme yorum görev ve aktör izini olu
         ->and($result->lead->status_id)->toBe($interested->id)
         ->and($result->interaction->contact_id)->toBe($result->contact->id)
         ->and($result->interaction->note)->toContain('sonraki adım')
+        ->and($result->company->source)->toBe('phone')
+        ->and($result->contact->data_source)->toBe('phone')
         ->and(Comment::query()->where('company_id', $result->company->id)->count())->toBe(1)
         ->and(Task::query()->where('lead_id', $result->lead->id)->count())->toBe(1)
         ->and(Activity::query()->where('company_id', $result->company->id)->where('action', 'company.created')->exists())->toBeTrue()

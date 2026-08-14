@@ -15,7 +15,6 @@
                         <label class="intake-field"><span>{{ __('marketing.intake.company.tax_number') }}</span><input class="numeric-data" wire:model.live.debounce.350ms="taxNumber" inputmode="numeric"></label>
                         <label class="intake-field"><span>{{ __('panel.fields.city') }}</span><select wire:model="city" required><option value="">{{ __('marketing.intake.choose') }}</option>@foreach($provinces as $province)<option value="{{ $province }}">{{ $province }}</option>@endforeach</select></label>
                     @endif
-                    <label class="intake-field"><span>{{ __('marketing.contacts.data_source') }}</span><select wire:model="source">@foreach(__('marketing.contacts.sources') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></label>
                 </div>
                 @if ($companyMode === 'new' && $duplicateCompanies->isNotEmpty())
                     <div class="intake-duplicate" role="status"><strong>{{ __('marketing.intake.company.possible_duplicate') }}</strong><p>{{ __('marketing.intake.company.possible_duplicate_help') }}</p><div>@foreach($duplicateCompanies as $duplicate)<button type="button" class="operations-link" wire:click="$set('companyMode', 'existing'); $set('companyId', {{ $duplicate->id }})">{{ $duplicate->legal_name }} · {{ $duplicate->city }}</button>@endforeach</div></div>

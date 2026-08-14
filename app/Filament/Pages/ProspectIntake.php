@@ -41,8 +41,6 @@ final class ProspectIntake extends Page
 
     public string $city = '';
 
-    public string $source = 'phone';
-
     public string $contactMode = 'new';
 
     public ?int $contactId = null;
@@ -129,7 +127,6 @@ final class ProspectIntake extends Page
             'companyName' => $newCompany ? ['required', 'string', 'max:255'] : ['nullable'],
             'taxNumber' => ['nullable', 'regex:/^[0-9]{10}([0-9])?$/'],
             'city' => $newCompany ? ['required', 'string', 'in:'.implode(',', config('turkey.provinces'))] : ['nullable'],
-            'source' => ['required', 'in:form,phone,list,referral,iys,other'],
             'contactId' => $newContact ? ['nullable'] : ['required', 'integer'],
             'contactName' => $newContact ? ['required', 'string', 'max:255'] : ['nullable'],
             'contactTitle' => $newContact ? ['required', 'string', 'max:255'] : ['nullable'],
@@ -161,7 +158,7 @@ final class ProspectIntake extends Page
             companyName: $newCompany ? $this->companyName : null,
             taxNumber: $newCompany && filled($this->taxNumber) ? $this->taxNumber : null,
             city: $newCompany ? $this->city : null,
-            source: $this->source,
+            source: 'phone',
             contactId: $newContact ? null : $this->contactId,
             contactName: $newContact ? $this->contactName : null,
             contactTitle: $newContact ? $this->contactTitle : null,

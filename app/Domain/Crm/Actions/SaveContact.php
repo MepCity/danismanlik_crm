@@ -8,7 +8,6 @@ use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Contact;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 final class SaveContact
 {
@@ -16,7 +15,6 @@ final class SaveContact
         int $companyId,
         int $actorId,
         string $fullName,
-        string $dataSource,
         ?string $phone = null,
         ?string $email = null,
         ?string $title = null,
@@ -24,12 +22,9 @@ final class SaveContact
         ?string $disclosureDate = null,
         bool $isPrimary = false,
         ?Carbon $consentEffectiveAt = null,
+        string $recordSource = 'other',
     ): Contact {
-        $source = trim($dataSource);
-
-        if ($source === '') {
-            throw ValidationException::withMessages(['contactDataSource' => trans('marketing.validation.data_source_required')]);
-        }
+        $source = $this->ledgerSource(trim($recordSource));
 
         return DB::transaction(function () use ($companyId, $actorId, $fullName, $source, $phone, $email, $title, $callConsent, $disclosureDate, $isPrimary, $consentEffectiveAt): Contact {
             $contact = Contact::query()->create([

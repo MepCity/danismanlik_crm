@@ -23,7 +23,6 @@
                 <article class="operations-panel contact-card">
                     <header><strong>{{ $contact->full_name }}</strong><span>{{ $contact->title }}</span></header>
                     <div class="numeric-data">{{ $contact->phone ?? __('marketing.calls.no_phone') }}</div>
-                    <div>{{ __('marketing.consent.source') }}: {{ $contact->data_source }}</div>
                     <div>{{ __('marketing.consent.disclosure') }}: {{ $consent?->disclosure_date?->format('d.m.Y') ?? __('marketing.consent.not_recorded') }}</div>
                     <div class="consent-strip {{ $contact->consent_call === true && ! $contact->do_not_call ? 'consent-strip--allowed' : 'consent-strip--blocked' }}">
                         {{ $contact->consent_call === true && ! $contact->do_not_call ? __('marketing.consent.call_allowed') : __('marketing.consent.call_not_allowed') }}

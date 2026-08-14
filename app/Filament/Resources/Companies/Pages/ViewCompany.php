@@ -28,8 +28,6 @@ final class ViewCompany extends ViewRecord
 
     public string $contactEmail = '';
 
-    public string $contactDataSource = '';
-
     public string $contactCallConsent = 'unknown';
 
     public string $contactDisclosureDate = '';
@@ -66,10 +64,9 @@ final class ViewCompany extends ViewRecord
             'contactTitle' => ['nullable', 'string', 'max:255'],
             'contactPhone' => ['nullable', 'string', 'max:40'],
             'contactEmail' => ['nullable', 'email', 'max:255'],
-            'contactDataSource' => ['required', 'string', 'max:255'],
             'contactCallConsent' => ['required', 'in:unknown,granted,denied'],
             'contactDisclosureDate' => ['nullable', 'date'],
-        ], ['contactDataSource.required' => __('marketing.validation.data_source_required')]);
+        ]);
         Gate::authorize('create', Contact::class);
         $consent = match ($this->contactCallConsent) {
             'granted' => true,
@@ -80,14 +77,13 @@ final class ViewCompany extends ViewRecord
             (int) $this->record->getKey(),
             (int) Auth::id(),
             $this->contactFullName,
-            $this->contactDataSource,
-            $this->contactPhone ?: null,
-            $this->contactEmail ?: null,
-            $this->contactTitle ?: null,
-            $consent,
-            $this->contactDisclosureDate ?: null,
+            phone: $this->contactPhone ?: null,
+            email: $this->contactEmail ?: null,
+            title: $this->contactTitle ?: null,
+            callConsent: $consent,
+            disclosureDate: $this->contactDisclosureDate ?: null,
         );
-        $this->reset('contactFullName', 'contactTitle', 'contactPhone', 'contactEmail', 'contactDataSource', 'contactDisclosureDate');
+        $this->reset('contactFullName', 'contactTitle', 'contactPhone', 'contactEmail', 'contactDisclosureDate');
         $this->contactCallConsent = 'unknown';
         Notification::make()->title(__('marketing.messages.contact_saved'))->success()->send();
     }
