@@ -67,9 +67,9 @@
             <section class="operations-panel intake-section">
                 <header class="intake-section__header"><span class="intake-step">5</span><div><h2>{{ __('marketing.intake.reminder.title') }}</h2><p>{{ __('marketing.intake.reminder.description') }}</p></div></header>
                 <div class="intake-fields intake-fields--three">
-                    <label class="intake-field"><span>{{ __('collaboration.tasks.title') }}</span><input wire:model="taskTitle"></label>
-                    <label class="intake-field"><span>{{ __('collaboration.tasks.due_at') }}</span><input type="datetime-local" wire:model="taskDueAt"></label>
-                    <label class="intake-field"><span>{{ __('marketing.intake.reminder.at') }}</span><input type="datetime-local" wire:model="taskRemindAt"></label>
+                    <label id="field-task-title" class="intake-field"><span>{{ __('collaboration.tasks.title') }}</span><input wire:model.live.debounce.300ms="taskTitle">@error('taskTitle')<small class="operations-field-error">{{ $message }}</small>@enderror</label>
+                    <label id="field-task-due-at" class="intake-field {{ $errors->has('taskDueAt') ? 'intake-field--invalid' : '' }}"><span>{{ __('marketing.intake.reminder.due_at') }}@if(filled($taskTitle)) <b aria-hidden="true">*</b>@endif</span><input type="datetime-local" wire:model="taskDueAt" aria-describedby="task-due-at-help" aria-invalid="{{ $errors->has('taskDueAt') ? 'true' : 'false' }}">@if(filled($taskTitle))<small id="task-due-at-help" class="intake-field__help">{{ __('marketing.intake.reminder.due_at_help') }}</small>@endif @error('taskDueAt')<small class="operations-field-error" role="alert">{{ $message }}</small>@enderror</label>
+                    <label id="field-task-remind-at" class="intake-field {{ $errors->has('taskRemindAt') ? 'intake-field--invalid' : '' }}"><span>{{ __('marketing.intake.reminder.at') }}</span><input type="datetime-local" wire:model="taskRemindAt">@error('taskRemindAt')<small class="operations-field-error" role="alert">{{ $message }}</small>@enderror</label>
                 </div>
             </section>
         </div>

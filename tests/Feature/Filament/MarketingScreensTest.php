@@ -267,3 +267,17 @@ it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', fu
         ->and($lead->status_id)->toBe($interested->id)
         ->and($lead->interactions()->whereNotNull('contact_id')->exists())->toBeTrue();
 });
+
+it('takip görevi doğrulamasını teknik alan adı göstermeden açıklar', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-intake-hata@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    Auth::login($owner);
+
+    Livewire::test(ProspectIntake::class)
+        ->set('taskTitle', 'Müşteriyi tekrar ara')
+        ->set('taskDueAt', '')
+        ->call('save')
+        ->assertHasErrors(['taskDueAt' => 'required'])
+        ->assertSee('Görev başlığı girildiğinde görev son tarihi zorunludur.')
+        ->assertDontSee('task due at');
+});

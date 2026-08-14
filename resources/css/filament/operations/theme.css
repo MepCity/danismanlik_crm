@@ -471,6 +471,29 @@ body {
     outline-offset: 1px;
 }
 
+.intake-field__help,
+.operations-field-error {
+    display: block;
+    font-size: var(--crm-text-xs);
+    line-height: 1.45;
+}
+
+.intake-field__help {
+    color: var(--crm-text-subtle);
+    font-weight: 500;
+}
+
+.operations-field-error {
+    color: var(--crm-status-danger-fg);
+    font-weight: 650;
+}
+
+.intake-field--invalid input,
+.intake-field--invalid select,
+.intake-field--invalid textarea {
+    border-color: var(--crm-status-danger-fg);
+}
+
 .intake-summary {
     position: sticky;
     inset-block-start: var(--crm-space-4);
