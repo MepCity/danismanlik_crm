@@ -46,10 +46,9 @@ return [
         'company_comment_placeholder' => 'Belirli bir fırsata değil, firmanın tamamına ait kalıcı not.',
         'reminder' => [
             'title' => 'Takip görevi',
-            'description' => 'İsteğe bağlıdır. Görev başlığı girerseniz görev son tarihi de gereklidir.',
+            'description' => 'İsteğe bağlı bir takip görevi oluşturun; son tarih vermek zorunda değilsiniz.',
             'at' => 'Hatırlatma zamanı',
             'due_at' => 'Görev son tarihi',
-            'due_at_help' => 'Görev başlığı girildiği için bu alan zorunludur.',
         ],
         'summary' => [
             'eyebrow' => 'Tek işlemde',
@@ -203,7 +202,6 @@ return [
         'call_direction' => 'Arama yönü geçersizdir.',
         'call_note_required' => 'Görüşmede konuşulanların özeti zorunludur.',
         'intake_status' => 'İlk görüşme için seçilen statü geçerli bir iş akışı adımı değildir.',
-        'task_due_at_required' => 'Görev başlığı girildiğinde görev son tarihi zorunludur.',
         'task_due_after_call' => 'Görev son tarihi, görüşme tarihinden önce olamaz.',
         'task_reminder_before_due' => 'Hatırlatma zamanı, görev son tarihinden sonra olamaz.',
         'next_call_after_call' => 'Tekrar arama tarihi, bu görüşmeden sonra olmalıdır.',

@@ -471,16 +471,10 @@ body {
     outline-offset: 1px;
 }
 
-.intake-field__help,
 .operations-field-error {
     display: block;
     font-size: var(--crm-text-xs);
     line-height: 1.45;
-}
-
-.intake-field__help {
-    color: var(--crm-text-subtle);
-    font-weight: 500;
 }
 
 .operations-field-error {

@@ -167,6 +167,20 @@ it('görevi atar tamamlar ve yeniden açar', function (): void {
     expect($service->reopen($fixture['owner'], $task)->completed_at)->toBeNull();
 });
 
+it('son tarih olmadan görev oluşturur', function (): void {
+    $fixture = collaborationFixture();
+    $subject = new SubjectReference(CollaborationSubjectType::Deal, $fixture['deal']->id);
+
+    $task = app(TaskService::class)->create(
+        $fixture['owner'],
+        $subject,
+        $fixture['officer'],
+        'Tarihsiz kurgusal görev',
+    );
+
+    expect($task->due_at)->toBeNull();
+});
+
 it('vakti gelen görev için uygulama içi ve e-posta bildirimi bir kez üretir', function (): void {
     $fixture = collaborationFixture();
     $subject = new SubjectReference(CollaborationSubjectType::Deal, $fixture['deal']->id);

@@ -87,7 +87,7 @@ final readonly class CreateProspectIntake
             if (filled($data->companyComment)) {
                 $this->comments->create($actor, new SubjectReference(CollaborationSubjectType::Company, $company->id), (string) $data->companyComment);
             }
-            if (filled($data->taskTitle) && $data->taskDueAt !== null) {
+            if (filled($data->taskTitle)) {
                 $this->tasks->create(
                     $actor,
                     new SubjectReference(CollaborationSubjectType::Lead, $lead->id),
@@ -189,9 +189,6 @@ final readonly class CreateProspectIntake
         $initial = $this->workflow->initialState();
         if ($this->workflow->transitionPath($initial->statusId, $data->targetStatusId) === []) {
             $errors['targetStatusId'] = trans('marketing.validation.intake_status');
-        }
-        if ($data->taskTitle !== null && $data->taskDueAt === null) {
-            $errors['taskDueAt'] = trans('marketing.validation.task_due_at_required');
         }
         if ($errors !== []) {
             throw ValidationException::withMessages($errors);

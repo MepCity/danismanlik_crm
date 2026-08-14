@@ -268,8 +268,8 @@ it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', fu
         ->and($lead->interactions()->whereNotNull('contact_id')->exists())->toBeTrue();
 });
 
-it('takip görevi doğrulamasını teknik alan adı göstermeden açıklar', function (): void {
-    $owner = User::factory()->create(['email' => 'ekran-intake-hata@example.invalid']);
+it('takip görevinde son tarihi isteğe bağlı gösterir', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-intake-tarihsiz@example.invalid']);
     $owner->assignRole('Pazarlama');
     Auth::login($owner);
 
@@ -277,7 +277,7 @@ it('takip görevi doğrulamasını teknik alan adı göstermeden açıklar', fun
         ->set('taskTitle', 'Müşteriyi tekrar ara')
         ->set('taskDueAt', '')
         ->call('save')
-        ->assertHasErrors(['taskDueAt' => 'required'])
-        ->assertSee('Görev başlığı girildiğinde görev son tarihi zorunludur.')
-        ->assertDontSee('task due at');
+        ->assertHasNoErrors(['taskDueAt'])
+        ->assertSee('son tarih vermek zorunda değilsiniz')
+        ->assertDontSee('Görev son tarihi *');
 });

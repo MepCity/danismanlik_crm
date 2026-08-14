@@ -36,10 +36,12 @@ final readonly class DueTaskReminder
 
                         $subject = $this->referenceFor($locked);
                         $title = trans('collaboration.notifications.task_reminder_title');
-                        $body = trans('collaboration.notifications.task_reminder_body', [
-                            'task' => $locked->title,
-                            'due_at' => $locked->due_at->format('d.m.Y H:i'),
-                        ]);
+                        $body = $locked->due_at === null
+                            ? trans('collaboration.notifications.task_reminder_body_without_due', ['task' => $locked->title])
+                            : trans('collaboration.notifications.task_reminder_body', [
+                                'task' => $locked->title,
+                                'due_at' => $locked->due_at->format('d.m.Y H:i'),
+                            ]);
                         Notification::query()->create([
                             'user_id' => $locked->assigned_to,
                             'type' => 'task.reminder',

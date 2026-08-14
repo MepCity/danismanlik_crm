@@ -145,12 +145,11 @@ final class ProspectIntake extends Page
             'nextCallAt' => $this->targetRequires('next_call_at') ? ['required', 'date', 'after:calledAt'] : ['nullable', 'date'],
             'companyComment' => ['nullable', 'string', 'max:10000'],
             'taskTitle' => ['nullable', 'string', 'max:255'],
-            'taskDueAt' => filled($this->taskTitle) ? ['required', 'date', 'after_or_equal:calledAt'] : ['nullable', 'date'],
-            'taskRemindAt' => ['nullable', 'date', 'before_or_equal:taskDueAt'],
+            'taskDueAt' => ['nullable', 'date', 'after_or_equal:calledAt'],
+            'taskRemindAt' => filled($this->taskDueAt) ? ['nullable', 'date', 'before_or_equal:taskDueAt'] : ['nullable', 'date'],
         ], [
             'taxNumber.regex' => __('marketing.validation.tax_number_format'),
             'nextCallAt.after' => __('marketing.validation.next_call_after_call'),
-            'taskDueAt.required' => __('marketing.validation.task_due_at_required'),
             'taskDueAt.after_or_equal' => __('marketing.validation.task_due_after_call'),
             'taskRemindAt.before_or_equal' => __('marketing.validation.task_reminder_before_due'),
         ]);

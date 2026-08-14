@@ -20,6 +20,13 @@ it('işbirliği güçlendirmelerini PostgreSQL üzerinde geri alıp yeniden kura
         expect(Artisan::call('migrate', ['--database' => $connection, '--force' => true]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('tasks', 'reminder_sent_at'))->toBeTrue()
             ->and(DB::connection($connection)->scalar(<<<SQL
+                SELECT is_nullable
+                FROM information_schema.columns
+                WHERE table_schema = '{$schema}'
+                  AND table_name = 'tasks'
+                  AND column_name = 'due_at'
+                SQL))->toBe('YES')
+            ->and(DB::connection($connection)->scalar(<<<SQL
                 SELECT count(*)
                 FROM pg_trigger
                 WHERE tgrelid = '{$schema}.comments'::regclass
@@ -37,7 +44,29 @@ it('işbirliği güçlendirmelerini PostgreSQL üzerinde geri alıp yeniden kura
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 10,
+            '--step' => 1,
+        ]))->toBe(0)
+            ->and(DB::connection($connection)->scalar(<<<SQL
+                SELECT is_nullable
+                FROM information_schema.columns
+                WHERE table_schema = '{$schema}'
+                  AND table_name = 'tasks'
+                  AND column_name = 'due_at'
+                SQL))->toBe('NO');
+
+        expect(Artisan::call('migrate', ['--database' => $connection, '--force' => true]))->toBe(0)
+            ->and(DB::connection($connection)->scalar(<<<SQL
+                SELECT is_nullable
+                FROM information_schema.columns
+                WHERE table_schema = '{$schema}'
+                  AND table_name = 'tasks'
+                  AND column_name = 'due_at'
+                SQL))->toBe('YES');
+
+        expect(Artisan::call('migrate:rollback', [
+            '--database' => $connection,
+            '--force' => true,
+            '--step' => 11,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('tasks', 'reminder_sent_at'))->toBeFalse();
 

@@ -17,6 +17,7 @@ return [
         'mention_body' => ':user sizi erişebildiğiniz bir yorumda etiketledi.',
         'task_reminder_title' => 'Görev hatırlatması',
         'task_reminder_body' => '":task" görevinin son tarihi :due_at.',
+        'task_reminder_body_without_due' => '":task" görevi için belirlediğiniz hatırlatma zamanı geldi.',
     ],
     'commands' => [
         'reminders' => ':count görev hatırlatması üretildi.',
@@ -31,6 +32,7 @@ return [
         'subject' => 'Günlük operasyon özeti',
         'intro' => 'Bugünkü operasyon özetiniz:',
         'task_line' => 'Açık görev — :company · :reference · son tarih :due_at',
+        'task_line_without_due' => 'Açık görev — :company · :reference · son tarih yok',
         'deadline_line' => 'Yaklaşan son tarih — :company · :reference · :due_at',
         'assignment_line' => 'Bekleyen atama — :company · :reference',
         'unknown_company' => 'Firma bilgisi yok',

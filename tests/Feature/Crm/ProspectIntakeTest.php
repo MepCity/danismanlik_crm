@@ -33,7 +33,7 @@ beforeEach(function (): void {
     app(ReferenceDataSeeder::class)->run();
 });
 
-function intakeData(string $suffix, int $programVersionId, int $targetStatusId, ?int $companyId = null): ProspectIntakeData
+function intakeData(string $suffix, int $programVersionId, int $targetStatusId, ?int $companyId = null, bool $withTaskDueAt = true): ProspectIntakeData
 {
     return new ProspectIntakeData(
         companyId: $companyId,
@@ -56,8 +56,8 @@ function intakeData(string $suffix, int $programVersionId, int $targetStatusId, 
         callNote: 'Program kapsamı, ihtiyaç ve sonraki adım ayrıntılı biçimde görüşüldü.',
         companyComment: 'Firmanın satın alma kararını genel müdür veriyor.',
         taskTitle: 'Tekrar iletişim kur',
-        taskDueAt: Carbon::now()->addDay(),
-        taskRemindAt: Carbon::now()->addHours(20),
+        taskDueAt: $withTaskDueAt ? Carbon::now()->addDay() : null,
+        taskRemindAt: $withTaskDueAt ? Carbon::now()->addHours(20) : null,
     );
 }
 
@@ -82,6 +82,24 @@ it('tek işlemde firma kişi fırsat görüşme yorum görev ve aktör izini olu
 
     $companyAudit = DB::table('audit_log')->where('table_name', 'companies')->where('row_id', $result->company->id)->where('operation', 'INSERT')->sole();
     expect((int) $companyAudit->actor_id)->toBe($actor->id)->and($companyAudit->source)->toBe('user');
+});
+
+it('son tarih vermeden takip görevi oluşturur', function (): void {
+    $actor = User::factory()->create(['email' => 'tarihsiz-gorev@example.invalid']);
+    $actor->assignRole('Pazarlama');
+    $version = ProgramVersion::query()->firstOrFail();
+    $interested = Status::query()->where('type', 'lead')->where('code', 'interested')->sole();
+
+    $result = app(CreateProspectIntake::class)->handle(
+        $actor,
+        intakeData('tarihsiz', $version->id, $interested->id, withTaskDueAt: false),
+    );
+
+    $task = Task::query()->where('lead_id', $result->lead->id)->sole();
+
+    expect($task->title)->toBe('Tekrar iletişim kur')
+        ->and($task->due_at)->toBeNull()
+        ->and($task->remind_at)->toBeNull();
 });
 
 it('fırsat ve görüşmeye başka firmanın kişisinin bağlanmasını veritabanında reddeder', function (): void {

@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.7 — 13.08.2026
+> **Sürüm:** 1.8 — 14.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -943,6 +943,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.8 | 14.08.2026 | Görev son tarihi isteğe bağlı hale getirildi. Başlık ve atanan kişi görev için yeterlidir; son tarihi olmayan görevler açık görev listesinde tutulur, hatırlatma zamanı son tarihten bağımsız verilebilir |
 | 1.7 | 13.08.2026 | Pazarlama veri girişi sadeleştirildi: il kodu yerine il seçimi; karardaki rol, aydınlatma yöntemi ve görüşme süresi kaldırıldı. Fırsat panosu “Takip panosu” oldu; takip ve dosya panolarına doğrudan geçiş için sürükle-bırak ve kart detay çekmecesi eklendi. Bugün aranacaklar ekranı yoğun satır düzenine geçirildi |
 | 1.6 | 13.08.2026 | Operasyon arayüzü “sakin operasyon merkezi” tasarım sistemine geçirildi: ortak marka kabuğu, mavi-gri yüzey hiyerarşisi, tek indigo vurgu, 36 px operasyon yoğunluğu, açık/koyu tema, 120–240 ms mikro hareket sözleşmesi, hareket azaltma desteği ve mobil kırılım kuralları kalıcılaştırıldı |
 | 1.5 | 12.08.2026 | Ana akışın kayıt granülerliği kesinleştirildi: firma ana kayıt; statü fırsat/proje seviyesinde; görüşülen kişi ve karardaki rol açık bağ; firma geneli işbirliği öznesi; aynı firmada aynı/farklı program için bağımsız çoklu proje. Tek ekran potansiyel müşteri girişi, Firma 360° ve atama iş istasyonu bu karara göre hizalandı |
