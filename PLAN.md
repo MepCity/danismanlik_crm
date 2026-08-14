@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.8 — 14.08.2026
+> **Sürüm:** 1.10 — 15.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -943,6 +943,8 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.10 | 15.08.2026 | Takip panosundaki açık fırsatlar aktif huni statüleri arasında ileri ve geri sürüklenebilir hale getirildi. Geri hareketler de statü makinesi, yetki kontrolü, statü geçmişi ve aktör denetiminden geçer; iş alındı, kaybedildi ve aranmak istemiyor gibi terminal statüler güvenlik gereği kapalı kalır |
+| 1.9 | 14.08.2026 | Veri kaynağı kullanıcı arayüzünden tamamen kaldırıldı. Yeni potansiyel müşteri ve firma kişisi kayıtlarında kaynak, kullanıcıya sorulmadan işlem bağlamından otomatik yazılır; mevcut KVKK/denetim geçmişi korunur |
 | 1.8 | 14.08.2026 | Görev son tarihi isteğe bağlı hale getirildi. Başlık ve atanan kişi görev için yeterlidir; son tarihi olmayan görevler açık görev listesinde tutulur, hatırlatma zamanı son tarihten bağımsız verilebilir |
 | 1.7 | 13.08.2026 | Pazarlama veri girişi sadeleştirildi: il kodu yerine il seçimi; karardaki rol, aydınlatma yöntemi ve görüşme süresi kaldırıldı. Fırsat panosu “Takip panosu” oldu; takip ve dosya panolarına doğrudan geçiş için sürükle-bırak ve kart detay çekmecesi eklendi. Bugün aranacaklar ekranı yoğun satır düzenine geçirildi |
 | 1.6 | 13.08.2026 | Operasyon arayüzü “sakin operasyon merkezi” tasarım sistemine geçirildi: ortak marka kabuğu, mavi-gri yüzey hiyerarşisi, tek indigo vurgu, 36 px operasyon yoğunluğu, açık/koyu tema, 120–240 ms mikro hareket sözleşmesi, hareket azaltma desteği ve mobil kırılım kuralları kalıcılaştırıldı |

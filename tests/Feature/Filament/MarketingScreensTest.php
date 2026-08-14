@@ -93,10 +93,11 @@ it('pazarlamacıya yalnız kendi fırsatlarını listeler ve doğrudan URL eriş
     Livewire::test(LeadDetail::class, ['lead' => $foreign['lead']->id])->assertForbidden();
 });
 
-it('takip panosunda kart detayını açar ve geçerli bırakmada statüyü değiştirir', function (): void {
+it('takip panosunda kartı ileri ve geri taşıyıp aktör izini korur', function (): void {
     $owner = User::factory()->create(['email' => 'ekran-surukle@example.invalid']);
     $owner->assignRole('Pazarlama');
     $fixture = marketingScreenLead($owner, 'Sürükle');
+    $called = Status::query()->where('type', 'lead')->where('code', 'called')->sole();
     $interested = Status::query()->where('type', 'lead')->where('code', 'interested')->sole();
     Auth::login($owner);
 
@@ -109,6 +110,13 @@ it('takip panosunda kart detayını açar ve geçerli bırakmada statüyü deği
         ->assertHasNoErrors();
 
     expect($fixture['lead']->refresh()->status_id)->toBe($interested->id);
+
+    Livewire::test(LeadBoard::class)
+        ->call('moveLead', $fixture['lead']->id, $called->id)
+        ->assertHasNoErrors();
+
+    expect($fixture['lead']->refresh()->status_id)->toBe($called->id)
+        ->and($fixture['lead']->statusHistory()->latest('id')->value('changed_by'))->toBe($owner->id);
 });
 
 it('takip panosunda alan isteyen bırakmayı veri formuna yönlendirir', function (): void {
@@ -224,7 +232,7 @@ it('callback ve lost geçiş formlarında açıklayıcı zorunlu alan hataları 
         ->assertHasErrors(['lostReason']);
 });
 
-it('kişi kartında izin kaynağını gösterir ve kaynak seçmeden yeni kişi kaydetmez', function (): void {
+it('veri kaynağını göstermeden yeni kişiyi sistem kaynağıyla kaydeder', function (): void {
     $owner = User::factory()->create(['email' => 'ekran-kisi@example.invalid']);
     $owner->assignRole('Pazarlama');
     $fixture = marketingScreenLead($owner, 'Kişi Kartı');
@@ -232,12 +240,13 @@ it('kişi kartında izin kaynağını gösterir ve kaynak seçmeden yeni kişi k
 
     Livewire::test(ViewCompany::class, ['record' => $fixture['company']->getRouteKey()])
         ->set('activeTab', 'contacts')
-        ->assertSee('Veri kaynağı')
+        ->assertDontSee('Veri kaynağı')
         ->assertSee('Arama izni var')
         ->set('contactFullName', 'Kurgusal Yeni Yetkili')
-        ->set('contactDataSource', '')
         ->call('addContact')
-        ->assertHasErrors(['contactDataSource' => 'required']);
+        ->assertHasNoErrors();
+
+    expect(Contact::query()->where('full_name', 'Kurgusal Yeni Yetkili')->sole()->data_source)->toBe('other');
 });
 
 it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', function (): void {
@@ -249,6 +258,7 @@ it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', fu
 
     Livewire::test(ProspectIntake::class)
         ->assertSee('Potansiyel müşteri kaydı')
+        ->assertDontSee('Veri kaynağı')
         ->set('companyName', 'Kurgusal Tek Ekran AŞ')
         ->set('city', 'İstanbul')
         ->set('contactName', 'Kurgusal Karar Verici')

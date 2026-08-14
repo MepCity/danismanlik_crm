@@ -44,7 +44,7 @@ it('işbirliği güçlendirmelerini PostgreSQL üzerinde geri alıp yeniden kura
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 1,
+            '--step' => 2,
         ]))->toBe(0)
             ->and(DB::connection($connection)->scalar(<<<SQL
                 SELECT is_nullable
@@ -66,7 +66,7 @@ it('işbirliği güçlendirmelerini PostgreSQL üzerinde geri alıp yeniden kura
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 11,
+            '--step' => 12,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('tasks', 'reminder_sent_at'))->toBeFalse();
 
