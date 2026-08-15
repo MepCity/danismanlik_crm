@@ -27,7 +27,7 @@ final readonly class TaskService
         SubjectReference $subject,
         User $assignee,
         string $title,
-        Carbon $dueAt,
+        ?Carbon $dueAt = null,
         ?Carbon $remindAt = null,
         ?string $description = null,
     ): Task {
@@ -115,13 +115,13 @@ final readonly class TaskService
         throw ValidationException::withMessages(['subject' => trans('collaboration.validation.subject')]);
     }
 
-    private function validate(string $title, Carbon $dueAt, ?Carbon $remindAt): void
+    private function validate(string $title, ?Carbon $dueAt, ?Carbon $remindAt): void
     {
         if (trim($title) === '') {
             throw ValidationException::withMessages(['title' => trans('collaboration.validation.task_title')]);
         }
 
-        if ($remindAt !== null && $remindAt->isAfter($dueAt)) {
+        if ($dueAt !== null && $remindAt !== null && $remindAt->isAfter($dueAt)) {
             throw ValidationException::withMessages(['remind_at' => trans('collaboration.validation.reminder_after_due')]);
         }
     }

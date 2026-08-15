@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.6 — 13.08.2026
+> **Sürüm:** 1.10 — 15.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -28,7 +28,7 @@ Teşvik/hibe danışmanlığı yapan bir şirket. Firmalara KOSGEB, TÜBİTAK, Y
 4. Evraklar toplanır, kontrol edilir, eksikler tamamlanır.
 5. Başvuru kuruma yapılır, sonuç beklenir, onay/ret/revizyon gelir.
 
-**Kayıt granülerliği:** Firma ana kayıttır; statü firmaya verilmez. Her program ilgisi ayrı bir `lead`, alınan her iş ayrı bir `deal` olur. Aynı firma aynı veya farklı programlarda, eş zamanlı ya da farklı tarihlerde sınırsız sayıda bağımsız fırsat ve proje taşıyabilir. Görüşülen kişi fırsata ve her görüşme satırına açıkça bağlanır; şirket içi unvanı ile satın alma kararındaki rolü ayrı alanlardır. Firma geneli yorum/görevler firma kaydında, belirli bir sürece ait olanlar ilgili fırsat veya projede kalır.
+**Kayıt granülerliği:** Firma ana kayıttır; statü firmaya verilmez. Her program ilgisi ayrı bir `lead`, alınan her iş ayrı bir `deal` olur. Aynı firma aynı veya farklı programlarda, eş zamanlı ya da farklı tarihlerde sınırsız sayıda bağımsız fırsat ve proje taşıyabilir. Görüşülen kişi fırsata ve her görüşme satırına açıkça bağlanır; kişi için şirket içindeki unvan yeterlidir. Firma geneli yorum/görevler firma kaydında, belirli bir sürece ait olanlar ilgili fırsat veya projede kalır.
 
 ### 1.3 Müşterinin açık talepleri
 
@@ -622,7 +622,7 @@ Alternatif (daha katı, daha çok kolon): her hedef için ayrı nullable FK + `C
 | Tablo | Kritik alanlar | Not |
 |---|---|---|
 | `companies` | unvan, **vergi_no (tekil)**, vergi_dairesi, nace_kodu, il/ilçe, ölçek, personel_sayısı, kaynak | Tekil indeks mükerrer firmayı kökten engeller |
-| `contacts` | ad, unvan, **karardaki_rol**, telefon, e-posta, birincil_mi + **güncel izin özeti** (izin_arama, izin_sms, izin_eposta, `aranmasın`) | Unvan organizasyonel görevi, karardaki rol bu satın alma sürecindeki etkisini anlatır. İzin alanları yalnızca hızlı sorgu için denormalize özet; gerçek kaynak `communication_consents` |
+| `contacts` | ad, unvan, telefon, e-posta, birincil_mi + **güncel izin özeti** (izin_arama, izin_sms, izin_eposta, `aranmasın`) | Unvan kişinin şirket içindeki görevini anlatır. İzin alanları yalnızca hızlı sorgu için denormalize özet; gerçek kaynak `communication_consents` |
 | `communication_consents` | contact_id, **kanal** (arama/sms/eposta), **amaç** (pazarlama/hizmet), **durum** (onay/ret), hukuki_sebep, kaynak (form/telefon/liste/referans/İYS), aydınlatma_tarihi + yöntemi, kanıt (JSONB/dosya ref), İYS_referansı, geçerlilik_başlangıç, kayıt_zamanı, kaydeden | **Append-only.** Satır güncellenmez, yeni satır eklenir; güncel durum en son satırdır. Mutable kolonla tutulursa **önceki onayın kaynağı, hukuki sebebi ve kanıtı kaybolur** — KVKK/İYS savunmasının tamamı bu kanıta dayanıyor |
 | `leads` | company_id, **primary_contact_id**, sahip_user_id, kaynak, ilgilenilen_program, statü, tekrar_arama_tarihi, kayıp_nedeni | **Programa özel fırsatın kendisi**, tek bir aramanın veya firmanın statüsü değil |
 | `interactions` | lead_id / deal_id, **contact_id**, user_id, tip (telefon/toplantı/e-posta), tarih, süre, sonuç, not | Bir firma beş kez aranır; her satırda gerçekten görüşülen kişi bellidir |
@@ -653,8 +653,8 @@ Alternatif (daha katı, daha çok kolon): her hedef için ayrı nullable FK + `C
 | # | Ekran | İçerik |
 |---|---|---|
 | 1 | **Ana panel** (role göre) | Bugün aranacaklar · geciken takipler · bana atanan yeni işler · belgesi eksik dosyalar · son tarihi yaklaşan başvurular · PM atanmamış işler · son aktiviteler |
-| 2 | **Pazarlama — arama listesi** | Mobil öncelikli. Tıkla ara, sonucu iki dokunuşta gir |
-| 3 | **Pazarlama — kanban** | Fırsat hunisi |
+| 2 | **Pazarlama — arama listesi** | Yoğun, satır tabanlı çalışma alanı. Tıkla ara, sonucu iki dokunuşta gir |
+| 3 | **Takip panosu** | Statü sütunları arasında sürükle-bırak, karttan hızlı detay |
 | 4 | **Firma 360°** | Firma bilgileri · yetkililer · iletişim geçmişi · açık/geçmiş dosyalar · belgeler · yorumlar · tüm aktivite |
 | 5 | **Dosya detayı** | Sekmeler: Genel · Süreç · Belge listesi · Görevler · Yorumlar · Görüşmeler · Ekip · İşlem geçmişi |
 | 6 | **Dosya panosu** | Kanban, statü sütunları, rozetler |
@@ -702,7 +702,7 @@ Ticari nitelikli SMS/e-posta ve sesli aramalar için İYS onay/ret süreçleri i
 
 > **Zamanlama:** İYS *teknik entegrasyonu* Faz 2'ye kalabilir, ama **izin/ret kaydı v1'de zorunlu**.
 
-**İzin defteri append-only olmalı.** İzinleri `contacts` üzerinde güncellenen kolonlar olarak tutmak, bir denetimde işe yaramaz: "bu numarayı Mart'ta hangi hukuki sebeple aradınız?" sorusunun cevabı, Nisan'da üzerine yazılmış bir kolonda yoktur. `communication_consents` tablosu her onay ve reddi ayrı satır olarak saklar — kanal, amaç, hukuki sebep, kaynak (form / telefon / liste / referans / İYS), aydınlatma tarihi ve yöntemi, kanıt, İYS referansı, zaman ve kaydeden. `contacts` yalnızca güncel özeti taşır.
+**İzin defteri append-only olmalı.** İzinleri `contacts` üzerinde güncellenen kolonlar olarak tutmak, bir denetimde işe yaramaz: "bu numarayı Mart'ta hangi hukuki sebeple aradınız?" sorusunun cevabı, Nisan'da üzerine yazılmış bir kolonda yoktur. `communication_consents` tablosu her onay ve reddi ayrı satır olarak saklar — kanal, amaç, hukuki sebep, kaynak (form / telefon / liste / referans / İYS), aydınlatma tarihi, kanıt, İYS referansı, zaman ve kaydeden. `contacts` yalnızca güncel özeti taşır.
 
 KVKK Kurumu, üçüncü kişilerden (liste, referans, tavsiye) elde edilen iletişim bilgilerinin aydınlatma ve işleme şartları sağlanmadan pazarlamada kullanılmasına dair açık uyarı yayımladı — soğuk arama yapan ekip için doğrudan risk. **Canlıya çıkmadan şirketin KVKK danışmanı pazarlama senaryolarını doğrulamalı.**
 
@@ -943,6 +943,11 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.11 | 15.08.2026 | Belge listesinden yetkili kullanıcıların yeni belge sürümü yüklemesi ve güvenli sürümleri tek tek indirmesi görünür hale getirildi. Dosya genelindeki toplu indirme, her evrakın yalnızca son temiz sürümünü süreli imzalı bağlantıyla tek ZIP içinde sunar; bekleyen, zararlı veya silinmiş sürümler pakete alınmaz ve talep/indirme denetim akışına yazılır |
+| 1.10 | 15.08.2026 | Takip panosundaki açık fırsatlar aktif huni statüleri arasında ileri ve geri sürüklenebilir hale getirildi. Geri hareketler de statü makinesi, yetki kontrolü, statü geçmişi ve aktör denetiminden geçer; iş alındı, kaybedildi ve aranmak istemiyor gibi terminal statüler güvenlik gereği kapalı kalır |
+| 1.9 | 14.08.2026 | Veri kaynağı kullanıcı arayüzünden tamamen kaldırıldı. Yeni potansiyel müşteri ve firma kişisi kayıtlarında kaynak, kullanıcıya sorulmadan işlem bağlamından otomatik yazılır; mevcut KVKK/denetim geçmişi korunur |
+| 1.8 | 14.08.2026 | Görev son tarihi isteğe bağlı hale getirildi. Başlık ve atanan kişi görev için yeterlidir; son tarihi olmayan görevler açık görev listesinde tutulur, hatırlatma zamanı son tarihten bağımsız verilebilir |
+| 1.7 | 13.08.2026 | Pazarlama veri girişi sadeleştirildi: il kodu yerine il seçimi; karardaki rol, aydınlatma yöntemi ve görüşme süresi kaldırıldı. Fırsat panosu “Takip panosu” oldu; takip ve dosya panolarına doğrudan geçiş için sürükle-bırak ve kart detay çekmecesi eklendi. Bugün aranacaklar ekranı yoğun satır düzenine geçirildi |
 | 1.6 | 13.08.2026 | Operasyon arayüzü “sakin operasyon merkezi” tasarım sistemine geçirildi: ortak marka kabuğu, mavi-gri yüzey hiyerarşisi, tek indigo vurgu, 36 px operasyon yoğunluğu, açık/koyu tema, 120–240 ms mikro hareket sözleşmesi, hareket azaltma desteği ve mobil kırılım kuralları kalıcılaştırıldı |
 | 1.5 | 12.08.2026 | Ana akışın kayıt granülerliği kesinleştirildi: firma ana kayıt; statü fırsat/proje seviyesinde; görüşülen kişi ve karardaki rol açık bağ; firma geneli işbirliği öznesi; aynı firmada aynı/farklı program için bağımsız çoklu proje. Tek ekran potansiyel müşteri girişi, Firma 360° ve atama iş istasyonu bu karara göre hizalandı |
 | 1.0 | 10.08.2026 | İlk teknik fizibilite. Web+PWA, sıfırdan geliştirme, DB tabanlı statü, program sürümleme, e-TUYS tespiti |

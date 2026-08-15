@@ -30,8 +30,6 @@ final class LeadDetail extends Page
 
     public string $interactionOccurredAt = '';
 
-    public ?int $interactionDuration = null;
-
     public string $interactionOutcome = '';
 
     public string $interactionNote = '';
@@ -74,19 +72,18 @@ final class LeadDetail extends Page
         $this->validate([
             'interactionType' => ['required', 'in:call,incoming_call,meeting,email'],
             'interactionOccurredAt' => ['required', 'date'],
-            'interactionDuration' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'interactionOutcome' => ['nullable', 'string', 'max:255'],
             'interactionNote' => ['nullable', 'string', 'max:5000'],
             'interactionContactId' => ['required', 'integer'],
         ]);
         Gate::authorize('create', Interaction::class);
         if ($this->interactionType === 'incoming_call') {
-            $interactions->forInboundLeadCall($this->leadId, (int) Auth::id(), Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null, $this->interactionContactId);
+            $interactions->forInboundLeadCall($this->leadId, (int) Auth::id(), Carbon::parse($this->interactionOccurredAt), $this->interactionOutcome ?: null, $this->interactionNote ?: null, $this->interactionContactId);
         } else {
-            $interactions->forLead($this->leadId, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null, $this->interactionContactId);
+            $interactions->forLead($this->leadId, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionOutcome ?: null, $this->interactionNote ?: null, $this->interactionContactId);
         }
         $this->interactionOccurredAt = now()->format('Y-m-d\TH:i');
-        $this->reset('interactionDuration', 'interactionOutcome', 'interactionNote');
+        $this->reset('interactionOutcome', 'interactionNote');
         Notification::make()->title(__('marketing.messages.interaction_saved'))->success()->send();
     }
 

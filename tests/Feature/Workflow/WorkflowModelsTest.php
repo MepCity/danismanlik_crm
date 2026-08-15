@@ -18,7 +18,7 @@ it('connects workflow models and casts snapshots and conditions', function (): v
         'from_status_id' => $from->id,
         'to_status_id' => $to->id,
         'required_permission' => 'deal.advance',
-        'condition' => ['all' => [['field' => 'company.city', 'op' => 'in', 'value' => ['06']]]],
+        'condition' => ['all' => [['field' => 'company.city', 'op' => 'in', 'value' => ['Ankara']]]],
     ]);
     $revision = WorkflowRevision::query()->create([
         'snapshot' => ['statuses' => [$from->code, $to->code], 'transitions' => [[$from->code, $to->code]]],

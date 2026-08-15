@@ -81,6 +81,14 @@ it('sistem yöneticisini hassas iş verisi izinlerinden ayırır', function (): 
         ->and($role->hasPermissionTo('deal.view_all'))->toBeFalse();
 });
 
+it('pazarlamaya yalnız kendi kapsamındaki belgeleri yükleme ve indirme izni verir', function (): void {
+    $role = Role::findByName('Pazarlama');
+
+    expect($role->hasPermissionTo('document.upload'))->toBeTrue()
+        ->and($role->hasPermissionTo('document.download'))->toBeTrue()
+        ->and($role->hasPermissionTo('document.approve'))->toBeFalse();
+});
+
 it('dört rolün varsayılan veri kapsamını doğru kurar', function (): void {
     $scopes = DB::table('roles')->pluck('default_scope', 'name')->all();
 
@@ -111,7 +119,7 @@ it('koşullu şablonları gerçek kolon alanlarıyla tanımlar', function (): vo
 
     expect(data_get($conditions, 'Hasar Durumu Belgesi.all.0.field'))->toBe('company.city')
         ->and(data_get($conditions, 'Hasar Durumu Belgesi.all.0.value'))->toBe([
-            '01', '02', '21', '23', '27', '31', '44', '46', '63', '79', '80',
+            'Adana', 'Adıyaman', 'Diyarbakır', 'Elazığ', 'Gaziantep', 'Hatay', 'Malatya', 'Kahramanmaraş', 'Şanlıurfa', 'Kilis', 'Osmaniye',
         ])
         ->and(data_get($conditions, 'Fizibilite Raporu.all.0.field'))->toBe('deal.requested_amount')
         ->and(data_get($conditions, 'Fizibilite Raporu.all.0.op'))->toBe('gt');

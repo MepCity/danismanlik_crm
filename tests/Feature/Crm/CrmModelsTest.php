@@ -17,7 +17,7 @@ it('connects a company to contacts and a lead to interactions', function (): voi
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Mu Ltd.',
         'tax_number' => '00000000000',
-        'city' => '31',
+        'city' => 'Hatay',
     ]);
     $contact = Contact::query()->create([
         'company_id' => $company->id,
@@ -54,7 +54,6 @@ it('connects a company to contacts and a lead to interactions', function (): voi
         'direction' => 'outbound',
         'purpose' => 'marketing',
         'occurred_at' => now(),
-        'duration_minutes' => 5,
         'outcome' => 'Kurgusal görüşme sonucu',
     ]);
 

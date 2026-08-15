@@ -24,19 +24,13 @@ final class ViewCompany extends ViewRecord
 
     public string $contactTitle = '';
 
-    public string $contactDecisionRole = '';
-
     public string $contactPhone = '';
 
     public string $contactEmail = '';
 
-    public string $contactDataSource = '';
-
     public string $contactCallConsent = 'unknown';
 
     public string $contactDisclosureDate = '';
-
-    public string $contactDisclosureMethod = '';
 
     public string $activeTab = 'overview';
 
@@ -68,14 +62,11 @@ final class ViewCompany extends ViewRecord
         $this->validate([
             'contactFullName' => ['required', 'string', 'max:255'],
             'contactTitle' => ['nullable', 'string', 'max:255'],
-            'contactDecisionRole' => ['nullable', 'in:decision_maker,authorized_contact,technical_contact,financial_contact,information_provider,other'],
             'contactPhone' => ['nullable', 'string', 'max:40'],
             'contactEmail' => ['nullable', 'email', 'max:255'],
-            'contactDataSource' => ['required', 'string', 'max:255'],
             'contactCallConsent' => ['required', 'in:unknown,granted,denied'],
             'contactDisclosureDate' => ['nullable', 'date'],
-            'contactDisclosureMethod' => ['nullable', 'string', 'max:255'],
-        ], ['contactDataSource.required' => __('marketing.validation.data_source_required')]);
+        ]);
         Gate::authorize('create', Contact::class);
         $consent = match ($this->contactCallConsent) {
             'granted' => true,
@@ -86,16 +77,13 @@ final class ViewCompany extends ViewRecord
             (int) $this->record->getKey(),
             (int) Auth::id(),
             $this->contactFullName,
-            $this->contactDataSource,
-            $this->contactPhone ?: null,
-            $this->contactEmail ?: null,
-            $this->contactTitle ?: null,
-            $consent,
-            $this->contactDisclosureDate ?: null,
-            $this->contactDisclosureMethod ?: null,
-            $this->contactDecisionRole ?: null,
+            phone: $this->contactPhone ?: null,
+            email: $this->contactEmail ?: null,
+            title: $this->contactTitle ?: null,
+            callConsent: $consent,
+            disclosureDate: $this->contactDisclosureDate ?: null,
         );
-        $this->reset('contactFullName', 'contactTitle', 'contactDecisionRole', 'contactPhone', 'contactEmail', 'contactDataSource', 'contactDisclosureDate', 'contactDisclosureMethod');
+        $this->reset('contactFullName', 'contactTitle', 'contactPhone', 'contactEmail', 'contactDisclosureDate');
         $this->contactCallConsent = 'unknown';
         Notification::make()->title(__('marketing.messages.contact_saved'))->success()->send();
     }

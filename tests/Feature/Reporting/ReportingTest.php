@@ -44,7 +44,7 @@ function reportingDeal(User $owner, string $suffix, ?User $pm = null, ?string $r
 {
     $company = Company::query()->create([
         'legal_name' => "Kurgusal {$suffix} İşletmesi",
-        'city' => '06',
+        'city' => 'Ankara',
     ]);
     $status = Status::query()->where('type', 'deal')->where('is_initial', true)->sole();
     $deal = Deal::query()->create([
@@ -250,7 +250,7 @@ it('rol panellerindeki iş kartlarını kapsamdan geçirir ve sistem yöneticisi
     $admin = reportingUser('Sistem Yöneticisi', 'Panel Admin');
     $leadStatus = Status::query()->where('type', 'lead')->where('is_initial', true)->sole();
     foreach ([$marketing, $other] as $owner) {
-        $company = Company::query()->create(['legal_name' => "Kurgusal {$owner->id}", 'city' => '34']);
+        $company = Company::query()->create(['legal_name' => "Kurgusal {$owner->id}", 'city' => 'İstanbul']);
         Lead::query()->create([
             'company_id' => $company->id,
             'owner_user_id' => $owner->id,

@@ -44,7 +44,7 @@ function collaborationScreenFixture(): array
     $officer->assignRole('Şirket Yetkilisi');
     $outsider = User::factory()->create(['name' => 'Kurgusal Gizli Kullanıcı', 'email' => 'gizli-ekran@example.invalid']);
     $outsider->assignRole('Pazarlama');
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Pusula Teknoloji', 'city' => '06']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Pusula Teknoloji', 'city' => 'Ankara']);
     $lead = Lead::query()->create([
         'company_id' => $company->id,
         'owner_user_id' => $owner->id,
@@ -70,13 +70,13 @@ function collaborationScreenFixture(): array
     return compact('owner', 'officer', 'outsider', 'deal', 'lead', 'document');
 }
 
-it('mention önerisinde yalnız özneyi görebilen kullanıcıları gösterir', function (): void {
+it('mention önerisinde sistemdeki tüm aktif kullanıcıları gösterir', function (): void {
     $fixture = collaborationScreenFixture();
     Auth::login($fixture['owner']);
 
     Livewire::test(CollaborationComments::class, ['subjectType' => 'deal', 'subjectId' => $fixture['deal']->id])
         ->assertSee('Kurgusal Bora Yetkili')
-        ->assertDontSee('Kurgusal Gizli Kullanıcı');
+        ->assertSee('Kurgusal Gizli Kullanıcı');
 });
 
 it('müşteriye açık görünümden iç notu çıkarır ve görünürlük varsayılanını güvenli tutar', function (): void {
@@ -108,6 +108,22 @@ it('mention formatını seçimle ekler ve okurken kişi adı olarak gösterir', 
         ->assertDontSee("(user:{$fixture['officer']->id})");
 });
 
+it('mention rozetini gösterirken yorum HTML içeriğini çalıştırmaz', function (): void {
+    $fixture = collaborationScreenFixture();
+    $subject = new SubjectReference(CollaborationSubjectType::Deal, $fixture['deal']->id);
+    app(CommentService::class)->create(
+        $fixture['owner'],
+        $subject,
+        "Merhaba @[Kurgusal Bora Yetkili](user:{$fixture['officer']->id}) <script>alert('x')</script>",
+    );
+    Auth::login($fixture['owner']);
+
+    Livewire::test(CollaborationComments::class, ['subjectType' => 'deal', 'subjectId' => $fixture['deal']->id])
+        ->assertSeeHtml('<span class="comment-mention">@Kurgusal Bora Yetkili</span>')
+        ->assertDontSeeHtml("<script>alert('x')</script>")
+        ->assertSee("<script>alert('x')</script>");
+});
+
 it('düzenlenen yorum işaretini ve tek seviye yanıtı gösterir', function (): void {
     $fixture = collaborationScreenFixture();
     $subject = new SubjectReference(CollaborationSubjectType::Deal, $fixture['deal']->id);
@@ -128,6 +144,43 @@ it('kapsam dışı dosyanın zaman tünelini 403 ile reddeder', function (): voi
 
     Livewire::test(CollaborationTimeline::class, ['subjectType' => 'deal', 'subjectId' => $fixture['deal']->id])
         ->assertForbidden();
+});
+
+it('dosyayı görebilen pazarlamacı evrak yorum ve geçmişini açabilir', function (): void {
+    $fixture = collaborationScreenFixture();
+    Activity::query()->create([
+        'actor_id' => $fixture['owner']->id,
+        'deal_document_id' => $fixture['document']->id,
+        'action' => 'document.requested',
+        'payload' => [],
+        'source' => 'user',
+    ]);
+    Auth::login($fixture['owner']);
+
+    Livewire::test(CollaborationComments::class, [
+        'subjectType' => 'deal_document',
+        'subjectId' => $fixture['document']->id,
+    ])->assertOk()->assertSee('Yeni yorum');
+
+    Livewire::test(CollaborationTimeline::class, [
+        'subjectType' => 'deal_document',
+        'subjectId' => $fixture['document']->id,
+    ])->assertOk()->assertSee('İşlem geçmişi');
+});
+
+it('kapsam dışı evrak yorum ve geçmişini 403 ile reddeder', function (): void {
+    $fixture = collaborationScreenFixture();
+    Auth::login($fixture['outsider']);
+
+    Livewire::test(CollaborationComments::class, [
+        'subjectType' => 'deal_document',
+        'subjectId' => $fixture['document']->id,
+    ])->assertForbidden();
+
+    Livewire::test(CollaborationTimeline::class, [
+        'subjectType' => 'deal_document',
+        'subjectId' => $fixture['document']->id,
+    ])->assertForbidden();
 });
 
 it('ham JSON yerine yedek cümleyi ve değişmez statü etiketlerini gösterir', function (): void {

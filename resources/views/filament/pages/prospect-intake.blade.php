@@ -13,9 +13,8 @@
                     @else
                         <label class="intake-field intake-field--wide"><span>{{ __('panel.fields.legal_name') }}</span><input wire:model.live.debounce.350ms="companyName" required></label>
                         <label class="intake-field"><span>{{ __('marketing.intake.company.tax_number') }}</span><input class="numeric-data" wire:model.live.debounce.350ms="taxNumber" inputmode="numeric"></label>
-                        <label class="intake-field"><span>{{ __('panel.fields.city') }}</span><select wire:model="city" required><option value="">{{ __('marketing.intake.choose') }}</option>@foreach(range(1,81) as $code)<option value="{{ str_pad((string) $code, 2, '0', STR_PAD_LEFT) }}">{{ str_pad((string) $code, 2, '0', STR_PAD_LEFT) }}</option>@endforeach</select></label>
+                        <label class="intake-field"><span>{{ __('panel.fields.city') }}</span><select wire:model="city" required><option value="">{{ __('marketing.intake.choose') }}</option>@foreach($provinces as $province)<option value="{{ $province }}">{{ $province }}</option>@endforeach</select></label>
                     @endif
-                    <label class="intake-field"><span>{{ __('marketing.contacts.data_source') }}</span><select wire:model="source">@foreach(__('marketing.contacts.sources') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></label>
                 </div>
                 @if ($companyMode === 'new' && $duplicateCompanies->isNotEmpty())
                     <div class="intake-duplicate" role="status"><strong>{{ __('marketing.intake.company.possible_duplicate') }}</strong><p>{{ __('marketing.intake.company.possible_duplicate_help') }}</p><div>@foreach($duplicateCompanies as $duplicate)<button type="button" class="operations-link" wire:click="$set('companyMode', 'existing'); $set('companyId', {{ $duplicate->id }})">{{ $duplicate->legal_name }} · {{ $duplicate->city }}</button>@endforeach</div></div>
@@ -36,12 +35,10 @@
                     <div class="intake-fields intake-fields--two">
                         <label class="intake-field"><span>{{ __('marketing.contacts.full_name') }}</span><input wire:model="contactName" required></label>
                         <label class="intake-field"><span>{{ __('marketing.contacts.title') }}</span><input wire:model="contactTitle" required></label>
-                        <label class="intake-field"><span>{{ __('marketing.intake.contact.decision_role') }}</span><select wire:model="decisionRole" required><option value="">{{ __('marketing.intake.choose') }}</option>@foreach(__('marketing.intake.contact.roles') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></label>
                         <label class="intake-field"><span>{{ __('marketing.contacts.phone') }}</span><input class="numeric-data" wire:model="phone" required></label>
                         <label class="intake-field"><span>{{ __('marketing.contacts.email') }}</span><input type="email" wire:model="email" required></label>
                         <label class="intake-field"><span>{{ __('marketing.contacts.call_consent') }}</span><select wire:model="callConsent">@foreach(__('marketing.contacts.consent_options') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></label>
                         <label class="intake-field"><span>{{ __('marketing.contacts.disclosure_date') }}</span><input type="date" wire:model="disclosureDate"></label>
-                        <label class="intake-field"><span>{{ __('marketing.contacts.disclosure_method') }}</span><input wire:model="disclosureMethod"></label>
                     </div>
                 @endif
             </section>
@@ -60,7 +57,6 @@
                 <div class="intake-fields intake-fields--three">
                     <label class="intake-field"><span>{{ __('marketing.interactions.date') }}</span><input type="datetime-local" wire:model="calledAt" required></label>
                     <label class="intake-field"><span>{{ __('marketing.intake.call.direction') }}</span><select wire:model="callDirection"><option value="outbound">{{ __('marketing.intake.call.outbound') }}</option><option value="inbound">{{ __('marketing.intake.call.inbound') }}</option></select></label>
-                    <label class="intake-field"><span>{{ __('marketing.interactions.duration') }}</span><input type="number" min="0" wire:model="durationMinutes"></label>
                     <label class="intake-field"><span>{{ __('marketing.interactions.outcome') }}</span><select wire:model="outcome">@foreach(__('marketing.interactions.outcomes') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></label>
                     <label class="intake-field intake-field--wide"><span>{{ __('marketing.intake.call.note') }}</span><textarea rows="5" wire:model="callNote" required placeholder="{{ __('marketing.intake.call.note_placeholder') }}"></textarea></label>
                     <label class="intake-field intake-field--wide"><span>{{ __('marketing.intake.company_comment') }}</span><textarea rows="3" wire:model="companyComment" placeholder="{{ __('marketing.intake.company_comment_placeholder') }}"></textarea></label>
@@ -70,9 +66,9 @@
             <section class="operations-panel intake-section">
                 <header class="intake-section__header"><span class="intake-step">5</span><div><h2>{{ __('marketing.intake.reminder.title') }}</h2><p>{{ __('marketing.intake.reminder.description') }}</p></div></header>
                 <div class="intake-fields intake-fields--three">
-                    <label class="intake-field"><span>{{ __('collaboration.tasks.title') }}</span><input wire:model="taskTitle"></label>
-                    <label class="intake-field"><span>{{ __('collaboration.tasks.due_at') }}</span><input type="datetime-local" wire:model="taskDueAt"></label>
-                    <label class="intake-field"><span>{{ __('marketing.intake.reminder.at') }}</span><input type="datetime-local" wire:model="taskRemindAt"></label>
+                    <label id="field-task-title" class="intake-field"><span>{{ __('collaboration.tasks.title') }}</span><input wire:model.live.debounce.300ms="taskTitle">@error('taskTitle')<small class="operations-field-error">{{ $message }}</small>@enderror</label>
+                    <label id="field-task-due-at" class="intake-field {{ $errors->has('taskDueAt') ? 'intake-field--invalid' : '' }}"><span>{{ __('marketing.intake.reminder.due_at') }}</span><input type="datetime-local" wire:model="taskDueAt" aria-invalid="{{ $errors->has('taskDueAt') ? 'true' : 'false' }}">@error('taskDueAt')<small class="operations-field-error" role="alert">{{ $message }}</small>@enderror</label>
+                    <label id="field-task-remind-at" class="intake-field {{ $errors->has('taskRemindAt') ? 'intake-field--invalid' : '' }}"><span>{{ __('marketing.intake.reminder.at') }}</span><input type="datetime-local" wire:model="taskRemindAt">@error('taskRemindAt')<small class="operations-field-error" role="alert">{{ $message }}</small>@enderror</label>
                 </div>
             </section>
         </div>

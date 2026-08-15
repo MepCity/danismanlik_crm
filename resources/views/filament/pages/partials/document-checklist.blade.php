@@ -1,16 +1,32 @@
 <section data-testid="document-checklist">
     <div class="checklist-toolbar">
         <h2>{{ __('operations.documents.title') }}</h2>
-        @if (auth()->user()->can('document.upload'))
-            <button type="button" wire:click="sendMissingDocuments" class="operations-button operations-button--primary">{{ __('operations.documents.send_missing') }}</button>
-        @endif
+        <div class="operations-actions">
+            @if (auth()->user()->can('document.download') && $deal->documents->flatMap->files->contains('scan_result', 'clean'))
+                <button type="button" wire:click="downloadAll" class="operations-button">{{ __('operations.documents.download_all') }}</button>
+            @endif
+            @if (auth()->user()->can('document.upload'))
+                <button type="button" wire:click="sendMissingDocuments" class="operations-button operations-button--primary">{{ __('operations.documents.send_missing') }}</button>
+            @endif
+        </div>
     </div>
 
     @if ($uploadDocumentId)
-        <form wire:submit="uploadDocument" class="operations-inline-form">
-            <input type="file" wire:model="upload" required>
-            <button class="operations-button operations-button--primary">{{ __('operations.documents.upload') }}</button>
-            <button type="button" wire:click="$set('uploadDocumentId', null)" class="operations-button">{{ __('operations.documents.cancel') }}</button>
+        @php($uploadTarget = $deal->documents->firstWhere('id', $uploadDocumentId))
+        <form wire:submit="uploadDocument" class="operations-inline-form document-upload-form">
+            <div>
+                <strong>{{ __('operations.documents.upload_for', ['document' => $uploadTarget?->name_snapshot]) }}</strong>
+                <p class="operations-muted">{{ __('operations.documents.file_hint', ['size' => intdiv((int) config('documents.max_size_kb'), 1024)]) }}</p>
+            </div>
+            <div class="operations-actions">
+                <label class="operations-button document-file-picker">
+                    {{ __('operations.documents.choose_file') }}
+                    <input type="file" wire:model="upload" accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png" required>
+                </label>
+                <span class="document-file-name">{{ $upload?->getClientOriginalName() ?? __('operations.documents.no_file_selected') }}</span>
+                <button class="operations-button operations-button--primary">{{ __('operations.documents.upload') }}</button>
+                <button type="button" wire:click="$set('uploadDocumentId', null)" class="operations-button">{{ __('operations.documents.cancel') }}</button>
+            </div>
             @error('upload') <span class="operations-error">{{ $message }}</span> @enderror
         </form>
     @endif
@@ -38,6 +54,7 @@
             <tbody>
             @forelse ($deal->documents as $document)
                 @php($status = \App\Filament\Support\DocumentStatus::get($document->status))
+                @php($latestDownload = $document->files->firstWhere('scan_result', 'clean'))
                 <tr class="{{ $document->status === 'expired' ? 'checklist-row--expired' : '' }}">
                     <td><strong>{{ $document->name_snapshot }}</strong>
                         @if ($document->requirementSuggestions->isNotEmpty())
@@ -58,6 +75,9 @@
                     <td><div class="operations-actions">
                         @if (auth()->user()->can('document.upload') && $document->status !== 'not_required')
                             <button wire:click="$set('uploadDocumentId', {{ $document->id }})" class="operations-link">{{ __('operations.documents.upload') }}</button>
+                        @endif
+                        @if (auth()->user()->can('document.download') && $latestDownload)
+                            <button wire:click="download({{ $latestDownload->id }})" class="operations-link">{{ __('operations.documents.download_latest') }}</button>
                         @endif
                         @if (auth()->user()->can('document.approve') && $document->status === 'uploaded')
                             <button wire:click="startReview({{ $document->id }})" class="operations-link">{{ __('operations.documents.start_review') }}</button>

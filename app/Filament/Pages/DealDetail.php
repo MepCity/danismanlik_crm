@@ -15,10 +15,12 @@ use App\Domain\Deal\Exceptions\StatusTransitionRejected;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Transition;
 use App\Domain\Deal\Services\StatusMachineContract;
+use App\Domain\Document\Exceptions\DocumentFileRejected;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Document\Models\DocumentRequirementSuggestion;
 use App\Domain\Document\Services\AdHocDocumentService;
 use App\Domain\Document\Services\DocumentAccessService;
+use App\Domain\Document\Services\DocumentArchiveService;
 use App\Domain\Document\Services\DocumentRequestService;
 use App\Domain\Document\Services\DocumentRequirementDecisionService;
 use App\Domain\Document\Services\DocumentStatusService;
@@ -74,8 +76,6 @@ final class DealDetail extends Page
     public string $interactionType = 'call';
 
     public string $interactionOccurredAt = '';
-
-    public ?int $interactionDuration = null;
 
     public string $interactionOutcome = '';
 
@@ -149,7 +149,6 @@ final class DealDetail extends Page
         $this->validate([
             'interactionType' => ['required', 'in:call,meeting,email'],
             'interactionOccurredAt' => ['required', 'date'],
-            'interactionDuration' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'interactionOutcome' => ['nullable', 'string', 'max:255'],
             'interactionNote' => ['nullable', 'string', 'max:5000'],
             'interactionContactId' => $this->deal()->company->contacts()->where('is_active', true)->exists()
@@ -158,9 +157,9 @@ final class DealDetail extends Page
         ]);
         $deal = $this->deal();
         Gate::authorize('create', Interaction::class);
-        $interactions->forDeal($deal->id, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionDuration, $this->interactionOutcome ?: null, $this->interactionNote ?: null, $this->interactionContactId);
+        $interactions->forDeal($deal->id, (int) Auth::id(), $this->interactionType, Carbon::parse($this->interactionOccurredAt), $this->interactionOutcome ?: null, $this->interactionNote ?: null, $this->interactionContactId);
         $this->interactionOccurredAt = now()->format('Y-m-d\TH:i');
-        $this->reset('interactionDuration', 'interactionOutcome', 'interactionNote');
+        $this->reset('interactionOutcome', 'interactionNote');
         $this->success(__('marketing.messages.interaction_saved'));
     }
 
@@ -231,6 +230,18 @@ final class DealDetail extends Page
     {
         $url = $service->temporaryUrl($fileId, (int) Auth::id());
         $this->redirect($url, navigate: false);
+    }
+
+    public function downloadAll(DocumentArchiveService $service): void
+    {
+        abort_unless(Auth::user()?->can('document.download') === true, 403);
+
+        try {
+            $url = $service->temporaryUrl($this->dealId, (int) Auth::id());
+            $this->redirect($url, navigate: false);
+        } catch (DocumentFileRejected $exception) {
+            $this->error($exception->getMessage());
+        }
     }
 
     public function sendMissingDocuments(

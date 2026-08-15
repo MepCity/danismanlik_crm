@@ -44,7 +44,7 @@ function scopedWorkGraph(User $owner, string $slug, ?User $pm = null): array
 {
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal '.$slug.' İşletmesi',
-        'city' => '06',
+        'city' => 'Ankara',
     ]);
     $leadStatus = Status::query()->where('type', 'lead')->firstOrFail();
     $dealStatus = Status::query()->where('type', 'deal')->firstOrFail();
@@ -148,6 +148,16 @@ it('kapsam dışı id ile doğrudan erişimi policy katmanında reddeder', funct
     $foreign = scopedWorkGraph(scopedUser('Pazarlama', 'idor-diger'), 'IDOR');
 
     expect(Gate::forUser($marketing)->allows('view', $foreign['deal']))->toBeFalse();
+});
+
+it('evrak görüntülemeyi üst dosyanın kapsamından miras alır', function (): void {
+    $marketing = scopedUser('Pazarlama', 'evrak-miras');
+    $own = scopedWorkGraph($marketing, 'DOCUMENT-INHERIT');
+    $foreign = scopedWorkGraph(scopedUser('Pazarlama', 'evrak-miras-diger'), 'DOCUMENT-FOREIGN');
+
+    expect($marketing->can('document.view'))->toBeTrue()
+        ->and(Gate::forUser($marketing)->allows('view', $own['document']))->toBeTrue()
+        ->and(Gate::forUser($marketing)->allows('view', $foreign['document']))->toBeFalse();
 });
 
 it('kullanıcı kapsam ezmesini uygular ve çok rolde en dar kapsamı seçer', function (): void {

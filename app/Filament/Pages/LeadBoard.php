@@ -23,7 +23,7 @@ final class LeadBoard extends Page
 {
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-view-columns';
 
-    protected static ?string $slug = 'firsatlar';
+    protected static ?string $slug = 'takip-panosu';
 
     protected static ?int $navigationSort = 2;
 
@@ -43,6 +43,8 @@ final class LeadBoard extends Page
 
     public ?string $transitionError = null;
 
+    public ?int $selectedLeadId = null;
+
     public static function canAccess(): bool
     {
         return Gate::allows('viewAny', Lead::class);
@@ -61,6 +63,46 @@ final class LeadBoard extends Page
     public function getTitle(): string
     {
         return __('marketing.board.title');
+    }
+
+    public function openLead(int $leadId): void
+    {
+        $this->selectedLeadId = $this->lead($leadId)->id;
+    }
+
+    public function closeLead(): void
+    {
+        $this->selectedLeadId = null;
+    }
+
+    public function moveLead(int $leadId, int $targetStatusId, TransitionLead $transitions): void
+    {
+        $lead = $this->lead($leadId);
+        if ($lead->status_id === $targetStatusId) {
+            return;
+        }
+
+        $transition = Transition::query()->where('from_status_id', $lead->status_id)
+            ->where('to_status_id', $targetStatusId)->where('is_active', true)->first();
+        if ($transition === null) {
+            Notification::make()->title(__('marketing.board.invalid_drop'))->warning()->send();
+
+            return;
+        }
+
+        $target = Status::query()->findOrFail($targetStatusId);
+        if ($target->required_fields !== []) {
+            $this->beginTransition($leadId, $targetStatusId);
+
+            return;
+        }
+
+        try {
+            $transitions->handle($lead->id, $targetStatusId, (int) Auth::id());
+            Notification::make()->title(__('marketing.messages.transitioned'))->success()->send();
+        } catch (StatusTransitionRejected $exception) {
+            Notification::make()->title($exception->getMessage())->danger()->send();
+        }
     }
 
     public function beginTransition(int $leadId, int $targetStatusId): void
@@ -118,6 +160,7 @@ final class LeadBoard extends Page
             'selectedTarget' => $selectedTarget,
             'owners' => User::role(['Pazarlama', 'Şirket Yetkilisi'])->where('is_active', true)->orderBy('name')->get(),
             'programVersions' => ProgramVersion::query()->with('program')->where('is_active', true)->orderBy('id')->get(),
+            'selectedLead' => $this->selectedLeadId === null ? null : $query->clone()->with(['company.contacts', 'owner', 'status', 'interestedProgramVersion.program', 'interactions'])->find($this->selectedLeadId),
         ];
     }
 

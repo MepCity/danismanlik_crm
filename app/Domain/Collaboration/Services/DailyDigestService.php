@@ -54,11 +54,16 @@ final readonly class DailyDigestService
 
             $lines = [trans('collaboration.digest.intro')];
             foreach ($tasks as $task) {
-                $lines[] = trans('collaboration.digest.task_line', [
+                $parameters = [
                     'company' => $task->legal_name ?? trans('collaboration.digest.unknown_company'),
                     'reference' => $task->reference_no ?? trans('collaboration.digest.lead_reference'),
-                    'due_at' => Carbon::parse($task->due_at)->format('d.m.Y'),
-                ]);
+                ];
+                $lines[] = $task->due_at === null
+                    ? trans('collaboration.digest.task_line_without_due', $parameters)
+                    : trans('collaboration.digest.task_line', [
+                        ...$parameters,
+                        'due_at' => Carbon::parse($task->due_at)->format('d.m.Y'),
+                    ]);
             }
             foreach ($deadlines as $document) {
                 $lines[] = trans('collaboration.digest.deadline_line', [

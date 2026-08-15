@@ -12,7 +12,6 @@
             </select>
         </label>
         <label>{{ __('marketing.interactions.date') }}<input type="datetime-local" wire:model="interactionOccurredAt" required></label>
-        <label>{{ __('marketing.interactions.duration') }}<input class="numeric-data" type="number" min="0" wire:model="interactionDuration"></label>
         <label>{{ __('marketing.interactions.outcome') }}<input type="text" wire:model="interactionOutcome"></label>
         <label class="interaction-form__note">{{ __('marketing.interactions.note') }}<textarea wire:model="interactionNote" rows="2"></textarea></label>
         <button type="submit" class="operations-button operations-button--primary">{{ __('marketing.interactions.add') }}</button>
@@ -25,7 +24,7 @@
                 <span>{{ $interaction->contact?->full_name ?? __('marketing.consent.not_recorded') }}</span>
                 <span>{{ $interaction->outcome ? (__('marketing.interactions.outcomes.'.$interaction->outcome) !== 'marketing.interactions.outcomes.'.$interaction->outcome ? __('marketing.interactions.outcomes.'.$interaction->outcome) : $interaction->outcome) : '—' }}</span>
                 <span>{{ $interaction->note }}</span>
-                <span class="numeric-data">{{ $interaction->occurred_at->format('d.m.Y H:i') }}@if ($interaction->duration_minutes) · {{ __('marketing.interactions.minutes', ['count' => $interaction->duration_minutes]) }}@endif</span>
+                <span class="numeric-data">{{ $interaction->occurred_at->format('d.m.Y H:i') }}</span>
                 <span>{{ $interaction->user->name }}</span>
             </article>
         @empty

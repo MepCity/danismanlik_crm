@@ -51,7 +51,7 @@ function operationsFixture(string $suffix = 'ana'): array
     $officer->assignRole('Şirket Yetkilisi');
     $pm = User::factory()->create(['email' => "pm-{$suffix}@example.invalid"]);
     $pm->assignRole('Proje Yöneticisi');
-    $company = Company::query()->create(['legal_name' => "Kurgusal Atlas {$suffix}", 'city' => '06']);
+    $company = Company::query()->create(['legal_name' => "Kurgusal Atlas {$suffix}", 'city' => 'Ankara']);
     $status = Status::query()->where('type', 'deal')->where('code', 'collecting_documents')->sole();
     $deal = Deal::query()->create([
         'company_id' => $company->id,
@@ -97,6 +97,38 @@ it('pano kapsamını uygular ve kapsam dışı dosya URL erişimini 403 ile redd
         ->assertDontSee($target['company']->legal_name);
 
     Livewire::test(DealDetail::class, ['deal' => $target['deal']->id])->assertForbidden();
+});
+
+it('dosya panosunda kart detayını açar ve geçerli bırakmada statüyü değiştirir', function (): void {
+    $fixture = operationsFixture('surukle');
+    $assigned = Status::query()->where('type', 'deal')->where('code', 'pm_assigned')->sole();
+    $collecting = Status::query()->where('type', 'deal')->where('code', 'collecting_documents')->sole();
+    $fixture['deal']->update(['status_id' => $assigned->id]);
+    Auth::login($fixture['officer']);
+
+    Livewire::test(DealBoard::class)
+        ->call('openDeal', $fixture['deal']->id)
+        ->assertSet('selectedDealId', $fixture['deal']->id)
+        ->assertSee('Kurgusal Atlas surukle')
+        ->assertSee('deal-detail-drawer')
+        ->call('moveDeal', $fixture['deal']->id, $collecting->id)
+        ->assertHasNoErrors();
+
+    expect($fixture['deal']->refresh()->status_id)->toBe($collecting->id);
+});
+
+it('dosya panosunda atama isteyen bırakmayı yönetici seçimine yönlendirir', function (): void {
+    $fixture = operationsFixture('surukle-atama');
+    $awaiting = Status::query()->where('type', 'deal')->where('code', 'awaiting_assignment')->sole();
+    $assigned = Status::query()->where('type', 'deal')->where('code', 'pm_assigned')->sole();
+    $fixture['deal']->update(['status_id' => $awaiting->id, 'pm_user_id' => null]);
+    Auth::login($fixture['officer']);
+
+    Livewire::test(DealBoard::class)
+        ->call('moveDeal', $fixture['deal']->id, $assigned->id)
+        ->assertSet('transitionDealId', $fixture['deal']->id)
+        ->assertSet('transitionTargetId', $assigned->id)
+        ->assertSee('deal-assignment-drawer');
 });
 
 it('pano türev sayaçlarını deal_documents satırlarından doğru hesaplar', function (): void {
@@ -150,6 +182,31 @@ it('yükleme sürümü artırır ve eski sürümü checklist geçmişinde erişi
         ->assertSee('Kurgusal Fizibilite Raporu — Sürüm 1')
         ->assertSee('Kurgusal Fizibilite Raporu — Sürüm 2');
     expect(File::query()->where('deal_document_id', $document->id)->pluck('version_no')->all())->toBe([1, 2]);
+});
+
+it('pazarlamacı kendi dosyasında belge yükleyip tekil ve toplu indirme işlemlerini görür', function (): void {
+    $fixture = operationsFixture('pazarlama-belge');
+    $fixture['deal']->update(['opened_by_user_id' => $fixture['marketing']->id]);
+    $document = operationDocument($fixture['deal'], 'Kurgusal Pazarlama Belgesi');
+    $file = app(DocumentUploadService::class)->upload(
+        $document->id,
+        UploadedFile::fake()->createWithContent('pazarlama.pdf', "%PDF-1.4\nKurgusal pazarlama\n%%EOF"),
+        $fixture['marketing']->id,
+    )->file;
+    $file->update(['scan_result' => 'clean']);
+    Auth::login($fixture['marketing']);
+
+    Livewire::test(DealDetail::class, ['deal' => $fixture['deal']->id])
+        ->set('activeTab', 'documents')
+        ->assertSee('Belge yükle')
+        ->assertSee('Son sürümü indir')
+        ->assertSee('Tüm güncel belgeleri indir')
+        ->set('uploadDocumentId', $document->id)
+        ->set('upload', UploadedFile::fake()->createWithContent('pazarlama-yeni.pdf', "%PDF-1.4\nKurgusal yeni sürüm\n%%EOF"))
+        ->call('uploadDocument')
+        ->assertHasNoErrors();
+
+    expect(File::query()->where('deal_document_id', $document->id)->count())->toBe(2);
 });
 
 it('bekleyen öneriyi iki ekranda gösterir ve her iki kararı uygular', function (): void {
@@ -236,7 +293,6 @@ it('dosya görüşmesini dosyadan ayrı bir interaction satırı olarak kaydeder
         ->set('activeTab', 'interactions')
         ->set('interactionType', 'meeting')
         ->set('interactionOccurredAt', now()->format('Y-m-d\TH:i'))
-        ->set('interactionDuration', 20)
         ->set('interactionOutcome', 'Kurgusal toplantı sonucu')
         ->call('addInteraction')
         ->assertHasNoErrors()

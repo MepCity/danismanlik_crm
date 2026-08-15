@@ -43,7 +43,7 @@ function reportingScreenUser(string $role, string $suffix): User
 
 function reportingScreenDeal(User $owner, string $suffix, ?User $pm = null): Deal
 {
-    $company = Company::query()->create(['legal_name' => "Kurgusal {$suffix}", 'city' => '06']);
+    $company = Company::query()->create(['legal_name' => "Kurgusal {$suffix}", 'city' => 'Ankara']);
 
     return Deal::query()->create([
         'company_id' => $company->id,
@@ -96,8 +96,8 @@ it('geciken takip kartının hedefinde yalnız geciken kayıtları gösterir', f
     $officer = reportingScreenUser('Şirket Yetkilisi', 'Filtre Yetkili');
     $owner = reportingScreenUser('Pazarlama', 'Filtre Pazarlama');
     $status = Status::query()->where('type', 'lead')->where('is_initial', true)->sole();
-    $overdueCompany = Company::query()->create(['legal_name' => 'Kurgusal Geciken Takip', 'city' => '06']);
-    $todayCompany = Company::query()->create(['legal_name' => 'Kurgusal Bugünkü Takip', 'city' => '06']);
+    $overdueCompany = Company::query()->create(['legal_name' => 'Kurgusal Geciken Takip', 'city' => 'Ankara']);
+    $todayCompany = Company::query()->create(['legal_name' => 'Kurgusal Bugünkü Takip', 'city' => 'Ankara']);
 
     foreach ([[$overdueCompany, now()->subDay()], [$todayCompany, now()->addHour()]] as [$company, $nextCallAt]) {
         Lead::query()->create([

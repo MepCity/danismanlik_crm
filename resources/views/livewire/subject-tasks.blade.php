@@ -5,7 +5,7 @@
         <label>{{ __('collaboration.tasks.assignee') }}
             <select wire:model="assigneeId" required><option value="">{{ __('collaboration.tasks.choose_assignee') }}</option>@foreach ($assignees as $assignee)<option value="{{ $assignee->id }}">{{ $assignee->name }}</option>@endforeach</select>
         </label>
-        <label>{{ __('collaboration.tasks.due_at') }}<input type="datetime-local" wire:model="dueAt" required></label>
+        <label>{{ __('collaboration.tasks.due_at') }}<input type="datetime-local" wire:model="dueAt"></label>
         <label>{{ __('collaboration.tasks.description') }}<textarea wire:model="description" rows="2"></textarea></label>
         <button class="operations-button operations-button--primary">{{ __('collaboration.tasks.create') }}</button>
     </form>

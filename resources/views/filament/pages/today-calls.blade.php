@@ -1,69 +1,62 @@
 <x-filament-panels::page>
-    <div class="call-list" data-testid="today-calls">
-        @if ($filterLabel !== null)
-            <div class="operations-filter-banner" role="status">{{ __('reporting.dashboard.active_filter', ['filter' => $filterLabel]) }}</div>
-        @endif
-        @forelse ($leads as $lead)
-            @php($contact = $lead->company->contacts->first())
-            @php($latestConsent = $contact?->communicationConsents->first())
-            @php($marketingCallAllowed = $latestConsent?->status === 'granted')
-            @php($rejection = $contact?->communicationConsents->first(fn ($consent) => in_array($consent->status, ['denied', 'withdrawn'], true)))
-            <article class="call-card {{ $lead->next_call_at->isBefore(today()) ? 'call-card--overdue' : '' }}" data-testid="call-card-{{ $lead->id }}">
-                <header class="call-card__header">
-                    <div>
-                        <a class="call-card__company" href="{{ \App\Filament\Pages\LeadDetail::getUrl(['lead' => $lead->id]) }}">{{ $lead->company->legal_name }}</a>
-                        <div class="operations-muted">{{ $contact?->full_name ?? __('marketing.calls.no_contact') }}</div>
+    @if ($filterLabel !== null)<div class="operations-filter-banner" role="status">{{ __('reporting.dashboard.active_filter', ['filter' => $filterLabel]) }}</div>@endif
+    @php($overdueCount = $leads->filter(fn ($lead) => $lead->next_call_at->isBefore(today()))->count())
+    <div class="call-workspace" data-testid="today-calls">
+        <header class="call-workspace__header">
+            <div>
+                <span class="operations-label">{{ __('marketing.calls.workspace_eyebrow') }}</span>
+                <h2>{{ __('marketing.calls.workspace_title') }}</h2>
+                <p>{{ __('marketing.calls.workspace_description') }}</p>
+            </div>
+            <div class="call-workspace__metrics">
+                <div><strong class="numeric-data">{{ $leads->count() }}</strong><span>{{ __('marketing.calls.due_count') }}</span></div>
+                <div class="{{ $overdueCount > 0 ? 'is-urgent' : '' }}"><strong class="numeric-data">{{ $overdueCount }}</strong><span>{{ __('marketing.calls.overdue_count') }}</span></div>
+            </div>
+        </header>
+
+        <nav class="call-filter-tabs" aria-label="{{ __('marketing.calls.filter_label') }}">
+            <a href="{{ \App\Filament\Pages\TodayCalls::getUrl(['filter' => 'due']) }}" class="{{ $filter === 'due' ? 'is-active' : '' }}">{{ __('marketing.calls.all_due') }}</a>
+            <a href="{{ \App\Filament\Pages\TodayCalls::getUrl(['filter' => 'today']) }}" class="{{ $filter === 'today' ? 'is-active' : '' }}">{{ __('marketing.calls.today') }}</a>
+            <a href="{{ \App\Filament\Pages\TodayCalls::getUrl(['filter' => 'overdue']) }}" class="{{ $filter === 'overdue' ? 'is-active' : '' }}">{{ __('marketing.calls.overdue') }}</a>
+        </nav>
+
+        <section class="call-ledger" aria-label="{{ __('marketing.calls.title') }}">
+            @forelse ($leads as $lead)
+                @php($contact = $lead->company->contacts->first())
+                @php($latestConsent = $contact?->communicationConsents->first())
+                @php($marketingCallAllowed = $latestConsent?->status === 'granted')
+                @php($rejection = $contact?->communicationConsents->first(fn ($consent) => in_array($consent->status, ['denied', 'withdrawn'], true)))
+                @php($isOverdue = $lead->next_call_at->isBefore(today()))
+                <article class="call-ledger__row {{ $isOverdue ? 'is-overdue' : '' }}" data-testid="call-card-{{ $lead->id }}">
+                    <div class="call-ledger__time numeric-data"><strong>{{ $lead->next_call_at->format('H:i') }}</strong><span>{{ $isOverdue ? $lead->next_call_at->format('d.m') : __('marketing.calls.today') }}</span></div>
+                    <div class="call-ledger__identity">
+                        <a href="{{ \App\Filament\Pages\LeadDetail::getUrl(['lead' => $lead->id]) }}">{{ $lead->company->legal_name }}</a>
+                        <span>{{ $contact?->full_name ?? __('marketing.calls.no_contact') }}@if($contact?->title) · {{ $contact->title }}@endif</span>
                     </div>
-                    <div class="call-card__due numeric-data">
-                        {{ $lead->next_call_at->isBefore(today()) ? __('marketing.calls.overdue') : __('marketing.calls.today') }} · {{ $lead->next_call_at->format('d.m.Y H:i') }}
+                    <div class="call-ledger__context"><strong>{{ $lead->interestedProgramVersion?->program?->name ?? __('marketing.board.no_program') }}</strong><span>{{ __('marketing.calls.call_number', ['count' => $lead->interactions_count + 1]) }} · {{ __('marketing.calls.last_outcome') }}: {{ $lead->interactions->first()?->outcome ? __('marketing.interactions.outcomes.'.$lead->interactions->first()->outcome) : __('marketing.calls.no_interaction') }}</span></div>
+                    <div class="call-ledger__consent {{ $marketingCallAllowed ? 'is-allowed' : 'is-blocked' }}">
+                        <span aria-hidden="true">{{ $marketingCallAllowed ? '●' : '×' }}</span>{{ $marketingCallAllowed ? __('marketing.consent.call_allowed') : __('marketing.consent.call_not_allowed') }}
                     </div>
-                </header>
-
-                <div class="call-card__facts">
-                    <span class="numeric-data">{{ $contact?->phone ?? __('marketing.calls.no_phone') }}</span>
-                    <span>{{ __('marketing.calls.last_outcome') }}: {{ $lead->interactions->first()?->outcome ? __('marketing.interactions.outcomes.'.$lead->interactions->first()->outcome) : __('marketing.calls.no_interaction') }}</span>
-                    <span class="numeric-data">{{ __('marketing.calls.call_number', ['count' => $lead->interactions_count + 1]) }}</span>
-                </div>
-
-                <div class="consent-strip {{ $marketingCallAllowed ? 'consent-strip--allowed' : 'consent-strip--blocked' }}">
-                    <strong>{{ $marketingCallAllowed ? __('marketing.consent.call_allowed') : __('marketing.consent.call_not_allowed') }}</strong>
-                    <span>{{ __('marketing.consent.source') }}: {{ $contact?->data_source ?? __('marketing.consent.unknown') }}</span>
-                    <span>{{ __('marketing.consent.disclosure') }}: {{ $latestConsent?->disclosure_date?->format('d.m.Y') ?? __('marketing.consent.not_recorded') }} · {{ $latestConsent?->disclosure_method ?? __('marketing.consent.not_recorded') }}</span>
-                    @if ($rejection)<span class="numeric-data">{{ __('marketing.consent.rejected_at') }}: {{ $rejection->effective_from->format('d.m.Y H:i') }}</span>@endif
-                </div>
-
-                <div class="call-card__actions">
-                    @unless ($marketingCallAllowed)
-                        <div class="call-blocked" role="status" data-testid="call-blocked">{{ __('marketing.calls.blocked_reason') }}</div>
-                    @elseif ($contact?->phone)
-                        <a class="operations-button operations-button--primary call-link numeric-data" href="tel:{{ $contact->phone }}">{{ __('marketing.calls.call') }}</a>
-                    @else
-                        <span class="operations-muted">{{ __('marketing.calls.no_phone') }}</span>
-                    @endif
-
-                    @if ($marketingCallAllowed)
-                        <button type="button" class="operations-button" wire:click="doNotCall({{ $contact?->id ?? 0 }})" @disabled($contact === null)>{{ __('marketing.consent.do_not_call') }}</button>
-                    @endif
-                </div>
-
-                @if ($marketingCallAllowed)
-                    <div class="quick-results" aria-label="{{ __('marketing.interactions.quick_result') }}">
-                        @foreach ($outcomes as $value => $label)
-                            <button type="button" class="quick-result {{ $activeLeadId === $lead->id && $quickOutcome === $value ? 'quick-result--selected' : '' }}" wire:click="chooseOutcome({{ $lead->id }}, '{{ $value }}')">{{ $label }}</button>
-                        @endforeach
+                    <div class="call-ledger__actions">
+                        @if($marketingCallAllowed && $contact?->phone)<a class="call-ledger__phone numeric-data" href="tel:{{ $contact->phone }}">{{ $contact->phone }}</a>@endif
+                        <button type="button" class="operations-button" wire:click="chooseOutcome({{ $lead->id }}, 'contacted')" @disabled(!$marketingCallAllowed)>{{ __('marketing.calls.log_result') }}</button>
                     </div>
 
-                    @if ($activeLeadId === $lead->id)
-                        <form wire:submit="saveOutcome" class="quick-note">
-                            <label for="quick-note-{{ $lead->id }}">{{ __('marketing.interactions.note_optional') }}</label>
-                            <textarea id="quick-note-{{ $lead->id }}" wire:model="quickNote" rows="2"></textarea>
-                            <button class="operations-button operations-button--primary" type="submit">{{ __('marketing.interactions.save_result') }}</button>
+                    @unless($marketingCallAllowed)
+                        <div class="call-ledger__notice" role="status" data-testid="call-blocked">{{ __('marketing.calls.blocked_reason') }}@if($rejection) · {{ __('marketing.consent.rejected_at') }}: {{ $rejection->effective_from->format('d.m.Y H:i') }}@endif</div>
+                    @endunless
+
+                    @if($activeLeadId === $lead->id)
+                        <form wire:submit="saveOutcome" class="call-composer">
+                            <div class="call-composer__outcomes" aria-label="{{ __('marketing.interactions.quick_result') }}">@foreach($outcomes as $value => $label)<button type="button" class="{{ $quickOutcome === $value ? 'is-selected' : '' }}" wire:click="chooseOutcome({{ $lead->id }}, '{{ $value }}')">{{ $label }}</button>@endforeach</div>
+                            <label><span>{{ __('marketing.interactions.note_optional') }}</span><textarea wire:model="quickNote" rows="2"></textarea></label>
+                            <div class="call-composer__footer"><button type="button" class="operations-link" wire:click="$set('activeLeadId', null)">{{ __('marketing.transition.cancel') }}</button><button class="operations-button operations-button--primary" type="submit">{{ __('marketing.interactions.save_result') }}</button></div>
                         </form>
                     @endif
-                @endif
-            </article>
-        @empty
-            <section class="operations-panel operations-placeholder">{{ __('marketing.calls.empty') }}</section>
-        @endforelse
+                </article>
+            @empty
+                <div class="call-ledger__empty">{{ __('marketing.calls.empty') }}</div>
+            @endforelse
+        </section>
     </div>
 </x-filament-panels::page>

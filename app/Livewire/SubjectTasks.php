@@ -36,7 +36,6 @@ final class SubjectTasks extends Component
     {
         $this->subjectType = $subjectType;
         $this->subjectId = $subjectId;
-        $this->dueAt = now()->addDay()->format('Y-m-d\TH:i');
         $this->authorizeSubject();
     }
 
@@ -45,16 +44,15 @@ final class SubjectTasks extends Component
         $this->validate([
             'title' => ['required', 'string', 'max:255'],
             'assigneeId' => ['required', 'integer'],
-            'dueAt' => ['required', 'date'],
+            'dueAt' => ['nullable', 'date'],
             'description' => ['nullable', 'string', 'max:5000'],
         ]);
         $actor = Auth::user();
         abort_unless($actor !== null, 403);
         $assignee = $this->assignees()->firstWhere('id', $this->assigneeId);
         abort_unless($assignee instanceof User, 404);
-        $tasks->create($actor, $this->subject(), $assignee, $this->title, Carbon::parse($this->dueAt), description: $this->description ?: null);
-        $this->reset('title', 'assigneeId', 'description');
-        $this->dueAt = now()->addDay()->format('Y-m-d\TH:i');
+        $tasks->create($actor, $this->subject(), $assignee, $this->title, filled($this->dueAt) ? Carbon::parse($this->dueAt) : null, description: $this->description ?: null);
+        $this->reset('title', 'assigneeId', 'dueAt', 'description');
     }
 
     public function toggle(int $taskId, TaskService $tasks): void

@@ -41,8 +41,6 @@ final class ProspectIntake extends Page
 
     public string $city = '';
 
-    public string $source = 'phone';
-
     public string $contactMode = 'new';
 
     public ?int $contactId = null;
@@ -50,8 +48,6 @@ final class ProspectIntake extends Page
     public string $contactName = '';
 
     public string $contactTitle = '';
-
-    public string $decisionRole = '';
 
     public string $phone = '';
 
@@ -61,8 +57,6 @@ final class ProspectIntake extends Page
 
     public string $disclosureDate = '';
 
-    public string $disclosureMethod = 'Telefon görüşmesi';
-
     public ?int $programVersionId = null;
 
     public ?int $targetStatusId = null;
@@ -70,8 +64,6 @@ final class ProspectIntake extends Page
     public string $calledAt = '';
 
     public string $callDirection = 'outbound';
-
-    public ?int $durationMinutes = null;
 
     public string $outcome = 'interested';
 
@@ -134,12 +126,10 @@ final class ProspectIntake extends Page
             'companyId' => $newCompany ? ['nullable'] : ['required', 'integer'],
             'companyName' => $newCompany ? ['required', 'string', 'max:255'] : ['nullable'],
             'taxNumber' => ['nullable', 'regex:/^[0-9]{10}([0-9])?$/'],
-            'city' => $newCompany ? ['required', 'regex:/^(0[1-9]|[1-7][0-9]|8[01])$/'] : ['nullable'],
-            'source' => ['required', 'in:form,phone,list,referral,iys,other'],
+            'city' => $newCompany ? ['required', 'string', 'in:'.implode(',', config('turkey.provinces'))] : ['nullable'],
             'contactId' => $newContact ? ['nullable'] : ['required', 'integer'],
             'contactName' => $newContact ? ['required', 'string', 'max:255'] : ['nullable'],
             'contactTitle' => $newContact ? ['required', 'string', 'max:255'] : ['nullable'],
-            'decisionRole' => $newContact ? ['required', 'in:decision_maker,authorized_contact,technical_contact,financial_contact,information_provider,other'] : ['nullable'],
             'phone' => $newContact ? ['required', 'string', 'max:40'] : ['nullable'],
             'email' => $newContact ? ['required', 'email', 'max:255'] : ['nullable'],
             'callConsent' => $newContact ? ['required', 'in:unknown,granted,denied'] : ['nullable'],
@@ -147,14 +137,18 @@ final class ProspectIntake extends Page
             'targetStatusId' => ['required', 'integer'],
             'calledAt' => ['required', 'date'],
             'callDirection' => ['required', 'in:inbound,outbound'],
-            'durationMinutes' => ['nullable', 'integer', 'min:0', 'max:1440'],
             'outcome' => ['nullable', 'string', 'max:255'],
             'callNote' => ['required', 'string', 'min:3', 'max:5000'],
             'nextCallAt' => $this->targetRequires('next_call_at') ? ['required', 'date', 'after:calledAt'] : ['nullable', 'date'],
             'companyComment' => ['nullable', 'string', 'max:10000'],
             'taskTitle' => ['nullable', 'string', 'max:255'],
-            'taskDueAt' => filled($this->taskTitle) ? ['required', 'date', 'after_or_equal:calledAt'] : ['nullable', 'date'],
-            'taskRemindAt' => ['nullable', 'date', 'before_or_equal:taskDueAt'],
+            'taskDueAt' => ['nullable', 'date', 'after_or_equal:calledAt'],
+            'taskRemindAt' => filled($this->taskDueAt) ? ['nullable', 'date', 'before_or_equal:taskDueAt'] : ['nullable', 'date'],
+        ], [
+            'taxNumber.regex' => __('marketing.validation.tax_number_format'),
+            'nextCallAt.after' => __('marketing.validation.next_call_after_call'),
+            'taskDueAt.after_or_equal' => __('marketing.validation.task_due_after_call'),
+            'taskRemindAt.before_or_equal' => __('marketing.validation.task_reminder_before_due'),
         ]);
 
         $actor = Auth::user();
@@ -164,23 +158,20 @@ final class ProspectIntake extends Page
             companyName: $newCompany ? $this->companyName : null,
             taxNumber: $newCompany && filled($this->taxNumber) ? $this->taxNumber : null,
             city: $newCompany ? $this->city : null,
-            source: $this->source,
+            source: 'phone',
             contactId: $newContact ? null : $this->contactId,
             contactName: $newContact ? $this->contactName : null,
             contactTitle: $newContact ? $this->contactTitle : null,
-            decisionRole: $newContact ? $this->decisionRole : null,
             phone: $newContact ? $this->phone : null,
             email: $newContact ? $this->email : null,
             callConsent: $newContact ? match ($this->callConsent) {
                 'granted' => true, 'denied' => false, default => null
             } : null,
             disclosureDate: $newContact && filled($this->disclosureDate) ? $this->disclosureDate : null,
-            disclosureMethod: $newContact && filled($this->disclosureMethod) ? $this->disclosureMethod : null,
             programVersionId: (int) $this->programVersionId,
             targetStatusId: (int) $this->targetStatusId,
             calledAt: Carbon::parse($this->calledAt),
             callDirection: $this->callDirection,
-            durationMinutes: $this->durationMinutes,
             outcome: $this->outcome ?: null,
             callNote: $this->callNote,
             nextCallAt: filled($this->nextCallAt) ? Carbon::parse($this->nextCallAt) : null,
@@ -209,6 +200,7 @@ final class ProspectIntake extends Page
             'statusOptions' => $this->statusOptions(),
             'selectedStatus' => $this->targetStatusId === null ? null : Status::query()->find($this->targetStatusId),
             'duplicateCompanies' => app(CompanyDuplicateFinder::class)->find($companies, $this->companyName, $this->taxNumber),
+            'provinces' => config('turkey.provinces'),
         ];
     }
 

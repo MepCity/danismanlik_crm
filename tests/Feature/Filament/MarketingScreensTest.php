@@ -37,7 +37,7 @@ beforeEach(function (): void {
 /** @return array{owner: User, company: Company, contact: Contact, lead: Lead} */
 function marketingScreenLead(User $owner, string $suffix, string $statusCode = 'called', ?string $nextCallAt = null, bool $blocked = false): array
 {
-    $company = Company::query()->create(['legal_name' => "Kurgusal Ekran {$suffix}", 'city' => '34']);
+    $company = Company::query()->create(['legal_name' => "Kurgusal Ekran {$suffix}", 'city' => 'İstanbul']);
     $contact = Contact::query()->create([
         'company_id' => $company->id,
         'full_name' => "Kurgusal Kişi {$suffix}",
@@ -55,7 +55,6 @@ function marketingScreenLead(User $owner, string $suffix, string $statusCode = '
         'legal_basis' => $blocked ? 'explicit_withdrawal' : 'explicit_consent',
         'source' => 'list',
         'disclosure_date' => now()->subDays(5)->toDateString(),
-        'disclosure_method' => 'phone',
         'effective_from' => now()->subDays(2),
         'recorded_by' => $owner->id,
     ]);
@@ -92,6 +91,46 @@ it('pazarlamacıya yalnız kendi fırsatlarını listeler ve doğrudan URL eriş
         ->assertSee($own['company']->legal_name)
         ->assertDontSee($foreign['company']->legal_name);
     Livewire::test(LeadDetail::class, ['lead' => $foreign['lead']->id])->assertForbidden();
+});
+
+it('takip panosunda kartı ileri ve geri taşıyıp aktör izini korur', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-surukle@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $fixture = marketingScreenLead($owner, 'Sürükle');
+    $called = Status::query()->where('type', 'lead')->where('code', 'called')->sole();
+    $interested = Status::query()->where('type', 'lead')->where('code', 'interested')->sole();
+    Auth::login($owner);
+
+    Livewire::test(LeadBoard::class)
+        ->call('openLead', $fixture['lead']->id)
+        ->assertSet('selectedLeadId', $fixture['lead']->id)
+        ->assertSee('Kurgusal Ekran Sürükle')
+        ->assertSee('lead-detail-drawer')
+        ->call('moveLead', $fixture['lead']->id, $interested->id)
+        ->assertHasNoErrors();
+
+    expect($fixture['lead']->refresh()->status_id)->toBe($interested->id);
+
+    Livewire::test(LeadBoard::class)
+        ->call('moveLead', $fixture['lead']->id, $called->id)
+        ->assertHasNoErrors();
+
+    expect($fixture['lead']->refresh()->status_id)->toBe($called->id)
+        ->and($fixture['lead']->statusHistory()->latest('id')->value('changed_by'))->toBe($owner->id);
+});
+
+it('takip panosunda alan isteyen bırakmayı veri formuna yönlendirir', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-surukle-form@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $fixture = marketingScreenLead($owner, 'Sürükle Form');
+    $callback = Status::query()->where('type', 'lead')->where('code', 'callback')->sole();
+    Auth::login($owner);
+
+    Livewire::test(LeadBoard::class)
+        ->call('moveLead', $fixture['lead']->id, $callback->id)
+        ->assertSet('transitionLeadId', $fixture['lead']->id)
+        ->assertSet('transitionTargetId', $callback->id)
+        ->assertSee('lead-transition-form');
 });
 
 it('aranmaması gereken kişide tel aksiyonunu engeller ve sebebini gösterir', function (): void {
@@ -193,7 +232,7 @@ it('callback ve lost geçiş formlarında açıklayıcı zorunlu alan hataları 
         ->assertHasErrors(['lostReason']);
 });
 
-it('kişi kartında izin kaynağını gösterir ve kaynak seçmeden yeni kişi kaydetmez', function (): void {
+it('veri kaynağını göstermeden yeni kişiyi sistem kaynağıyla kaydeder', function (): void {
     $owner = User::factory()->create(['email' => 'ekran-kisi@example.invalid']);
     $owner->assignRole('Pazarlama');
     $fixture = marketingScreenLead($owner, 'Kişi Kartı');
@@ -201,12 +240,13 @@ it('kişi kartında izin kaynağını gösterir ve kaynak seçmeden yeni kişi k
 
     Livewire::test(ViewCompany::class, ['record' => $fixture['company']->getRouteKey()])
         ->set('activeTab', 'contacts')
-        ->assertSee('Veri kaynağı')
+        ->assertDontSee('Veri kaynağı')
         ->assertSee('Arama izni var')
         ->set('contactFullName', 'Kurgusal Yeni Yetkili')
-        ->set('contactDataSource', '')
         ->call('addContact')
-        ->assertHasErrors(['contactDataSource' => 'required']);
+        ->assertHasNoErrors();
+
+    expect(Contact::query()->where('full_name', 'Kurgusal Yeni Yetkili')->sole()->data_source)->toBe('other');
 });
 
 it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', function (): void {
@@ -218,11 +258,11 @@ it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', fu
 
     Livewire::test(ProspectIntake::class)
         ->assertSee('Potansiyel müşteri kaydı')
+        ->assertDontSee('Veri kaynağı')
         ->set('companyName', 'Kurgusal Tek Ekran AŞ')
-        ->set('city', '34')
+        ->set('city', 'İstanbul')
         ->set('contactName', 'Kurgusal Karar Verici')
         ->set('contactTitle', 'Genel Müdür')
-        ->set('decisionRole', 'decision_maker')
         ->set('phone', '+90 000 000 00 00')
         ->set('email', 'karar-verici@firma.invalid')
         ->set('programVersionId', $version->id)
@@ -236,4 +276,18 @@ it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', fu
     expect($lead->primaryContact?->full_name)->toBe('Kurgusal Karar Verici')
         ->and($lead->status_id)->toBe($interested->id)
         ->and($lead->interactions()->whereNotNull('contact_id')->exists())->toBeTrue();
+});
+
+it('takip görevinde son tarihi isteğe bağlı gösterir', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-intake-tarihsiz@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    Auth::login($owner);
+
+    Livewire::test(ProspectIntake::class)
+        ->set('taskTitle', 'Müşteriyi tekrar ara')
+        ->set('taskDueAt', '')
+        ->call('save')
+        ->assertHasNoErrors(['taskDueAt'])
+        ->assertSee('son tarih vermek zorunda değilsiniz')
+        ->assertDontSee('Görev son tarihi *');
 });

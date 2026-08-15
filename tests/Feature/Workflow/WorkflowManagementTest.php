@@ -78,7 +78,7 @@ function workflowManagementFixture(int $dealCount): array
     $source = Status::query()->where('type', 'deal')->where('code', 'collecting_documents')->firstOrFail();
     $target = Status::query()->where('type', 'deal')->where('code', 'preparing_application')->firstOrFail();
     $transition = Transition::query()->where('from_status_id', $source->id)->where('to_status_id', $target->id)->firstOrFail();
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Toplu Geçiş İşletmesi', 'city' => '06']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Toplu Geçiş İşletmesi', 'city' => 'Ankara']);
     $version = ProgramVersion::query()->firstOrFail();
     $revision = WorkflowRevision::query()->latest('effective_from')->firstOrFail();
     $deals = [];

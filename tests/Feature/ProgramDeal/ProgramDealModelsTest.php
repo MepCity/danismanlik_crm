@@ -15,7 +15,7 @@ uses(RefreshDatabase::class);
 
 it('connects program deal document and file models and casts structured values', function (): void {
     $user = User::factory()->create(['email' => 'model-chain@example.invalid']);
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Model A.Ş.', 'city' => '35']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Model A.Ş.', 'city' => 'İzmir']);
     $program = Program::query()->create([
         'name' => 'Kurgusal Model Programı',
         'institution' => 'other',
@@ -27,7 +27,7 @@ it('connects program deal document and file models and casts structured values',
     ]);
     $template = $version->docTemplates()->create([
         'name' => 'Kurgusal Model Evrakı',
-        'condition' => ['all' => [['field' => 'company.city', 'op' => 'in', 'value' => ['35']]]],
+        'condition' => ['all' => [['field' => 'company.city', 'op' => 'in', 'value' => ['İzmir']]]],
         'accepted_formats' => ['pdf', 'xlsx'],
     ]);
     $status = Status::query()->create([

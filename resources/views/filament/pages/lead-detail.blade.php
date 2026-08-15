@@ -12,7 +12,7 @@
             <div class="operations-fact"><dt>{{ __('marketing.detail.owner') }}</dt><dd>{{ $lead->owner->name }}</dd></div>
             <div class="operations-fact"><dt>{{ __('marketing.detail.status') }}</dt><dd>{!! \App\Filament\Support\StatusBadge::make($lead->status->color, $lead->status->label) !!}</dd></div>
             <div class="operations-fact"><dt>{{ __('marketing.detail.program') }}</dt><dd>{{ $lead->interestedProgramVersion?->program?->name ?? __('marketing.board.no_program') }}</dd></div>
-            <div class="operations-fact"><dt>{{ __('marketing.intake.contact.title') }}</dt><dd>{{ $lead->primaryContact?->full_name ?? __('marketing.consent.not_recorded') }}@if($lead->primaryContact?->decision_role) · {{ __('marketing.intake.contact.roles.'.$lead->primaryContact->decision_role) }}@endif</dd></div>
+            <div class="operations-fact"><dt>{{ __('marketing.intake.contact.title') }}</dt><dd>{{ $lead->primaryContact?->full_name ?? __('marketing.consent.not_recorded') }}@if($lead->primaryContact?->title) · {{ $lead->primaryContact->title }}@endif</dd></div>
             @if ($lead->convertedDeal)<div class="operations-fact"><dt>{{ __('marketing.detail.converted_deal') }}</dt><dd><a class="operations-link numeric-data" href="{{ \App\Filament\Pages\DealDetail::getUrl(['deal' => $lead->convertedDeal->id]) }}">{{ $lead->convertedDeal->reference_no }}</a></dd></div>@endif
         </section>
         @elseif ($activeTab === 'contacts')
@@ -23,8 +23,7 @@
                 <article class="operations-panel contact-card">
                     <header><strong>{{ $contact->full_name }}</strong><span>{{ $contact->title }}</span></header>
                     <div class="numeric-data">{{ $contact->phone ?? __('marketing.calls.no_phone') }}</div>
-                    <div>{{ __('marketing.consent.source') }}: {{ $contact->data_source }}</div>
-                    <div>{{ __('marketing.consent.disclosure') }}: {{ $consent?->disclosure_date?->format('d.m.Y') ?? __('marketing.consent.not_recorded') }} · {{ $consent?->disclosure_method ?? __('marketing.consent.not_recorded') }}</div>
+                    <div>{{ __('marketing.consent.disclosure') }}: {{ $consent?->disclosure_date?->format('d.m.Y') ?? __('marketing.consent.not_recorded') }}</div>
                     <div class="consent-strip {{ $contact->consent_call === true && ! $contact->do_not_call ? 'consent-strip--allowed' : 'consent-strip--blocked' }}">
                         {{ $contact->consent_call === true && ! $contact->do_not_call ? __('marketing.consent.call_allowed') : __('marketing.consent.call_not_allowed') }}
                         @if ($rejection)<span class="numeric-data">{{ __('marketing.consent.rejected_at') }}: {{ $rejection->effective_from->format('d.m.Y H:i') }}</span>@endif

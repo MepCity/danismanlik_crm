@@ -53,7 +53,7 @@ final class CompanyResource extends ScopedResource
         return $table
             ->columns([
                 TextColumn::make('legal_name')->label(__('panel.fields.legal_name'))->searchable()->sortable(),
-                TextColumn::make('city')->label(__('panel.fields.city'))->alignEnd()->extraAttributes(['class' => 'numeric-data']),
+                TextColumn::make('city')->label(__('panel.fields.city'))->sortable(),
                 IconColumn::make('is_active')->label(__('panel.fields.status'))->boolean(),
             ])
             ->defaultPaginationPageOption(25)

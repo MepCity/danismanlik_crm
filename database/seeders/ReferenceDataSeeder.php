@@ -63,6 +63,7 @@ final class ReferenceDataSeeder extends Seeder
             'permissions' => [
                 'company.manage', 'lead.manage', 'interaction.manage', 'deal.create',
                 'deal.view_own', 'deal.view', 'collaboration.manage', 'task.manage',
+                'document.upload', 'document.download', 'document.view',
                 'program.view', 'audit.view_own',
                 'report.view',
             ],
@@ -139,7 +140,7 @@ final class ReferenceDataSeeder extends Seeder
             ['type' => 'lead', 'code' => 'callback', 'label' => 'Sonra aranacak', 'color' => 'waiting', 'required_fields' => ['next_call_at', 'owner_user_id']],
             ['type' => 'lead', 'code' => 'do_not_contact', 'label' => 'Aranmak istemiyor', 'color' => 'danger', 'is_terminal' => true],
             ['type' => 'deal', 'code' => 'awaiting_assignment', 'label' => 'Atama bekliyor', 'color' => 'waiting', 'is_initial' => true],
-            ['type' => 'deal', 'code' => 'pm_assigned', 'label' => 'PM atandı', 'color' => 'info'],
+            ['type' => 'deal', 'code' => 'pm_assigned', 'label' => 'PM atandı', 'color' => 'info', 'required_fields' => ['project_manager_id']],
             ['type' => 'deal', 'code' => 'collecting_documents', 'label' => 'Belgeler toplanıyor', 'color' => 'waiting'],
             ['type' => 'deal', 'code' => 'preparing_application', 'label' => 'Başvuru hazırlanıyor', 'color' => 'info'],
             ['type' => 'deal', 'code' => 'awaiting_customer_approval', 'label' => 'Müşteri onayı bekleniyor', 'color' => 'waiting', 'awaits_customer_response' => true],
@@ -196,14 +197,22 @@ final class ReferenceDataSeeder extends Seeder
             ['lead', 'called', 'interested', 'lead.manage', null],
             ['lead', 'called', 'callback', 'lead.manage', null],
             ['lead', 'called', 'do_not_contact', 'lead.manage', null],
+            ['lead', 'called', 'new', 'lead.manage', null],
             ['lead', 'interested', 'proposal_sent', 'lead.manage', null],
             ['lead', 'interested', 'callback', 'lead.manage', null],
             ['lead', 'interested', 'lost', 'lead.manage', null],
             ['lead', 'interested', 'do_not_contact', 'lead.manage', null],
+            ['lead', 'interested', 'called', 'lead.manage', null],
+            ['lead', 'interested', 'new', 'lead.manage', null],
             ['lead', 'proposal_sent', 'won', 'lead.manage', null],
             ['lead', 'proposal_sent', 'lost', 'lead.manage', null],
             ['lead', 'proposal_sent', 'callback', 'lead.manage', null],
+            ['lead', 'proposal_sent', 'interested', 'lead.manage', null],
+            ['lead', 'proposal_sent', 'called', 'lead.manage', null],
+            ['lead', 'proposal_sent', 'new', 'lead.manage', null],
             ['lead', 'callback', 'called', 'lead.manage', null],
+            ['lead', 'callback', 'interested', 'lead.manage', null],
+            ['lead', 'callback', 'new', 'lead.manage', null],
             ['lead', 'callback', 'do_not_contact', 'lead.manage', null],
             ['deal', 'awaiting_assignment', 'pm_assigned', 'deal.assign', null],
             ['deal', 'pm_assigned', 'collecting_documents', 'deal.transition', null],
@@ -322,7 +331,7 @@ final class ReferenceDataSeeder extends Seeder
             ],
         );
 
-        $earthquakeCities = ['01', '02', '21', '23', '27', '31', '44', '46', '63', '79', '80'];
+        $earthquakeCities = ['Adana', 'Adıyaman', 'Diyarbakır', 'Elazığ', 'Gaziantep', 'Hatay', 'Malatya', 'Kahramanmaraş', 'Şanlıurfa', 'Kilis', 'Osmaniye'];
         $templates = [
             ['YMM / Bağımsız Denetçi Bildirim Formu', true, null, ['pdf'], null],
             ['Bağlantı Anlaşmasına Çağrı Mektubu', true, null, ['pdf'], null],

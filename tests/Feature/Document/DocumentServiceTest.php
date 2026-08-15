@@ -22,6 +22,7 @@ use App\Domain\Document\Scanning\StubVirusScanner;
 use App\Domain\Document\Scanning\VirusScanner;
 use App\Domain\Document\Services\DealDocumentCompletion;
 use App\Domain\Document\Services\DocumentAccessService;
+use App\Domain\Document\Services\DocumentArchiveService;
 use App\Domain\Document\Services\DocumentStatusService;
 use App\Domain\Document\Services\DocumentTransaction;
 use App\Domain\Document\Services\DocumentUploadService;
@@ -66,7 +67,7 @@ function documentServiceFixture(bool $withValidity = false): array
     $pm = User::factory()->create(['email' => fake()->unique()->userName().'@pm-belge.invalid']);
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Belge İşletmesi '.fake()->unique()->numerify('####'),
-        'city' => '06',
+        'city' => 'Ankara',
     ]);
     $program = Program::query()->where('code', 'KOSGEB-YESIL-SANAYI')->firstOrFail();
     $version = $program->versions()->firstOrFail();
@@ -184,6 +185,54 @@ it('records access request and actual proxy download as separate events', functi
     expect($response->streamedContent())->toContain('Kurgusal test belgesi')
         ->and(Activity::query()->where('action', 'document.downloaded')->count())->toBe(1)
         ->and(OutboxMessage::query()->where('event_name', 'document.downloaded')->count())->toBe(1);
+});
+
+it('en güncel temiz belgeleri tek zip içinde indirir ve erişimi kaydeder', function (): void {
+    $fixture = documentServiceFixture();
+    $uploads = app(DocumentUploadService::class);
+    $firstVersion = $uploads->upload($fixture['document']->id, fictionalPdf('ilk.pdf', 'v1'), $fixture['actor']->id)->file;
+    $latestVersion = $uploads->upload($fixture['document']->id, fictionalPdf('guncel.pdf', 'v2'), $fixture['actor']->id)->file;
+    $secondDocument = DealDocument::query()->create([
+        'deal_id' => $fixture['deal']->id,
+        'source_program_version_id' => $fixture['deal']->program_version_id,
+        'name_snapshot' => 'Kurgusal İkinci Belge',
+        'required_snapshot' => true,
+        'status' => 'requested',
+    ]);
+    $secondFile = $uploads->upload($secondDocument->id, fictionalPdf('ikinci.pdf', 'ikinci'), $fixture['actor']->id)->file;
+    $firstVersion->update(['scan_result' => 'clean']);
+    $latestVersion->update(['scan_result' => 'clean']);
+    $secondFile->update(['scan_result' => 'clean']);
+
+    $url = app(DocumentArchiveService::class)->temporaryUrl($fixture['deal']->id, $fixture['actor']->id);
+    expect(Activity::query()->where('action', 'deal.documents_archive_requested')->count())->toBe(1);
+
+    actingAs($fixture['actor']);
+    $response = get($url)->assertOk();
+    $archivePath = tempnam(sys_get_temp_dir(), 'crm-archive-test-');
+    expect($archivePath)->not->toBeFalse();
+    file_put_contents((string) $archivePath, $response->streamedContent());
+    $archive = new ZipArchive;
+    expect($archive->open((string) $archivePath))->toBeTrue()
+        ->and($archive->numFiles)->toBe(2)
+        ->and($archive->getNameIndex(0))->toContain('surum-2-guncel.pdf')
+        ->and($archive->getNameIndex(1))->toContain('surum-1-ikinci.pdf');
+    $archive->close();
+    unlink((string) $archivePath);
+
+    expect(Activity::query()->where('action', 'deal.documents_archive_downloaded')->count())->toBe(1)
+        ->and(OutboxMessage::query()->where('event_name', 'deal.documents_archive_downloaded')->count())->toBe(1);
+});
+
+it('toplu indirmeyi yetkisiz kullanıcı ve temiz belgesi olmayan dosya için reddeder', function (): void {
+    $fixture = documentServiceFixture();
+    $unauthorized = User::factory()->create(['email' => 'toplu-yetkisiz@example.invalid']);
+    $service = app(DocumentArchiveService::class);
+
+    expect(fn () => $service->temporaryUrl($fixture['deal']->id, $unauthorized->id))
+        ->toThrow(DocumentFileRejected::class, trans('documents.errors.forbidden'))
+        ->and(fn () => $service->temporaryUrl($fixture['deal']->id, $fixture['actor']->id))
+        ->toThrow(DocumentFileRejected::class, trans('documents.errors.archive_empty'));
 });
 
 it('denies link generation without permission and denies infected or pending files', function (): void {

@@ -51,7 +51,7 @@ function collaborationFixture(string $suffix = 'bir'): array
     $officer->assignRole('Şirket Yetkilisi');
     $outsider = User::factory()->create(['name' => 'Kurgusal Dış Kullanıcı', 'email' => "dis-{$suffix}@example.invalid"]);
     $outsider->assignRole('Pazarlama');
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Ufuk İşletmesi '.$suffix, 'city' => '06']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Ufuk İşletmesi '.$suffix, 'city' => 'Ankara']);
     $leadStatus = Status::query()->where('type', 'lead')->firstOrFail();
     $dealStatus = Status::query()->where('type', 'deal')->firstOrFail();
     $version = ProgramVersion::query()->firstOrFail();
@@ -165,6 +165,20 @@ it('görevi atar tamamlar ve yeniden açar', function (): void {
     expect($task->assigned_to)->toBe($fixture['owner']->id)->and($task->completed_at)->not->toBeNull();
 
     expect($service->reopen($fixture['owner'], $task)->completed_at)->toBeNull();
+});
+
+it('son tarih olmadan görev oluşturur', function (): void {
+    $fixture = collaborationFixture();
+    $subject = new SubjectReference(CollaborationSubjectType::Deal, $fixture['deal']->id);
+
+    $task = app(TaskService::class)->create(
+        $fixture['owner'],
+        $subject,
+        $fixture['officer'],
+        'Tarihsiz kurgusal görev',
+    );
+
+    expect($task->due_at)->toBeNull();
 });
 
 it('vakti gelen görev için uygulama içi ve e-posta bildirimi bir kez üretir', function (): void {

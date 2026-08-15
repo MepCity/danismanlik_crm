@@ -40,7 +40,7 @@ afterEach(function (): void {
 });
 
 /** @return array{deal: Deal, company: Company, actor: User, pm: User} */
-function checklistFixture(string $city = '06', string $amount = '4000000.00'): array
+function checklistFixture(string $city = 'Ankara', string $amount = '4000000.00'): array
 {
     $actor = User::factory()->create(['email' => fake()->unique()->userName().'@acilis.invalid']);
     $pm = User::factory()->create(['email' => fake()->unique()->userName().'@pm.invalid']);
@@ -79,7 +79,7 @@ it('creates only five unconditional documents when both conditions fail', functi
 });
 
 it('creates the earthquake document for one of the configured eleven cities', function (): void {
-    $fixture = checklistFixture(city: '31');
+    $fixture = checklistFixture(city: 'Hatay');
 
     expect($fixture['deal']->documents()->where('name_snapshot', 'Hasar Durumu Belgesi')->exists())->toBeTrue()
         ->and($fixture['deal']->documents()->where('name_snapshot', 'Hasar Durumu Belgesi')->sole()->required_snapshot)->toBeTrue()
@@ -114,7 +114,7 @@ it('is idempotent and keeps snapshot and source references together', function (
 it('adds a newly matching document and notifies the project manager', function (): void {
     $fixture = checklistFixture();
 
-    $fixture['company']->update(['city' => '31']);
+    $fixture['company']->update(['city' => 'Hatay']);
 
     $document = $fixture['deal']->documents()->where('name_snapshot', 'Hasar Durumu Belgesi')->sole();
     $notification = Notification::query()->where('user_id', $fixture['pm']->id)->sole();
@@ -244,7 +244,7 @@ it('rejects an unknown condition operator before checklist generation', function
         'program_version_id' => $fixture['deal']->program_version_id,
         'name' => 'Kurgusal Bilinmeyen Koşul Belgesi',
         'is_required' => true,
-        'condition' => ['all' => [['field' => 'company.city', 'op' => 'mystery', 'value' => ['06']]]],
+        'condition' => ['all' => [['field' => 'company.city', 'op' => 'mystery', 'value' => ['Ankara']]]],
         'accepted_formats' => ['pdf'],
         'sort_order' => 99,
     ]))->toThrow(InvalidConditionDefinition::class);
@@ -252,7 +252,7 @@ it('rejects an unknown condition operator before checklist generation', function
 
 it('rolls back every checklist effect when the outbox write fails', function (): void {
     $actor = User::factory()->create(['email' => 'atomik-acilis@kurgusal.invalid']);
-    $company = Company::query()->create(['legal_name' => 'Kurgusal Atomik İşletme', 'city' => '06']);
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Atomik İşletme', 'city' => 'Ankara']);
     $program = Program::query()->create(['name' => 'Kurgusal Atomik Program', 'institution' => 'other', 'code' => 'ATOMIK-TEST']);
     $version = $program->versions()->create(['call_period' => '2099 çağrısı']);
     DocTemplate::query()->create([

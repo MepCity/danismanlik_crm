@@ -22,7 +22,6 @@ final class WithdrawCallConsent
                 'legal_basis' => 'explicit_withdrawal',
                 'source' => 'phone',
                 'disclosure_date' => now()->toDateString(),
-                'disclosure_method' => 'phone',
                 'effective_from' => now(),
                 'recorded_by' => $actorId,
             ]);

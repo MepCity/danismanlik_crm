@@ -68,8 +68,8 @@ final readonly class CreateProspectIntake
             );
 
             $interaction = $data->callDirection === 'inbound'
-                ? $this->interactions->forInboundLeadCall($lead->id, $actor->id, $data->calledAt, $data->durationMinutes, $data->outcome, $data->callNote, $contact->id)
-                : $this->interactions->forLead($lead->id, $actor->id, 'call', $data->calledAt, $data->durationMinutes, $data->outcome, $data->callNote, $contact->id);
+                ? $this->interactions->forInboundLeadCall($lead->id, $actor->id, $data->calledAt, $data->outcome, $data->callNote, $contact->id)
+                : $this->interactions->forLead($lead->id, $actor->id, 'call', $data->calledAt, $data->outcome, $data->callNote, $contact->id);
 
             $path = $this->workflow->transitionPath($initial->statusId, $data->targetStatusId);
             foreach ($path as $step => $targetStatusId) {
@@ -87,7 +87,7 @@ final readonly class CreateProspectIntake
             if (filled($data->companyComment)) {
                 $this->comments->create($actor, new SubjectReference(CollaborationSubjectType::Company, $company->id), (string) $data->companyComment);
             }
-            if (filled($data->taskTitle) && $data->taskDueAt !== null) {
+            if (filled($data->taskTitle)) {
                 $this->tasks->create(
                     $actor,
                     new SubjectReference(CollaborationSubjectType::Lead, $lead->id),
@@ -144,23 +144,20 @@ final readonly class CreateProspectIntake
             $company->id,
             $actor->id,
             (string) $data->contactName,
-            $data->source,
-            $data->phone,
-            $data->email,
-            $data->contactTitle,
-            $data->callConsent,
-            $data->disclosureDate,
-            $data->disclosureMethod,
-            $data->decisionRole,
-            ! $company->contacts()->where('is_primary', true)->exists(),
-            $data->calledAt,
+            phone: $data->phone,
+            email: $data->email,
+            title: $data->contactTitle,
+            callConsent: $data->callConsent,
+            disclosureDate: $data->disclosureDate,
+            isPrimary: ! $company->contacts()->where('is_primary', true)->exists(),
+            consentEffectiveAt: $data->calledAt,
+            recordSource: $data->source,
         );
         $this->activities->record(
             'contact.created',
             [
                 'contact' => ['id' => $contact->id, 'name' => $contact->full_name],
                 'title' => $contact->title,
-                'decision_role' => $contact->decision_role,
             ],
             $actor->id,
             defaultSource: 'user',
@@ -173,10 +170,10 @@ final readonly class CreateProspectIntake
     private function validate(ProspectIntakeData $data): void
     {
         $errors = [];
-        if ($data->companyId === null && (blank($data->companyName) || ! preg_match('/^(0[1-9]|[1-7][0-9]|8[01])$/', (string) $data->city))) {
+        if ($data->companyId === null && (blank($data->companyName) || ! in_array($data->city, config('turkey.provinces'), true))) {
             $errors['company'] = trans('marketing.validation.company_required');
         }
-        if ($data->contactId === null && (blank($data->contactName) || blank($data->contactTitle) || blank($data->decisionRole) || blank($data->phone) || blank($data->email))) {
+        if ($data->contactId === null && (blank($data->contactName) || blank($data->contactTitle) || blank($data->phone) || blank($data->email))) {
             $errors['contact'] = trans('marketing.validation.contact_details_required');
         }
         if (! in_array($data->callDirection, ['inbound', 'outbound'], true)) {
@@ -192,9 +189,6 @@ final readonly class CreateProspectIntake
         $initial = $this->workflow->initialState();
         if ($this->workflow->transitionPath($initial->statusId, $data->targetStatusId) === []) {
             $errors['targetStatusId'] = trans('marketing.validation.intake_status');
-        }
-        if ($data->taskTitle !== null && $data->taskDueAt === null) {
-            $errors['taskDueAt'] = trans('marketing.validation.task_due_at_required');
         }
         if ($errors !== []) {
             throw ValidationException::withMessages($errors);

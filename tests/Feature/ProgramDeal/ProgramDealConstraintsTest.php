@@ -40,7 +40,7 @@ function createDeal(ProgramVersion $version, array $attributes = []): Deal
     $user = User::factory()->create();
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Firma '.Str::random(8),
-        'city' => '06',
+        'city' => 'Ankara',
     ]);
     $status = Status::query()->firstOrCreate(
         ['type' => 'deal', 'code' => 'program_deal_open'],
@@ -271,7 +271,7 @@ it('requires interactions to reference exactly one real lead or deal', function 
     $user = User::factory()->create();
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Görüşme Firması',
-        'city' => '34',
+        'city' => 'İstanbul',
     ]);
     $lead = Lead::query()->create([
         'company_id' => $company->id,

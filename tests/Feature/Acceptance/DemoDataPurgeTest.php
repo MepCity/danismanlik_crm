@@ -78,7 +78,7 @@ it('demo hesabı demo olmayan dosyaya bağlıysa temizliği kırmızıya düşü
     /** @var TestCase $this */
     $demoUser = User::query()->where('email', 'pazarlama@bizlife')->sole();
     $realCompany = DB::table('companies')->insertGetId([
-        'legal_name' => 'Kurgusal Korunan İşletme', 'city' => '06', 'source' => 'manual',
+        'legal_name' => 'Kurgusal Korunan İşletme', 'city' => 'Ankara', 'source' => 'manual',
         'created_at' => now(), 'updated_at' => now(),
     ]);
     DB::table('deals')->insert([

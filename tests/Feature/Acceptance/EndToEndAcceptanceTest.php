@@ -84,7 +84,7 @@ function acceptanceLead(User $marketing): array
 {
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Kabul Teknoloji Ltd. Şti.',
-        'city' => '06',
+        'city' => 'Ankara',
         'source' => 'form',
     ]);
     $contact = Contact::query()->create([
@@ -160,7 +160,7 @@ it('pazarlama aramasından onay kararına kadar zincirin tamamını tek testte y
     $lead = $fixture['lead'];
     $leadFlow = app(TransitionLead::class);
 
-    app(RecordInteraction::class)->forLead($lead->id, $users['marketing']->id, 'call', now(), 8, 'interested', 'Kurgusal kabul görüşmesi.');
+    app(RecordInteraction::class)->forLead($lead->id, $users['marketing']->id, 'call', now(), 'interested', 'Kurgusal kabul görüşmesi.');
     expect(Activity::query()->where('lead_id', $lead->id)->where('action', 'interaction.recorded')->exists())->toBeTrue()
         ->and(DB::table('audit_log')->where('table_name', 'interactions')->exists())->toBeTrue();
 
@@ -218,7 +218,7 @@ it('pazarlama aramasından onay kararına kadar zincirin tamamını tek testte y
     expect($deal->refresh()->first_document_received_at)->not->toBeNull()
         ->and($deal->all_required_accepted_at)->not->toBeNull();
 
-    $fixture['company']->update(['city' => '31']);
+    $fixture['company']->update(['city' => 'Hatay']);
     $deal->update(['requested_amount' => '6000000.00']);
     $conditional = $deal->documents()->whereIn('name_snapshot', ['Hasar Durumu Belgesi', 'Fizibilite Raporu'])->get();
     expect($conditional)->toHaveCount(2)

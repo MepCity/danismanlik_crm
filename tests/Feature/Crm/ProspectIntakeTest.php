@@ -33,34 +33,31 @@ beforeEach(function (): void {
     app(ReferenceDataSeeder::class)->run();
 });
 
-function intakeData(string $suffix, int $programVersionId, int $targetStatusId, ?int $companyId = null): ProspectIntakeData
+function intakeData(string $suffix, int $programVersionId, int $targetStatusId, ?int $companyId = null, bool $withTaskDueAt = true): ProspectIntakeData
 {
     return new ProspectIntakeData(
         companyId: $companyId,
         companyName: $companyId === null ? "Kurgusal Akış {$suffix} AŞ" : null,
         taxNumber: null,
-        city: $companyId === null ? '34' : null,
+        city: $companyId === null ? 'İstanbul' : null,
         source: 'phone',
         contactId: null,
         contactName: "Kurgusal Yetkili {$suffix}",
         contactTitle: 'Genel Müdür',
-        decisionRole: 'decision_maker',
         phone: '+90 000 000 00 00',
         email: "yetkili-{$suffix}@firma.invalid",
         callConsent: true,
         disclosureDate: now()->toDateString(),
-        disclosureMethod: 'Telefon görüşmesi',
         programVersionId: $programVersionId,
         targetStatusId: $targetStatusId,
         calledAt: Carbon::now()->subMinute(),
         callDirection: 'outbound',
-        durationMinutes: 12,
         outcome: 'interested',
         callNote: 'Program kapsamı, ihtiyaç ve sonraki adım ayrıntılı biçimde görüşüldü.',
         companyComment: 'Firmanın satın alma kararını genel müdür veriyor.',
         taskTitle: 'Tekrar iletişim kur',
-        taskDueAt: Carbon::now()->addDay(),
-        taskRemindAt: Carbon::now()->addHours(20),
+        taskDueAt: $withTaskDueAt ? Carbon::now()->addDay() : null,
+        taskRemindAt: $withTaskDueAt ? Carbon::now()->addHours(20) : null,
     );
 }
 
@@ -73,11 +70,13 @@ it('tek işlemde firma kişi fırsat görüşme yorum görev ve aktör izini olu
     $result = app(CreateProspectIntake::class)->handle($actor, intakeData('tek', $version->id, $interested->id));
 
     expect($result->company->legal_name)->toBe('Kurgusal Akış tek AŞ')
-        ->and($result->contact->decision_role)->toBe('decision_maker')
+        ->and($result->contact->title)->toBe('Genel Müdür')
         ->and($result->lead->primary_contact_id)->toBe($result->contact->id)
         ->and($result->lead->status_id)->toBe($interested->id)
         ->and($result->interaction->contact_id)->toBe($result->contact->id)
         ->and($result->interaction->note)->toContain('sonraki adım')
+        ->and($result->company->source)->toBe('phone')
+        ->and($result->contact->data_source)->toBe('phone')
         ->and(Comment::query()->where('company_id', $result->company->id)->count())->toBe(1)
         ->and(Task::query()->where('lead_id', $result->lead->id)->count())->toBe(1)
         ->and(Activity::query()->where('company_id', $result->company->id)->where('action', 'company.created')->exists())->toBeTrue()
@@ -87,10 +86,28 @@ it('tek işlemde firma kişi fırsat görüşme yorum görev ve aktör izini olu
     expect((int) $companyAudit->actor_id)->toBe($actor->id)->and($companyAudit->source)->toBe('user');
 });
 
+it('son tarih vermeden takip görevi oluşturur', function (): void {
+    $actor = User::factory()->create(['email' => 'tarihsiz-gorev@example.invalid']);
+    $actor->assignRole('Pazarlama');
+    $version = ProgramVersion::query()->firstOrFail();
+    $interested = Status::query()->where('type', 'lead')->where('code', 'interested')->sole();
+
+    $result = app(CreateProspectIntake::class)->handle(
+        $actor,
+        intakeData('tarihsiz', $version->id, $interested->id, withTaskDueAt: false),
+    );
+
+    $task = Task::query()->where('lead_id', $result->lead->id)->sole();
+
+    expect($task->title)->toBe('Tekrar iletişim kur')
+        ->and($task->due_at)->toBeNull()
+        ->and($task->remind_at)->toBeNull();
+});
+
 it('fırsat ve görüşmeye başka firmanın kişisinin bağlanmasını veritabanında reddeder', function (): void {
     $actor = User::factory()->create();
-    $first = Company::query()->create(['legal_name' => 'Kurgusal Birinci Firma', 'city' => '06']);
-    $second = Company::query()->create(['legal_name' => 'Kurgusal İkinci Firma', 'city' => '35']);
+    $first = Company::query()->create(['legal_name' => 'Kurgusal Birinci Firma', 'city' => 'Ankara']);
+    $second = Company::query()->create(['legal_name' => 'Kurgusal İkinci Firma', 'city' => 'İzmir']);
     $foreignContact = Contact::query()->create(['company_id' => $second->id, 'full_name' => 'Kurgusal Yabancı Kişi', 'data_source' => 'other']);
     $status = Status::query()->where('type', 'lead')->where('is_initial', true)->sole();
 

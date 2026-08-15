@@ -45,6 +45,11 @@ final class ChecklistDealGateway
         return $this->toData(Deal::query()->lockForUpdate()->findOrFail($dealId));
     }
 
+    public function find(int $dealId): ChecklistDeal
+    {
+        return $this->toData(Deal::query()->findOrFail($dealId));
+    }
+
     /** @return list<int> */
     public function idsForCompany(int $companyId): array
     {
@@ -84,6 +89,7 @@ final class ChecklistDealGateway
     {
         return new ChecklistDeal(
             $deal->id,
+            $deal->reference_no,
             $deal->company_id,
             $deal->program_version_id,
             $deal->pm_user_id,

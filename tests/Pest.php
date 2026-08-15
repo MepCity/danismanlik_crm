@@ -33,7 +33,7 @@ function wp07bDealFixture(): array
     $actor = User::factory()->create(['email' => 'denetim-kullanici@example.invalid']);
     $company = Company::query()->create([
         'legal_name' => 'Kurgusal Denetim İşletmesi',
-        'city' => '06',
+        'city' => 'Ankara',
     ]);
     $program = Program::query()->create([
         'name' => 'Kurgusal Denetim Programı',
