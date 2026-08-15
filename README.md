@@ -8,8 +8,8 @@ sürümlenen evrak şablonu motorudur.
 ## Gereksinim
 
 Yalnızca **Docker** (Docker Desktop veya Docker Engine + Compose v2). Host'a PHP,
-Composer, PostgreSQL veya Redis **kurulmaz** — yerel PHP (`php@7.1`) kırık olduğu
-için tüm PHP/artisan/composer komutları container içinde çalışır.
+Composer, Node.js, npm, PostgreSQL veya Redis **kurulmaz** — tüm PHP, Composer ve
+ön yüz derleme komutları container içinde çalışır.
 
 ## Hızlı başlangıç
 
@@ -17,8 +17,10 @@ için tüm PHP/artisan/composer komutları container içinde çalışır.
 make up
 ```
 
-İlk ayağa kalkışta imaj derlenir, `app` container'ı `.env`'i `.env.example`'dan
-üretir, uygulama anahtarı oluşturulur. Açılış sonrası:
+İlk ayağa kalkışta Vite teması Node container'ında derlenir, Filament varlıkları
+yayınlanır, uygulama imajı hazırlanır ve `app` container'ı `.env`'i
+`.env.example`'dan üretip uygulama anahtarını oluşturur. Ayrı bir `npm install`
+adımı gerekmez. Açılış sonrası:
 
 | Servis            | Adres                          | Açıklama                          |
 |-------------------|--------------------------------|-----------------------------------|
@@ -34,6 +36,7 @@ make up
 
 ```bash
 make up            # servisleri ayağa kaldır (imajı derler)
+make assets        # çalışan ortamda Vite + Filament varlıklarını yeniden üretir
 make down          # durdur (volumeler kalır)
 make logs          # canlı log akışı
 make ps            # servis durumu

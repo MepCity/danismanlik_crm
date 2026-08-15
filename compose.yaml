@@ -30,6 +30,18 @@ x-app-env: &app-env
   PHP_IDE_CONFIG: serverName=tesvik-crm
 
 services:
+  assets:
+    image: node:24-bookworm-slim
+    working_dir: /var/www/html
+    user: "${USER_ID:-1000}:${GROUP_ID:-1000}"
+    environment:
+      HOME: /tmp/assets-home
+      npm_config_cache: /tmp/assets-home/.npm
+    volumes:
+      - .:/var/www/html
+    command: ["sh", "-c", "npm ci --ignore-scripts --no-audit --no-fund && npm run build"]
+    profiles: ["tools"]
+
   app:
     build:
       <<: *app-build
