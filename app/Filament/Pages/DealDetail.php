@@ -15,10 +15,12 @@ use App\Domain\Deal\Exceptions\StatusTransitionRejected;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Transition;
 use App\Domain\Deal\Services\StatusMachineContract;
+use App\Domain\Document\Exceptions\DocumentFileRejected;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Document\Models\DocumentRequirementSuggestion;
 use App\Domain\Document\Services\AdHocDocumentService;
 use App\Domain\Document\Services\DocumentAccessService;
+use App\Domain\Document\Services\DocumentArchiveService;
 use App\Domain\Document\Services\DocumentRequestService;
 use App\Domain\Document\Services\DocumentRequirementDecisionService;
 use App\Domain\Document\Services\DocumentStatusService;
@@ -228,6 +230,18 @@ final class DealDetail extends Page
     {
         $url = $service->temporaryUrl($fileId, (int) Auth::id());
         $this->redirect($url, navigate: false);
+    }
+
+    public function downloadAll(DocumentArchiveService $service): void
+    {
+        abort_unless(Auth::user()?->can('document.download') === true, 403);
+
+        try {
+            $url = $service->temporaryUrl($this->dealId, (int) Auth::id());
+            $this->redirect($url, navigate: false);
+        } catch (DocumentFileRejected $exception) {
+            $this->error($exception->getMessage());
+        }
     }
 
     public function sendMissingDocuments(

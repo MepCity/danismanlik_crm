@@ -184,6 +184,31 @@ it('yükleme sürümü artırır ve eski sürümü checklist geçmişinde erişi
     expect(File::query()->where('deal_document_id', $document->id)->pluck('version_no')->all())->toBe([1, 2]);
 });
 
+it('pazarlamacı kendi dosyasında belge yükleyip tekil ve toplu indirme işlemlerini görür', function (): void {
+    $fixture = operationsFixture('pazarlama-belge');
+    $fixture['deal']->update(['opened_by_user_id' => $fixture['marketing']->id]);
+    $document = operationDocument($fixture['deal'], 'Kurgusal Pazarlama Belgesi');
+    $file = app(DocumentUploadService::class)->upload(
+        $document->id,
+        UploadedFile::fake()->createWithContent('pazarlama.pdf', "%PDF-1.4\nKurgusal pazarlama\n%%EOF"),
+        $fixture['marketing']->id,
+    )->file;
+    $file->update(['scan_result' => 'clean']);
+    Auth::login($fixture['marketing']);
+
+    Livewire::test(DealDetail::class, ['deal' => $fixture['deal']->id])
+        ->set('activeTab', 'documents')
+        ->assertSee('Belge yükle')
+        ->assertSee('Son sürümü indir')
+        ->assertSee('Tüm güncel belgeleri indir')
+        ->set('uploadDocumentId', $document->id)
+        ->set('upload', UploadedFile::fake()->createWithContent('pazarlama-yeni.pdf', "%PDF-1.4\nKurgusal yeni sürüm\n%%EOF"))
+        ->call('uploadDocument')
+        ->assertHasNoErrors();
+
+    expect(File::query()->where('deal_document_id', $document->id)->count())->toBe(2);
+});
+
 it('bekleyen öneriyi iki ekranda gösterir ve her iki kararı uygular', function (): void {
     $fixture = operationsFixture('oneri');
     $acceptedDocument = operationDocument($fixture['deal'], 'Kurgusal Koşullu Belge A');

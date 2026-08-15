@@ -349,6 +349,35 @@ body {
     color: var(--crm-text);
 }
 
+.document-file-picker {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.document-file-picker input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.document-file-picker:focus-within {
+    border-color: var(--crm-accent-500);
+    outline: 3px solid var(--crm-focus-ring);
+}
+
+.document-file-name {
+    align-self: center;
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+}
+
 .intake-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(16rem, 21rem);
