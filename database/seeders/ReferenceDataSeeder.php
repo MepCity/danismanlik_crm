@@ -63,6 +63,7 @@ final class ReferenceDataSeeder extends Seeder
             'permissions' => [
                 'company.manage', 'lead.manage', 'interaction.manage', 'deal.create',
                 'deal.view_own', 'deal.view', 'collaboration.manage', 'task.manage',
+                'document.upload', 'document.download', 'document.view',
                 'program.view', 'audit.view_own',
                 'report.view',
             ],

@@ -8,6 +8,7 @@ final readonly class ChecklistDeal
 {
     public function __construct(
         public int $id,
+        public string $reference,
         public int $companyId,
         public int $programVersionId,
         public ?int $projectManagerId,

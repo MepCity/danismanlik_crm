@@ -81,6 +81,14 @@ it('sistem yöneticisini hassas iş verisi izinlerinden ayırır', function (): 
         ->and($role->hasPermissionTo('deal.view_all'))->toBeFalse();
 });
 
+it('pazarlamaya yalnız kendi kapsamındaki belgeleri yükleme ve indirme izni verir', function (): void {
+    $role = Role::findByName('Pazarlama');
+
+    expect($role->hasPermissionTo('document.upload'))->toBeTrue()
+        ->and($role->hasPermissionTo('document.download'))->toBeTrue()
+        ->and($role->hasPermissionTo('document.approve'))->toBeFalse();
+});
+
 it('dört rolün varsayılan veri kapsamını doğru kurar', function (): void {
     $scopes = DB::table('roles')->pluck('default_scope', 'name')->all();
 

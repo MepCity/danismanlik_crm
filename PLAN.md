@@ -943,6 +943,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.11 | 15.08.2026 | Belge listesinden yetkili kullanıcıların yeni belge sürümü yüklemesi ve güvenli sürümleri tek tek indirmesi görünür hale getirildi. Dosya genelindeki toplu indirme, her evrakın yalnızca son temiz sürümünü süreli imzalı bağlantıyla tek ZIP içinde sunar; bekleyen, zararlı veya silinmiş sürümler pakete alınmaz ve talep/indirme denetim akışına yazılır |
 | 1.10 | 15.08.2026 | Takip panosundaki açık fırsatlar aktif huni statüleri arasında ileri ve geri sürüklenebilir hale getirildi. Geri hareketler de statü makinesi, yetki kontrolü, statü geçmişi ve aktör denetiminden geçer; iş alındı, kaybedildi ve aranmak istemiyor gibi terminal statüler güvenlik gereği kapalı kalır |
 | 1.9 | 14.08.2026 | Veri kaynağı kullanıcı arayüzünden tamamen kaldırıldı. Yeni potansiyel müşteri ve firma kişisi kayıtlarında kaynak, kullanıcıya sorulmadan işlem bağlamından otomatik yazılır; mevcut KVKK/denetim geçmişi korunur |
 | 1.8 | 14.08.2026 | Görev son tarihi isteğe bağlı hale getirildi. Başlık ve atanan kişi görev için yeterlidir; son tarihi olmayan görevler açık görev listesinde tutulur, hatırlatma zamanı son tarihten bağımsız verilebilir |

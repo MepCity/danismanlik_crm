@@ -27,7 +27,10 @@ final class ActivityTranslator
             'document.ad_hoc_created', 'document.requirement_suggested', 'document.requirement_decided' => [
                 'document' => $this->snapshotLabel($payload['document'] ?? null),
             ],
-            'deal.documents_requested', 'deal.checklist_generated' => ['count' => $payload['document_count'] ?? 0],
+            'deal.documents_requested', 'deal.checklist_generated',
+            'deal.documents_archive_requested', 'deal.documents_archive_downloaded' => [
+                'count' => $payload['document_count'] ?? 0,
+            ],
             'deal.condition_documents_added' => ['documents' => implode(', ', (array) ($payload['document_names'] ?? []))],
             'document.access_requested', 'document.downloaded' => [
                 'document' => $subjectLabel ?? trans('collaboration.activity.document'),

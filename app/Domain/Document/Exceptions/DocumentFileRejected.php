@@ -42,4 +42,14 @@ final class DocumentFileRejected extends DomainException
     {
         return new self(trans('documents.errors.storage'));
     }
+
+    public static function archiveEmpty(): self
+    {
+        return new self(trans('documents.errors.archive_empty'));
+    }
+
+    public static function archiveFailed(): self
+    {
+        return new self(trans('documents.errors.archive_failed'));
+    }
 }

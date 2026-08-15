@@ -58,6 +58,8 @@ return [
             'document_requirement_suggested' => '":document" için zorunluluk değişikliği önerdi',
             'document_requirement_decided' => '":document" zorunluluk önerisini karara bağladı',
             'deal_documents_requested' => ':count evrakı firmadan talep etti',
+            'deal_documents_archive_requested' => ':count güncel belgeyi toplu indirmek istedi',
+            'deal_documents_archive_downloaded' => ':count güncel belgeyi ZIP olarak indirdi',
             'deal_checklist_generated' => ':count evraklık kontrol listesi oluşturdu',
             'deal_condition_documents_added' => '":documents" zorunlu hale geldi',
             'document_access_requested' => '":document" için sürüm :version erişimi istedi',

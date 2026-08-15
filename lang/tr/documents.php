@@ -16,6 +16,8 @@ return [
         'stub_production' => 'Stub virüs tarayıcısı üretim ortamında kullanılamaz.',
         'scan_failed' => 'Virüs taraması için geçici dosya hazırlanamadı.',
         'scanner_driver' => 'Bilinmeyen belge tarayıcı sürücüsü: :driver',
+        'archive_empty' => 'Toplu indirilebilecek, güvenlik taraması tamamlanmış belge bulunamadı.',
+        'archive_failed' => 'Belgeler ZIP dosyasına hazırlanamadı.',
     ],
     'scan' => [
         'infected_reason' => 'Dosyada zararlı içerik tespit edildi.',

@@ -155,7 +155,7 @@ it('evrak görüntülemeyi üst dosyanın kapsamından miras alır', function ()
     $own = scopedWorkGraph($marketing, 'DOCUMENT-INHERIT');
     $foreign = scopedWorkGraph(scopedUser('Pazarlama', 'evrak-miras-diger'), 'DOCUMENT-FOREIGN');
 
-    expect($marketing->can('document.view'))->toBeFalse()
+    expect($marketing->can('document.view'))->toBeTrue()
         ->and(Gate::forUser($marketing)->allows('view', $own['document']))->toBeTrue()
         ->and(Gate::forUser($marketing)->allows('view', $foreign['document']))->toBeFalse();
 });
