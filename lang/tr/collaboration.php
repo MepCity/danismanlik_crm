@@ -86,7 +86,7 @@ return [
         'description' => 'Yorumlar ve işlemler gerçekleşme sırasıyla birlikte gösterilir.',
         'empty' => 'Bu kayıt için henüz işlem yok.',
         'filters' => [
-            'label' => 'İşlem geçmişi filtreleri', 'all' => 'Tümü', 'status' => 'Statü',
+            'label' => 'İşlem geçmişi filtreleri', 'all' => 'Tümü', 'activity' => 'Geçmiş', 'status' => 'Statü',
             'document' => 'Evrak', 'comment' => 'Yorum',
         ],
         'previous' => 'Önceki', 'next' => 'Sonraki', 'page' => ':current / :last sayfa',

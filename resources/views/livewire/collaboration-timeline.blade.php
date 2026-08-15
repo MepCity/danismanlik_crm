@@ -1,14 +1,16 @@
-<section class="operations-panel timeline-panel" data-testid="timeline">
-    <header class="collaboration-header">
-        <div><h2>{{ __('collaboration.timeline.title') }}</h2><p>{{ __('collaboration.timeline.description') }}</p></div>
-        <div class="timeline-filters" aria-label="{{ __('collaboration.timeline.filters.label') }}">
-            @foreach (['all', 'status', 'document', 'comment'] as $option)
-                <button type="button" wire:click="setFilter('{{ $option }}')" class="timeline-filter {{ $filter === $option ? 'timeline-filter--active' : '' }}">
-                    {{ __('collaboration.timeline.filters.'.$option) }}
-                </button>
-            @endforeach
-        </div>
-    </header>
+<section class="timeline-panel {{ $embedded ? 'timeline-panel--embedded' : 'operations-panel' }}" data-testid="timeline">
+    @unless ($embedded)
+        <header class="collaboration-header">
+            <div><h2>{{ __('collaboration.timeline.title') }}</h2><p>{{ __('collaboration.timeline.description') }}</p></div>
+            <div class="timeline-filters" aria-label="{{ __('collaboration.timeline.filters.label') }}">
+                @foreach (['all', 'status', 'document', 'comment'] as $option)
+                    <button type="button" wire:click="setFilter('{{ $option }}')" class="timeline-filter {{ $filter === $option ? 'timeline-filter--active' : '' }}">
+                        {{ __('collaboration.timeline.filters.'.$option) }}
+                    </button>
+                @endforeach
+            </div>
+        </header>
+    @endunless
 
     <div class="timeline-list">
         @forelse ($timeline as $item)
