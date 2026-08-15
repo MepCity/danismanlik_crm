@@ -1,7 +1,16 @@
 <x-filament-panels::page>
     @if ($filterLabel !== null)<div class="operations-filter-banner" role="status">{{ __('reporting.dashboard.active_filter', ['filter' => $filterLabel]) }}</div>@endif
+    @php($boardDeals = $dealsByStatus->flatten())
     <div class="pipeline-workspace" x-data="{ draggedDeal: null }" data-testid="deal-board">
-        <header class="pipeline-toolbar"><div><span class="operations-label">{{ __('operations.board.eyebrow') }}</span><p>{{ __('operations.board.description') }}</p></div><div class="pipeline-toolbar__hint"><span aria-hidden="true">↔</span>{{ __('operations.board.drag_hint') }}</div></header>
+        <header class="pipeline-toolbar">
+            <div class="pipeline-toolbar__intro"><span class="operations-label">{{ __('operations.board.eyebrow') }}</span><p>{{ __('operations.board.description') }}</p></div>
+            <dl class="pipeline-overview">
+                <div><dt>{{ __('operations.board.metrics.active') }}</dt><dd class="numeric-data">{{ $boardDeals->count() }}</dd></div>
+                <div><dt>{{ __('operations.board.metrics.missing') }}</dt><dd class="numeric-data">{{ $boardDeals->sum('missing_documents_count') }}</dd></div>
+                <div><dt>{{ __('operations.board.metrics.unassigned') }}</dt><dd class="numeric-data">{{ $boardDeals->whereNull('pm_user_id')->count() }}</dd></div>
+            </dl>
+            <div class="pipeline-toolbar__hint"><span aria-hidden="true">↔</span>{{ __('operations.board.drag_hint') }}</div>
+        </header>
         <div class="pipeline-board-shell">
         <div class="pipeline-board" aria-label="{{ __('operations.board.title') }}" tabindex="0">
             @foreach ($statuses as $status)
@@ -20,7 +29,10 @@
                                 @click="$wire.openDeal({{ $deal->id }})" @keydown.enter.prevent="$wire.openDeal({{ $deal->id }})">
                                 <div class="pipeline-card__topline"><span class="pipeline-card__company">{{ $deal->company->legal_name }}</span><span class="pipeline-card__grip" aria-hidden="true">⠿</span></div>
                                 <div class="pipeline-card__context"><span class="pipeline-card__reference numeric-data">{{ $deal->reference_no }}</span><span class="pipeline-card__program">{{ $deal->programVersion->program->name }}</span></div>
-                                <div class="pipeline-card__footer"><span>{{ $deal->projectManager?->name ?? __('operations.board.unassigned') }}</span><span class="numeric-data">{{ $days === 0 ? __('operations.board.today') : __('operations.board.days', ['count' => $days]) }}</span></div>
+                                <div class="pipeline-card__footer">
+                                    <span class="pipeline-card__owner"><span aria-hidden="true">{{ \App\Filament\Support\CollaborationView::initials($deal->projectManager?->name ?? '?') }}</span>{{ $deal->projectManager?->name ?? __('operations.board.unassigned') }}</span>
+                                    <span class="numeric-data">{{ $days === 0 ? __('operations.board.today') : __('operations.board.days', ['count' => $days]) }}</span>
+                                </div>
                                 <div class="pipeline-card__progress"><span style="width: {{ $deal->documents_count > 0 ? round(($deal->received_documents_count / $deal->documents_count) * 100) : 0 }}%"></span></div>
                                 <div class="pipeline-card__documents numeric-data">{{ __('operations.board.counter', ['received' => $deal->received_documents_count, 'total' => $deal->documents_count, 'missing' => $deal->missing_documents_count, 'review' => $deal->review_documents_count, 'expired' => $deal->expired_documents_count]) }}</div>
                                 @if ($deal->pending_suggestions_count > 0)

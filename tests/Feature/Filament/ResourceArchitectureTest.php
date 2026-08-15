@@ -119,8 +119,9 @@ it('tasarım pilotunu pano ve dosya detayında görünür kılar', function (): 
         ->and($detail)->not->toBeFalse()
         ->and($board)->toContain('pipeline-scroll-cue')
         ->and($board)->toContain('pipeline-card__context')
-        ->and($detail)->toContain('deal-detail__summary')
-        ->and($detail)->toContain('deal-detail__content');
+        ->and($detail)->toContain('deal-workspace__grid')
+        ->and($detail)->toContain('deal-activity__filters')
+        ->and($detail)->not->toContain('deal-tabs');
 });
 
 it('panel markasını ve ürün alanını özel kabukta gösterir', function (): void {

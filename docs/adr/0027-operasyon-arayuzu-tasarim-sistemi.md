@@ -28,6 +28,9 @@ Arayüzün kalıcı yönü **sakin operasyon merkezi** olarak belirlenmiştir.
   hareket azaltma tercihi bütün animasyon ve geçişleri etkisizleştirir.
 - Filament SPA gezinmesi tam sayfa parlamasını azaltır. Destekleyen
   tarayıcılarda görünüm geçişi aynı kısa hareket sözleşmesine uyar.
+- Dosya detayı sekmeli bir kayıt görünümü değil, tek sayfalık çalışma alanıdır.
+  Şirket ve evrak akışı ana kolonda; süreç, ayrıntı ve ekip sağ panelde;
+  işbirliği hareketleri alttaki filtreli Etkinlik alanında tutulur.
 - Açık ve koyu tema ayrı yüzey tokenları taşır. Durum renkleri vurgu renginden
   bağımsızdır ve renk yanında biçimle de ifade edilir.
 - Masaüstü iki sütunlu iş istasyonları dar ekranda tek sütuna iner; temel işlem

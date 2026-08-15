@@ -53,7 +53,7 @@ final class DealDetail extends Page
 
     public int $dealId;
 
-    public string $activeTab = 'general';
+    public string $activeTab = 'overview';
 
     public ?int $uploadDocumentId = null;
 
