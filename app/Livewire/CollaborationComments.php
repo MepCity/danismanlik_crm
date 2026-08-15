@@ -114,10 +114,9 @@ final class CollaborationComments extends Component
     /** @return Collection<int, User> */
     private function mentionCandidates(): Collection
     {
-        $subject = $this->authorizeSubject();
+        $this->authorizeSubject();
 
-        return User::query()->where('is_active', true)->orderBy('name')->get()
-            ->filter(static fn (User $user): bool => Gate::forUser($user)->allows('view', $subject));
+        return User::query()->where('is_active', true)->orderBy('name')->get();
     }
 
     private function authorizeSubject(): Model
