@@ -64,6 +64,9 @@ return [
         'duration_minutes' => 'Süre (dakika)',
         'migration_target' => 'Toplu geçiş hedefi',
         'template_count' => 'Evrak sayısı',
+        'document_name' => 'Belge adı',
+        'document_description' => 'Belge açıklaması',
+        'application_period' => 'Başvuru süresi',
         'status' => 'Durum',
     ],
     'institutions' => [
@@ -122,6 +125,33 @@ return [
         'grant' => 'Acil erişim ver',
         'revoke' => 'İptal et',
     ],
+    'program_setup' => [
+        'sections' => [
+            'program' => [
+                'title' => 'Program bilgileri',
+                'description' => 'Programın adını, bağlı olduğu kurumu ve kullanım durumunu belirleyin.',
+            ],
+            'period' => [
+                'title' => 'Dönem ve başvuru süresi',
+                'description' => 'Programın geçerli çağrı dönemini ve varsa başvuru tarihlerini girin.',
+            ],
+            'documents' => [
+                'title' => 'Gerekli belgeler',
+                'description' => 'Dosya açıldığında proje yöneticisinin takip edeceği belge listesini sıralayın.',
+            ],
+        ],
+        'actions' => [
+            'new' => 'Yeni program',
+            'create' => 'Programı oluştur',
+        ],
+        'messages' => [
+            'created' => 'Program ve belge listesi oluşturuldu.',
+            'updated' => 'Program ve belge listesi güncellendi.',
+        ],
+        'add_document' => 'Belge ekle',
+        'new_document' => 'Yeni belge',
+        'period_range' => ':start – :end',
+    ],
     'messages' => [
         'not_set' => '—',
         'copied' => 'Yeni sürüm ve evrak şablonları kopyalandı.',
@@ -138,6 +168,9 @@ return [
         'expired' => 'Süresi doldu',
     ],
     'validation' => [
+        'documents_required' => 'En az bir gerekli belge ekleyin.',
+        'document_names_unique' => 'Aynı belge adı yalnız bir kez eklenebilir.',
+        'document_not_in_program' => 'Seçilen belge bu program dönemine ait değil.',
         'invalid_condition' => 'Koşul yalnız desteklenen alan ve operatörlerle kurulabilir.',
         'reason_required' => 'Değişiklik gerekçesi zorunludur.',
         'migration_target_inactive' => 'Toplu geçiş hedefi aktif olmalıdır.',

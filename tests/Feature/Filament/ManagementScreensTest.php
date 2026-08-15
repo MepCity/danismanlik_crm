@@ -7,6 +7,7 @@ use App\Domain\Program\Models\ProgramVersion;
 use App\Filament\Resources\BreakGlassGrants\BreakGlassGrantResource;
 use App\Filament\Resources\DocTemplates\DocTemplateResource;
 use App\Filament\Resources\DocTemplates\Pages\CreateDocTemplate;
+use App\Filament\Resources\Programs\Pages\CreateProgram;
 use App\Filament\Resources\Programs\ProgramResource;
 use App\Filament\Resources\ProgramVersions\ProgramVersionResource;
 use App\Filament\Resources\Roles\RoleResource;
@@ -78,6 +79,45 @@ it('yönetim kaynaklarının model etiketlerini açık ve tutarlı tanımlar', f
     'rol' => [RoleResource::class, 'Rol', 'Roller'],
     'acil erişim' => [BreakGlassGrantResource::class, 'Acil erişim', 'Acil erişimler'],
 ]);
+
+it('program yönetiminde teknik alt kaynakları menüden gizler', function (): void {
+    expect(ProgramResource::shouldRegisterNavigation())->toBeTrue()
+        ->and(ProgramVersionResource::shouldRegisterNavigation())->toBeFalse()
+        ->and(DocTemplateResource::shouldRegisterNavigation())->toBeFalse();
+});
+
+it('programı dönem ve belge listesiyle tek formdan oluşturur', function (): void {
+    $admin = wp15User('Sistem Yöneticisi', 'program-form-admin');
+    Auth::login($admin);
+
+    Livewire::test(CreateProgram::class)
+        ->assertSee('Programı oluştur')
+        ->assertDontSee('Oluştur ve yeni oluştur')
+        ->fillForm([
+            'name' => 'Kurgusal Tek Ekran Programı',
+            'institution' => 'tubitak',
+            'is_active' => true,
+            'call_period' => '2030 dönemi',
+            'application_opens_at' => '2030-02-01',
+            'application_closes_at' => '2030-04-30',
+            'description' => 'Kurgusal tek ekran testi.',
+            'documents' => [[
+                'name' => 'Kurgusal Teknik Form',
+                'description' => 'Kurgusal açıklama.',
+                'is_required' => true,
+                'accepted_formats' => ['pdf'],
+                'validity_days' => 90,
+            ]],
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $version = ProgramVersion::query()->where('call_period', '2030 dönemi')->firstOrFail();
+
+    expect($version->program->name)->toBe('Kurgusal Tek Ekran Programı')
+        ->and($version->docTemplates)->toHaveCount(1)
+        ->and($version->docTemplates->firstOrFail()->name)->toBe('Kurgusal Teknik Form');
+});
 
 it('bilinmeyen operatörlü koşulu evrak şablonu ekranında kaydetmez', function (): void {
     $admin = wp15User('Sistem Yöneticisi', 'kosul-operator-admin');

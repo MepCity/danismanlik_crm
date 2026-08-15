@@ -25,6 +25,8 @@ use Filament\Tables\Table;
 /** @extends ScopedResource<DocTemplate> */
 final class DocTemplateResource extends ScopedResource
 {
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $configurationPermission = 'program.manage';
 
     protected static ?string $model = DocTemplate::class;

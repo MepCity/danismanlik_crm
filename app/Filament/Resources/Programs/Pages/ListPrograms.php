@@ -14,6 +14,6 @@ final class ListPrograms extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [CreateAction::make()->label(__('management.actions.create'))];
+        return [CreateAction::make()->label(__('management.program_setup.actions.new'))];
     }
 }
