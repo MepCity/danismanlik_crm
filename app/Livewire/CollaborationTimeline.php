@@ -25,16 +25,20 @@ final class CollaborationTimeline extends Component
 
     public int $perPage = 25;
 
-    public function mount(string $subjectType, int $subjectId): void
+    public bool $embedded = false;
+
+    public function mount(string $subjectType, int $subjectId, string $filter = 'all', bool $embedded = false): void
     {
         $this->subjectType = $subjectType;
         $this->subjectId = $subjectId;
+        $this->setFilter($filter);
+        $this->embedded = $embedded;
         $this->timeline();
     }
 
     public function setFilter(string $filter): void
     {
-        abort_unless(in_array($filter, ['all', 'status', 'document', 'comment'], true), 422);
+        abort_unless(in_array($filter, ['all', 'activity', 'status', 'document', 'comment'], true), 422);
         $this->filter = $filter;
         $this->page = 1;
     }

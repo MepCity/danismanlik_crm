@@ -124,14 +124,15 @@ it('erişebilen kullanıcıya bahsetme bildirimi üretir', function (): void {
         ->and(Notification::query()->where('user_id', $fixture['officer']->id)->where('type', 'comment.mentioned')->exists())->toBeTrue();
 });
 
-it('müşteri sorgusundan iç yorumları kesin olarak dışlar', function (): void {
+it('yeni yorum ve yanıtları yalnız iç not olarak kaydeder', function (): void {
     $fixture = collaborationFixture();
     $subject = new SubjectReference(CollaborationSubjectType::Deal, $fixture['deal']->id);
     $service = app(CommentService::class);
-    $service->create($fixture['owner'], $subject, 'Yalnız ekip görür.', 'internal');
-    $public = $service->create($fixture['owner'], $subject, 'Müşteri görebilir.', 'customer');
+    $comment = $service->create($fixture['owner'], $subject, 'Yalnız ekip görür.');
+    $reply = $service->create($fixture['officer'], $subject, 'Ekip içi yanıt.', $comment->id);
 
-    expect($service->customerVisible($subject)->pluck('id')->all())->toBe([$public->id]);
+    expect($comment->visibility)->toBe('internal')
+        ->and($reply->visibility)->toBe('internal');
 });
 
 it('kapsam dışı özneye yorum yazmayı policy ile reddeder', function (): void {

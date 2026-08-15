@@ -33,13 +33,15 @@ final readonly class TimelineQuery
     ): LengthAwarePaginator {
         Gate::forUser($viewer)->authorize('view', $this->subjects->resolve($subject));
 
-        if (! in_array($filter, [null, 'status', 'document', 'comment'], true)) {
+        if (! in_array($filter, [null, 'activity', 'status', 'document', 'comment'], true)) {
             throw ValidationException::withMessages(['filter' => trans('collaboration.validation.timeline_filter')]);
         }
 
         $union = $filter === 'comment'
             ? $this->comments($subject)
-            : $this->activities($subject, $filter)->unionAll($this->comments($subject, $filter));
+            : ($filter === 'activity'
+                ? $this->activities($subject, $filter)
+                : $this->activities($subject, $filter)->unionAll($this->comments($subject, $filter)));
 
         $paginator = DB::query()
             ->fromSub($union, 'timeline')

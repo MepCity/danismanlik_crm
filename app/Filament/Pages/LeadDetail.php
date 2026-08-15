@@ -36,7 +36,7 @@ final class LeadDetail extends Page
 
     public ?int $interactionContactId = null;
 
-    public string $activeTab = 'general';
+    public string $activityFilter = 'comments';
 
     public function mount(int $lead): void
     {
@@ -94,6 +94,13 @@ final class LeadDetail extends Page
         Gate::authorize('update', $contact);
         $consents->handle($contact->id, (int) Auth::id());
         Notification::make()->title(__('marketing.messages.do_not_call_saved'))->success()->send();
+    }
+
+    public function setActivityFilter(string $filter): void
+    {
+        abort_unless(in_array($filter, ['comments', 'history', 'all'], true), 422);
+
+        $this->activityFilter = $filter;
     }
 
     /** @return array<string, mixed> */

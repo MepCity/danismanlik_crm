@@ -24,6 +24,8 @@ use Filament\Tables\Table;
 /** @extends ScopedResource<ProgramVersion> */
 final class ProgramVersionResource extends ScopedResource
 {
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $configurationPermission = 'program.manage';
 
     protected static ?string $model = ProgramVersion::class;

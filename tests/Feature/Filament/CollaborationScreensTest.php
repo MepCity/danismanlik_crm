@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Collaboration\DTOs\SubjectReference;
 use App\Domain\Collaboration\Enums\CollaborationSubjectType;
 use App\Domain\Collaboration\Models\Activity;
+use App\Domain\Collaboration\Models\Comment;
 use App\Domain\Collaboration\Services\CommentService;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Lead;
@@ -79,19 +80,18 @@ it('mention önerisinde sistemdeki tüm aktif kullanıcıları gösterir', funct
         ->assertSee('Kurgusal Gizli Kullanıcı');
 });
 
-it('müşteriye açık görünümden iç notu çıkarır ve görünürlük varsayılanını güvenli tutar', function (): void {
+it('yorum görünürlüğü seçeneğini göstermez ve yorumu iç not kaydeder', function (): void {
     $fixture = collaborationScreenFixture();
-    $subject = new SubjectReference(CollaborationSubjectType::Deal, $fixture['deal']->id);
-    app(CommentService::class)->create($fixture['owner'], $subject, 'Yalnız ekip içeriği.', 'internal');
-    app(CommentService::class)->create($fixture['owner'], $subject, 'Müşteri görünür içeriği.', 'customer');
     Auth::login($fixture['owner']);
 
     Livewire::test(CollaborationComments::class, ['subjectType' => 'deal', 'subjectId' => $fixture['deal']->id])
-        ->assertSet('visibility', 'internal')
-        ->assertSee('İç not');
-    Livewire::test(CollaborationComments::class, ['subjectType' => 'deal', 'subjectId' => $fixture['deal']->id, 'audience' => 'customer'])
-        ->assertSee('Müşteri görünür içeriği.')
-        ->assertDontSee('Yalnız ekip içeriği.');
+        ->assertDontSeeHtml('data-testid="visibility-selector"')
+        ->assertDontSee('Müşteriye açık')
+        ->set('body', 'Yalnız ekip içeriği.')
+        ->call('save')
+        ->assertSee('Yalnız ekip içeriği.');
+
+    expect(Comment::query()->latest('id')->value('visibility'))->toBe('internal');
 });
 
 it('mention formatını seçimle ekler ve okurken kişi adı olarak gösterir', function (): void {
@@ -224,7 +224,8 @@ it('zaman tüneli filtrelerini dosya fırsat ve evrak öznelerinde uygular', fun
 
     Livewire::test(CollaborationTimeline::class, ['subjectType' => 'deal', 'subjectId' => $fixture['deal']->id])
         ->call('setFilter', 'comment')->assertSee('Filtre yorumu.')->assertDontSee('statüyü')
-        ->call('setFilter', 'document')->assertSee('Kurgusal Başvuru Belgesi')->assertDontSee('Filtre yorumu.');
+        ->call('setFilter', 'document')->assertSee('Kurgusal Başvuru Belgesi')->assertDontSee('Filtre yorumu.')
+        ->call('setFilter', 'activity')->assertSee('statüyü')->assertDontSee('Filtre yorumu.');
     Auth::login($fixture['officer']);
     Livewire::test(CollaborationTimeline::class, ['subjectType' => 'lead', 'subjectId' => $fixture['lead']->id])->assertSee('fırsat statüsünü');
     Livewire::test(CollaborationTimeline::class, ['subjectType' => 'deal_document', 'subjectId' => $fixture['document']->id])->assertSee('Kurgusal Başvuru Belgesi');
@@ -253,10 +254,16 @@ it('zaman tüneli render sorgu sayısını kayıt sayısından bağımsız tutar
     expect($fiveQueries)->toBe($twentyFiveQueries)->toBeLessThanOrEqual(16);
 });
 
-it('dosya ve fırsat detayında yorum ile zaman tüneli sekmelerini bağlar', function (): void {
+it('dosya sekmelerini ve fırsatın birleşik etkinlik alanını bağlar', function (): void {
     $fixture = collaborationScreenFixture();
     Auth::login($fixture['owner']);
 
     Livewire::test(DealDetail::class, ['deal' => $fixture['deal']->id])->set('activeTab', 'comments')->assertSee('Yeni yorum');
-    Livewire::test(LeadDetail::class, ['lead' => $fixture['lead']->id])->set('activeTab', 'history')->assertSee('İşlem geçmişi');
+    Livewire::test(LeadDetail::class, ['lead' => $fixture['lead']->id])
+        ->assertSee('Etkinlik')
+        ->assertSee('Yeni yorum')
+        ->call('setActivityFilter', 'history')
+        ->assertSet('activityFilter', 'history')
+        ->call('setActivityFilter', 'all')
+        ->assertSet('activityFilter', 'all');
 });
