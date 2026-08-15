@@ -121,7 +121,35 @@ return [
         'owner' => 'Sahip',
         'status' => 'Statü',
         'program' => 'İlgilenilen program',
+        'primary_contact' => 'Birincil kişi',
+        'next_call' => 'Sonraki arama',
+        'not_planned' => 'Planlanmadı',
+        'city' => 'İl',
+        'created_at' => 'Oluşturulma',
+        'updated_at' => 'Son güncelleme',
         'converted_deal' => 'Devralan dosya',
+        'overview' => [
+            'eyebrow' => 'Fırsat özeti',
+            'title' => 'Temel bilgiler',
+        ],
+        'contacts' => [
+            'eyebrow' => 'Firma ekibi',
+            'title' => 'Kişiler',
+            'empty' => 'Bu firmada kayıtlı kişi yok.',
+        ],
+        'details' => [
+            'title' => 'Ayrıntılar',
+        ],
+        'activity' => [
+            'eyebrow' => 'Ortak çalışma',
+            'title' => 'Etkinlik',
+            'filters_label' => 'Etkinlik filtreleri',
+            'filters' => [
+                'comments' => 'Yorumlar',
+                'history' => 'Geçmiş',
+                'all' => 'Tümü',
+            ],
+        ],
         'tabs' => ['general' => 'Genel', 'contacts' => 'Kişiler', 'interactions' => 'Görüşmeler', 'comments' => 'Yorumlar', 'history' => 'İşlem geçmişi'],
     ],
     'consent' => [

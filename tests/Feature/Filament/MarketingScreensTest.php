@@ -165,6 +165,41 @@ it('engelli fırsatta gelen aramayı ayrı işaretle kaydeder', function (): voi
         ->and(Interaction::query()->where('lead_id', $fixture['lead']->id)->sole()->purpose)->toBe('marketing');
 });
 
+it('fırsat detayını tek sayfada sol sağ bilgiler ve birleşik etkinlikle gösterir', function (): void {
+    $owner = User::factory()->create(['name' => 'Kurgusal Fırsat Sahibi', 'email' => 'ekran-tek-sayfa@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $fixture = marketingScreenLead($owner, 'Tek Sayfa');
+    Auth::login($owner);
+
+    Livewire::test(LeadDetail::class, ['lead' => $fixture['lead']->id])
+        ->assertSee('Temel bilgiler')
+        ->assertSee('Kişiler')
+        ->assertSee('Görüşmeler')
+        ->assertSee('Ayrıntılar')
+        ->assertSee('Etkinlik')
+        ->assertSee('Yorumlar')
+        ->assertSee('Geçmiş')
+        ->assertSee('Tümü')
+        ->assertSee($fixture['company']->legal_name)
+        ->assertSee($fixture['contact']->full_name)
+        ->assertDontSeeHtml('class="deal-tabs"')
+        ->call('setActivityFilter', 'history')
+        ->assertSet('activityFilter', 'history')
+        ->call('setActivityFilter', 'all')
+        ->assertSet('activityFilter', 'all');
+});
+
+it('fırsat etkinliğinde tanımsız filtreyi reddeder', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-filtre-ret@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $fixture = marketingScreenLead($owner, 'Filtre Ret');
+    Auth::login($owner);
+
+    Livewire::test(LeadDetail::class, ['lead' => $fixture['lead']->id])
+        ->call('setActivityFilter', 'raw-audit')
+        ->assertStatus(422);
+});
+
 it('bugün ve geçmiş aramaları geciken önce sıralar ve geleceği dışarıda bırakır', function (): void {
     /** @var TestCase $this */
     $this->travelTo(now()->startOfDay()->addHours(12));

@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.10 — 15.08.2026
+> **Sürüm:** 1.13 — 16.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -942,6 +942,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.13 | 16.08.2026 | Fırsat detayı sekmeler yerine Jira benzeri tek sayfalık çalışma alanına dönüştürüldü. Temel bilgiler, kişiler ve görüşmeler sol akışta; statü, sahip, program ve takip bilgileri sağ ayrıntı panelinde; yorumlar ile okunabilir aktör geçmişi alttaki birleşik Etkinlik alanında Yorumlar / Geçmiş / Tümü filtreleriyle sunulur. Ham `audit_log` kullanıcı arayüzüne taşınmaz |
 | 1.12 | 15.08.2026 | Müşteri portalının olmayacağı kesinleştirildi. Yorum görünürlüğü seçimi kaldırıldı; tüm yeni yorumlar ve yanıtlar sunucu tarafında yalnız iç not olarak kaydedilir. Geçmiş kayıtlar denetim bütünlüğü için silinmez veya geriye dönük değiştirilmez |
 | 1.11 | 15.08.2026 | Belge listesinden yetkili kullanıcıların yeni belge sürümü yüklemesi ve güvenli sürümleri tek tek indirmesi görünür hale getirildi. Dosya genelindeki toplu indirme, her evrakın yalnızca son temiz sürümünü süreli imzalı bağlantıyla tek ZIP içinde sunar; bekleyen, zararlı veya silinmiş sürümler pakete alınmaz ve talep/indirme denetim akışına yazılır |
 | 1.10 | 15.08.2026 | Takip panosundaki açık fırsatlar aktif huni statüleri arasında ileri ve geri sürüklenebilir hale getirildi. Geri hareketler de statü makinesi, yetki kontrolü, statü geçmişi ve aktör denetiminden geçer; iş alındı, kaybedildi ve aranmak istemiyor gibi terminal statüler güvenlik gereği kapalı kalır |
