@@ -1,5 +1,15 @@
 <x-filament-panels::page>
     <div class="deal-detail" data-testid="deal-detail">
+        @php($documentTotal = $deal->documents->count())
+        @php($documentCompleted = $deal->documents->whereIn('status', ['accepted', 'not_required'])->count())
+        @php($documentMissing = $deal->documents->where('required_snapshot', true)->whereIn('status', ['to_request', 'requested', 'rejected', 'new_version_expected'])->count())
+        <section class="deal-detail__summary" aria-label="{{ __('operations.detail.summary.title') }}">
+            <div class="deal-detail__summary-item deal-detail__summary-item--status"><span>{{ __('operations.detail.summary.status') }}</span><strong>{!! \App\Filament\Support\StatusBadge::make($deal->status->color, $deal->status->label) !!}</strong></div>
+            <div class="deal-detail__summary-item"><span>{{ __('operations.detail.summary.manager') }}</span><strong>{{ $deal->projectManager?->name ?? __('operations.board.unassigned') }}</strong></div>
+            <div class="deal-detail__summary-item"><span>{{ __('operations.detail.summary.documents') }}</span><strong class="numeric-data">{{ __('operations.detail.summary.document_progress', ['completed' => $documentCompleted, 'total' => $documentTotal]) }}</strong><small class="{{ $documentMissing > 0 ? 'is-risk' : '' }}">{{ __('operations.detail.summary.missing', ['count' => $documentMissing]) }}</small></div>
+            <div class="deal-detail__summary-item"><span>{{ __('operations.detail.summary.updated') }}</span><strong class="numeric-data">{{ $deal->updated_at->format('d.m.Y H:i') }}</strong></div>
+        </section>
+
         <nav class="deal-tabs" aria-label="{{ __('operations.detail.title', ['reference' => $deal->reference_no]) }}">
             @foreach (['general', 'process', 'documents', 'tasks', 'comments', 'interactions', 'team', 'history'] as $tab)
                 <button type="button" wire:click="$set('activeTab', '{{ $tab }}')" class="deal-tab {{ $activeTab === $tab ? 'deal-tab--active' : '' }}">
@@ -8,6 +18,7 @@
             @endforeach
         </nav>
 
+        <div class="deal-detail__content" wire:key="deal-detail-tab-{{ $activeTab }}">
         @if ($activeTab === 'general')
             @php($wonHistory = $deal->originatingLead?->statusHistory?->first(fn ($history) => $history->status->converts_to_deal))
             @php($saleInteraction = $deal->originatingLead?->interactions?->first())
@@ -91,5 +102,6 @@
         @elseif ($activeTab === 'history')
             <livewire:collaboration-timeline subject-type="deal" :subject-id="$deal->id" :key="'deal-timeline-'.$deal->id" />
         @endif
+        </div>
     </div>
 </x-filament-panels::page>

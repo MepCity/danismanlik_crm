@@ -142,6 +142,20 @@ it('pano türev sayaçlarını deal_documents satırlarından doğru hesaplar', 
         ->assertSee('5/8 geldi · 2 eksik · 1 incelemede · 1 süresi doldu');
 });
 
+it('dosya detayında statü sorumlu ve evrak ilerlemesini özetler', function (): void {
+    $fixture = operationsFixture('ozet');
+    operationDocument($fixture['deal'], 'Kurgusal Tamamlanan Belge', 'accepted');
+    operationDocument($fixture['deal'], 'Kurgusal Eksik Belge', 'requested');
+    Auth::login($fixture['officer']);
+
+    Livewire::test(DealDetail::class, ['deal' => $fixture['deal']->id])
+        ->assertSee('Dosya özeti')
+        ->assertSee('Evrak ilerlemesi')
+        ->assertSee('1 / 2 tamamlandı')
+        ->assertSee('1 eksik zorunlu evrak')
+        ->assertSee($fixture['pm']->name);
+});
+
 it('reddedilen geçişte StatusMachine mesajını değiştirmeden ekranda gösterir', function (): void {
     $fixture = operationsFixture('gecis');
     operationDocument($fixture['deal'], 'Kurgusal Findeks Raporu');

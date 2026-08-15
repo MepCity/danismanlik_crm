@@ -64,9 +64,9 @@ it('tablo yoğunluğunu gerçek hücre sarmalayıcılarında uygular', function 
 
     expect($tokens)->not->toBeFalse()
         ->and($theme)->not->toBeFalse()
-        ->and($tokens)->toContain('--crm-row-height: 36px;')
+        ->and($tokens)->toContain('--crm-row-height: 38px;')
         ->and($tokens)->toContain('--crm-table-divider-width: 1px;')
-        ->and($tokens)->toContain('--crm-table-header-height: 32px;')
+        ->and($tokens)->toContain('--crm-table-header-height: 34px;')
         ->and($tokens)->toContain('--crm-pagination-height: 40px;')
         ->and($theme)->toContain('.fi-ta-cell > .fi-ta-col')
         ->and($theme)->toContain('min-height: calc(var(--crm-row-height) - var(--crm-table-divider-width));')
@@ -82,13 +82,45 @@ it('tasarım paketi ortak hareket ve erişilebilirlik sözleşmesini uygular', f
 
     expect($tokens)->not->toBeFalse()
         ->and($theme)->not->toBeFalse()
-        ->and($tokens)->toContain('--crm-duration-base: 180ms;')
-        ->and($tokens)->toContain('--crm-ease-out: cubic-bezier(0.16, 1, 0.3, 1);')
+        ->and($tokens)->toContain('--crm-duration-base: 170ms;')
+        ->and($tokens)->toContain('--crm-ease: cubic-bezier(0.16, 1, 0.3, 1);')
+        ->and($tokens)->toContain('--crm-radius-md: 0.625rem;')
+        ->and($tokens)->toContain('--crm-elevation-overlay:')
+        ->and($tokens)->toContain('--crm-surface-pressed:')
+        ->and($tokens)->toContain('--crm-border-focus:')
         ->and($theme)->toContain('@media (prefers-reduced-motion: reduce)')
+        ->and($theme)->toContain('@view-transition')
         ->and($theme)->toContain(':where(a, button, input, select, textarea, [tabindex]):focus-visible')
         ->and($theme)->toContain('outline: 2px solid var(--crm-focus-ring);')
         ->and($theme)->toContain('.operations-button:active')
         ->and($theme)->toContain('transform: translateY(0) scale(0.985);');
+});
+
+it('varlıkları host node kurulumu olmadan container içinde derler', function (): void {
+    $makefile = file_get_contents(base_path('Makefile'));
+    $compose = file_get_contents(base_path('compose.yaml'));
+    $provider = file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+
+    expect($makefile)->not->toBeFalse()
+        ->and($compose)->not->toBeFalse()
+        ->and($provider)->not->toBeFalse()
+        ->and($makefile)->toContain('up: frontend-assets')
+        ->and($makefile)->toContain('php artisan filament:assets --no-interaction')
+        ->and($compose)->toContain('image: node:24-bookworm-slim')
+        ->and($compose)->toContain('npm ci --ignore-scripts --no-audit --no-fund && npm run build')
+        ->and($provider)->toContain('->spa()');
+});
+
+it('tasarım pilotunu pano ve dosya detayında görünür kılar', function (): void {
+    $board = file_get_contents(resource_path('views/filament/pages/deal-board.blade.php'));
+    $detail = file_get_contents(resource_path('views/filament/pages/deal-detail.blade.php'));
+
+    expect($board)->not->toBeFalse()
+        ->and($detail)->not->toBeFalse()
+        ->and($board)->toContain('pipeline-scroll-cue')
+        ->and($board)->toContain('pipeline-card__context')
+        ->and($detail)->toContain('deal-detail__summary')
+        ->and($detail)->toContain('deal-detail__content');
 });
 
 it('panel markasını ve ürün alanını özel kabukta gösterir', function (): void {

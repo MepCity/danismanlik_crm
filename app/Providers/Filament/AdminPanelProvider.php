@@ -41,6 +41,7 @@ final class AdminPanelProvider extends PanelProvider
                 AppAuthentication::make()->recoverable()->codeWindow(4),
             ], isRequired: false)
             ->strictAuthorization()
+            ->spa()
             ->maxContentWidth(Width::Full)
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('17rem')

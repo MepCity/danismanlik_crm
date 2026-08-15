@@ -1905,7 +1905,17 @@ body {
 
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
     outline: 2px solid var(--crm-focus-ring);
-    outline-offset: 2px;
+    outline-offset: 3px;
+}
+
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: var(--crm-duration-base);
+    animation-timing-function: var(--crm-ease);
 }
 
 .fi-body,
@@ -2127,6 +2137,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: var(--crm-space-2);
+    min-height: var(--crm-control-height);
     border-radius: var(--crm-radius-md);
     box-shadow: none;
     font-weight: 680;
@@ -2136,6 +2147,7 @@ body {
 
 .fi-btn:hover,
 .operations-button:hover {
+    box-shadow: var(--crm-elevation-card);
     transform: translateY(-1px);
 }
 
@@ -2146,7 +2158,7 @@ body {
 
 .operations-button:not(.operations-button--primary):hover {
     background: var(--crm-surface-hover);
-    border-color: var(--crm-border-strong);
+    border-color: var(--crm-border-hover);
 }
 
 .operations-button--primary {
@@ -2166,6 +2178,8 @@ body {
 
 .operations-button[disabled],
 .fi-btn[disabled] {
+    background: var(--crm-surface-disabled);
+    color: var(--crm-text-disabled);
     cursor: not-allowed;
     opacity: 0.55;
     transform: none;
@@ -2184,6 +2198,7 @@ body {
 .quick-note textarea,
 .comment-composer textarea,
 .mention-picker select {
+    min-height: var(--crm-control-height);
     border-color: var(--crm-border);
     border-radius: var(--crm-radius-md);
     box-shadow: none;
@@ -2199,11 +2214,19 @@ body {
 .operations-inline-form select:hover,
 .operations-inline-form textarea:hover,
 .assignment-action select:hover {
-    border-color: var(--crm-border-strong);
+    border-color: var(--crm-border-hover);
 }
 
-.fi-input-wrp:focus-within {
-    border-color: var(--crm-accent-500);
+.fi-input-wrp:focus-within,
+.intake-field input:focus,
+.intake-field select:focus,
+.intake-field textarea:focus,
+.operations-inline-form input:focus,
+.operations-inline-form select:focus,
+.operations-inline-form textarea:focus,
+.comment-composer textarea:focus,
+.mention-picker select:focus {
+    border-color: var(--crm-border-focus);
     outline: 3px solid var(--crm-focus-ring);
     outline-offset: 0;
 }
@@ -2213,11 +2236,15 @@ body {
     background: var(--crm-surface-raised);
     border: 1px solid var(--crm-border-strong);
     border-radius: var(--crm-radius-lg);
-    box-shadow: none;
+    box-shadow: var(--crm-elevation-overlay);
 }
 
 .fi-dropdown-list-item:hover {
     background: var(--crm-surface-hover);
+}
+
+.fi-dropdown-list-item:active {
+    background: var(--crm-surface-pressed);
 }
 
 .fi-ta-header {
@@ -2446,6 +2473,7 @@ body {
 .report-tab--active {
     background: var(--crm-surface-panel);
     border-color: var(--crm-border-strong);
+    box-shadow: var(--crm-elevation-card);
     color: var(--crm-accent-700);
 }
 
@@ -2569,6 +2597,7 @@ body {
 .call-card:hover,
 .contact-card:hover {
     background: var(--crm-surface-hover);
+    box-shadow: var(--crm-elevation-card);
     transform: translateY(-1px);
 }
 
@@ -2653,7 +2682,7 @@ body {
 .fi-page > section,
 .fi-page > div,
 .fi-simple-main {
-    animation: crm-enter var(--crm-duration-slow) var(--crm-ease-out) both;
+    animation: crm-enter var(--crm-duration-slow) var(--crm-ease) both;
 }
 
 [wire\:loading] {
@@ -2748,6 +2777,117 @@ body {
 }
 
 /* Pipeline workspace — flat, direct and activity-led. */
+.deal-detail {
+    display: grid;
+    gap: var(--crm-space-4);
+}
+
+.deal-detail__summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: hidden;
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-lg);
+    background: var(--crm-surface-panel);
+}
+
+.deal-detail__summary-item {
+    display: grid;
+    align-content: center;
+    min-height: 5rem;
+    gap: var(--crm-space-1);
+    padding: var(--crm-space-3) var(--crm-space-4);
+    border-inline-end: 1px solid var(--crm-border);
+}
+
+.deal-detail__summary-item:last-child {
+    border-inline-end: 0;
+}
+
+.deal-detail__summary-item > span {
+    color: var(--crm-text-subtle);
+    font-size: var(--crm-text-2xs);
+    font-weight: 700;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+}
+
+.deal-detail__summary-item strong {
+    overflow: hidden;
+    color: var(--crm-text);
+    font-size: var(--crm-text-sm);
+    font-weight: 680;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.deal-detail__summary-item small {
+    color: var(--crm-text-subtle);
+    font-size: var(--crm-text-2xs);
+}
+
+.deal-detail__summary-item small.is-risk {
+    color: var(--crm-status-danger-fg);
+}
+
+.deal-detail__summary-item--status strong {
+    overflow: visible;
+}
+
+.deal-detail .deal-tabs {
+    gap: 0;
+    padding: 0;
+    overflow-x: auto;
+    border: 0;
+    border-block-end: 1px solid var(--crm-border);
+    border-radius: 0;
+    background: transparent;
+    scrollbar-width: none;
+}
+
+.deal-detail .deal-tab {
+    position: relative;
+    flex: 0 0 auto;
+    min-height: var(--crm-control-height);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.deal-detail .deal-tab:hover {
+    background: var(--crm-surface-hover);
+    transform: none;
+}
+
+.deal-detail .deal-tab--active {
+    box-shadow: none;
+    color: var(--crm-accent-700);
+}
+
+.deal-detail .deal-tab--active::after {
+    position: absolute;
+    height: 2px;
+    border-radius: var(--crm-radius-full);
+    background: var(--crm-accent-500);
+    content: '';
+    inset-block-end: -1px;
+    inset-inline: var(--crm-space-3);
+}
+
+.deal-detail__content {
+    min-width: 0;
+    animation: crm-enter var(--crm-duration-base) var(--crm-ease) both;
+}
+
+.deal-detail .operations-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.deal-detail .operations-fact {
+    min-height: 4.75rem;
+    padding: var(--crm-space-3) var(--crm-space-4);
+}
+
 .pipeline-workspace {
     overflow: hidden;
     border: 1px solid var(--crm-border);
@@ -2789,14 +2929,48 @@ body {
     display: flex;
     min-height: 35rem;
     overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-color: var(--crm-border-strong) var(--crm-surface-muted);
+    scrollbar-width: thin;
     scroll-snap-type: x proximity;
+}
+
+.pipeline-board-shell {
+    position: relative;
+}
+
+.pipeline-board-shell::after {
+    position: absolute;
+    width: 2.75rem;
+    background: linear-gradient(to right, transparent, var(--crm-surface-panel));
+    content: '';
+    inset-block: 0 2rem;
+    inset-inline-end: 0;
+    pointer-events: none;
+}
+
+.pipeline-scroll-cue {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--crm-space-2);
+    min-height: 2rem;
+    border-block-start: 1px solid var(--crm-border);
+    background: var(--crm-surface-muted);
+    color: var(--crm-text-subtle);
+    font-size: var(--crm-text-2xs);
+}
+
+.pipeline-scroll-cue span {
+    color: var(--crm-accent-500);
+    font-size: var(--crm-text-base);
 }
 
 .pipeline-stage {
     flex: 0 0 17.5rem;
     min-width: 0;
     border-inline-end: 1px solid var(--crm-border);
-    background: var(--crm-surface-page);
+    background: color-mix(in srgb, var(--crm-surface-page) 72%, var(--crm-surface-panel));
     scroll-snap-align: start;
     transition: background-color var(--crm-duration-fast) var(--crm-ease-standard);
 }
@@ -2807,6 +2981,7 @@ body {
 
 .pipeline-stage--target {
     background: var(--crm-surface-active);
+    box-shadow: inset 0 0 0 2px var(--crm-focus-ring);
 }
 
 .pipeline-stage__header {
@@ -2848,17 +3023,21 @@ body {
     border-radius: var(--crm-radius-md);
     background: var(--crm-surface-panel);
     cursor: grab;
-    transition: border-color var(--crm-duration-fast) var(--crm-ease-standard), transform var(--crm-duration-fast) var(--crm-ease-out), opacity var(--crm-duration-fast) var(--crm-ease-standard);
+    box-shadow: var(--crm-elevation-card);
+    transition: background-color var(--crm-duration-base) var(--crm-ease), border-color var(--crm-duration-base) var(--crm-ease), box-shadow var(--crm-duration-base) var(--crm-ease), transform var(--crm-duration-base) var(--crm-ease), opacity var(--crm-duration-fast) var(--crm-ease);
 }
 
 .pipeline-card:hover,
 .pipeline-card:focus-visible {
-    border-color: var(--crm-accent-300);
+    border-color: var(--crm-border-hover);
+    background: color-mix(in srgb, var(--crm-surface-panel) 92%, var(--crm-surface-hover));
+    box-shadow: var(--crm-elevation-card);
     outline: none;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
 }
 
 .pipeline-card--dragging {
+    box-shadow: var(--crm-elevation-overlay);
     opacity: 0.45;
     cursor: grabbing;
     transform: rotate(1deg) scale(0.98);
@@ -2879,8 +3058,9 @@ body {
 .pipeline-card__company {
     overflow: hidden;
     color: var(--crm-text);
-    font-size: var(--crm-text-sm);
-    font-weight: 650;
+    font-size: var(--crm-text-base);
+    font-weight: 720;
+    letter-spacing: -0.018em;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -2888,14 +3068,42 @@ body {
 .pipeline-card__grip {
     color: var(--crm-text-subtle);
     font-size: var(--crm-text-lg);
+    opacity: 0.42;
+    transition: opacity var(--crm-duration-fast) var(--crm-ease);
+}
+
+.pipeline-card:hover .pipeline-card__grip,
+.pipeline-card:focus-visible .pipeline-card__grip {
+    opacity: 1;
+}
+
+.pipeline-card__context {
+    display: grid;
+    gap: var(--crm-space-1);
+    margin-block-start: var(--crm-space-2);
 }
 
 .pipeline-card__program,
 .pipeline-card__reference {
-    margin-block-start: var(--crm-space-2);
     color: var(--crm-text-muted);
     font-size: var(--crm-text-xs);
     line-height: 1.35;
+}
+
+.pipeline-card__reference {
+    width: fit-content;
+    padding: 0 var(--crm-space-1);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-sm);
+    background: var(--crm-surface-muted);
+    color: var(--crm-text-subtle);
+    font-size: var(--crm-text-2xs);
+}
+
+.pipeline-card__program {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .pipeline-card__footer {
@@ -2937,6 +3145,20 @@ body {
     margin-block-start: var(--crm-space-1);
     color: var(--crm-text-subtle);
     font-size: var(--crm-text-2xs);
+}
+
+.pipeline-card__suggestion {
+    display: flex;
+    align-items: center;
+    gap: var(--crm-space-1);
+    margin-block-start: var(--crm-space-2);
+    padding: var(--crm-space-1) var(--crm-space-2);
+    border-inline-start: 2px solid var(--crm-status-waiting-fg);
+    border-radius: var(--crm-radius-sm);
+    background: var(--crm-status-waiting-bg);
+    color: var(--crm-status-waiting-fg);
+    font-size: var(--crm-text-2xs);
+    font-weight: 650;
 }
 
 .pipeline-stage__empty {
@@ -3271,6 +3493,18 @@ body {
 }
 
 @media (max-width: 64rem) {
+    .deal-detail__summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .deal-detail__summary-item:nth-child(2) {
+        border-inline-end: 0;
+    }
+
+    .deal-detail__summary-item:nth-child(-n + 2) {
+        border-block-end: 1px solid var(--crm-border);
+    }
+
     .pipeline-toolbar,
     .call-workspace__header {
         align-items: flex-start;
@@ -3299,6 +3533,22 @@ body {
 }
 
 @media (max-width: 40rem) {
+    .deal-detail__summary,
+    .deal-detail .operations-facts {
+        grid-template-columns: 1fr;
+    }
+
+    .deal-detail__summary-item,
+    .deal-detail__summary-item:nth-child(2) {
+        min-height: 4.25rem;
+        border-inline-end: 0;
+        border-block-end: 1px solid var(--crm-border);
+    }
+
+    .deal-detail__summary-item:last-child {
+        border-block-end: 0;
+    }
+
     .pipeline-toolbar__hint { white-space: normal; }
     .pipeline-stage { flex-basis: 84vw; }
     .call-workspace__header { padding: var(--crm-space-4); }
