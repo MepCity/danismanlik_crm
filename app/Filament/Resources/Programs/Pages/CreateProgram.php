@@ -30,7 +30,7 @@ final class CreateProgram extends CreateRecord
         return parent::getCreateFormAction()->label(__('management.program_setup.actions.create'));
     }
 
-    protected function getCreatedNotificationTitle(): ?string
+    protected function getCreatedNotificationTitle(): string
     {
         return __('management.program_setup.messages.created');
     }

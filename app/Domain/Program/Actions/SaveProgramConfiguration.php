@@ -64,6 +64,8 @@ final class SaveProgramConfiguration
      */
     private function validate(array $data, ?Program $program, ?ProgramVersion $version): array
     {
+        $programId = $program === null ? 0 : $program->id;
+
         $validator = Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
             'institution' => ['required', Rule::in(array_keys((array) trans('management.institutions')))],
@@ -73,8 +75,8 @@ final class SaveProgramConfiguration
                 'string',
                 'max:255',
                 Rule::unique('program_versions', 'call_period')
-                    ->where(fn (Builder $query): Builder => $query->where('program_id', $program?->id ?? 0))
-                    ->ignore($version?->id),
+                    ->where(fn (Builder $query): Builder => $query->where('program_id', $programId))
+                    ->ignore($version === null ? null : $version->id),
             ],
             'application_opens_at' => ['nullable', 'date'],
             'application_closes_at' => ['nullable', 'date', 'after:application_opens_at'],

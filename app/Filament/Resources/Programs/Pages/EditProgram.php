@@ -51,7 +51,7 @@ final class EditProgram extends EditRecord
         return app(SaveProgramConfiguration::class)->execute($record, $data, $actor);
     }
 
-    protected function getSavedNotificationTitle(): ?string
+    protected function getSavedNotificationTitle(): string
     {
         return __('management.program_setup.messages.updated');
     }

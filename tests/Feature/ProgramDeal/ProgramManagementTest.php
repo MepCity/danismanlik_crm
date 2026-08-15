@@ -171,7 +171,7 @@ it('belgesiz program tanımını açık doğrulama hatasıyla reddeder', functio
             'documents' => [],
         ], $actor);
 
-        test()->fail('Belgesiz program doğrulaması çalışmadı.');
+        throw new RuntimeException('Belgesiz program doğrulaması çalışmadı.');
     } catch (ValidationException $exception) {
         expect($exception->errors()['documents'])->toContain('En az bir gerekli belge ekleyin.');
     }
