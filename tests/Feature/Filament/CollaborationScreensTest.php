@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Collaboration\DTOs\SubjectReference;
 use App\Domain\Collaboration\Enums\CollaborationSubjectType;
 use App\Domain\Collaboration\Models\Activity;
+use App\Domain\Collaboration\Models\Comment;
 use App\Domain\Collaboration\Services\CommentService;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Lead;
@@ -79,19 +80,18 @@ it('mention önerisinde sistemdeki tüm aktif kullanıcıları gösterir', funct
         ->assertSee('Kurgusal Gizli Kullanıcı');
 });
 
-it('müşteriye açık görünümden iç notu çıkarır ve görünürlük varsayılanını güvenli tutar', function (): void {
+it('yorum görünürlüğü seçeneğini göstermez ve yorumu iç not kaydeder', function (): void {
     $fixture = collaborationScreenFixture();
-    $subject = new SubjectReference(CollaborationSubjectType::Deal, $fixture['deal']->id);
-    app(CommentService::class)->create($fixture['owner'], $subject, 'Yalnız ekip içeriği.', 'internal');
-    app(CommentService::class)->create($fixture['owner'], $subject, 'Müşteri görünür içeriği.', 'customer');
     Auth::login($fixture['owner']);
 
     Livewire::test(CollaborationComments::class, ['subjectType' => 'deal', 'subjectId' => $fixture['deal']->id])
-        ->assertSet('visibility', 'internal')
-        ->assertSee('İç not');
-    Livewire::test(CollaborationComments::class, ['subjectType' => 'deal', 'subjectId' => $fixture['deal']->id, 'audience' => 'customer'])
-        ->assertSee('Müşteri görünür içeriği.')
-        ->assertDontSee('Yalnız ekip içeriği.');
+        ->assertDontSeeHtml('data-testid="visibility-selector"')
+        ->assertDontSee('Müşteriye açık')
+        ->set('body', 'Yalnız ekip içeriği.')
+        ->call('save')
+        ->assertSee('Yalnız ekip içeriği.');
+
+    expect(Comment::query()->latest('id')->value('visibility'))->toBe('internal');
 });
 
 it('mention formatını seçimle ekler ve okurken kişi adı olarak gösterir', function (): void {

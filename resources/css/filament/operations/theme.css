@@ -911,7 +911,6 @@ body {
 
 .comment-composer__header,
 .comment-composer__actions,
-.visibility-selector,
 .mention-picker,
 .comment-meta,
 .comment-actions {
@@ -944,36 +943,6 @@ body {
 
 .comment-composer textarea:focus {
     outline: 0;
-}
-
-.visibility-selector {
-    gap: var(--crm-space-1);
-}
-
-.visibility-option {
-    display: inline-flex;
-    align-items: center;
-    min-height: 1.75rem;
-    padding-inline: var(--crm-space-2);
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--crm-radius-sm);
-    color: var(--crm-text-muted);
-    font-size: var(--crm-text-xs);
-    cursor: pointer;
-}
-
-.visibility-option input {
-    width: var(--crm-space-3);
-    height: var(--crm-space-3);
-    margin-inline-end: var(--crm-space-1);
-    accent-color: var(--crm-accent-500);
-}
-
-.visibility-option--selected {
-    background: var(--crm-surface-muted);
-    border-color: var(--crm-border);
-    color: var(--crm-text);
 }
 
 .mention-picker {
@@ -1054,20 +1023,6 @@ body {
 .comment-actions {
     color: var(--crm-text-muted);
     font-size: var(--crm-text-xs);
-}
-
-.comment-visibility {
-    padding: var(--crm-space-1) var(--crm-space-2);
-    background: var(--crm-surface-muted);
-    border: 1px solid var(--crm-border);
-    border-radius: 999px;
-    color: var(--crm-text-muted);
-    font-size: var(--crm-text-2xs);
-    font-weight: 650;
-}
-
-.comment-visibility[data-visibility='customer'] {
-    color: var(--crm-status-success-fg);
 }
 
 .comment-thread p,
@@ -2265,15 +2220,13 @@ body {
 }
 
 .quick-result,
-.timeline-filter,
-.visibility-option {
+.timeline-filter {
     cursor: pointer;
     transition: background-color var(--crm-duration-base) var(--crm-ease-out), border-color var(--crm-duration-base) var(--crm-ease-out), color var(--crm-duration-base) var(--crm-ease-out), transform var(--crm-duration-fast) var(--crm-ease-out);
 }
 
 .quick-result:hover,
-.timeline-filter:hover,
-.visibility-option:hover {
+.timeline-filter:hover {
     border-color: var(--crm-border-strong);
     transform: translateY(-1px);
 }

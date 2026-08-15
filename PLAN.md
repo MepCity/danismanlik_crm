@@ -554,7 +554,7 @@ Kurallar:
 
 - Her dosyanın altında; ayrıca fırsat ve belge satırı seviyesinde
 - **@bahsetme** → bildirim
-- **Görünürlük:** `iç not` / `müşteriye açık` — müşteri portalı Faz 3'te gelince geçmiş temizlenmek zorunda kalmasın
+- Yorumların tamamı yalnız sistem kullanıcılarına açık **iç not** niteliğindedir; müşteri görünürlüğü ve müşteri portalı yoktur
 - Düzenlenebilir ama "düzenlendi" işareti + önceki sürüm denetim kaydında kalır
 - Yorumlar denetim kayıtlarından **ayrı** tutulur
 
@@ -889,11 +889,10 @@ Kişi başı lisans yok — kullanıcı eklemek bedava. *(Karşılaştırma: ki�
 1. **Ekip hangi dili biliyor?** → K-03 yığın seçimi buna bağlı.
 2. **Kaç kullanıcı, yılda kaç dosya?** → şimdilik 15 kullanıcı / 500 dosya varsayıldı.
 3. **İlk sürümde hangi destek programları?** → Faz 0 çıktısı, gerçek evrak listeleriyle.
-4. **Müşteri portalı v1'de mi?** → kapsamı ~%25 büyütür; yorum görünürlüğü kararını bugün etkiliyor.
-5. **Mevcut veri var mı?** (Excel / eski CRM) → ayrı iş kalemi, ayrı fiyat.
-6. **Şirket e-postası nerede?** (Google Workspace / M365) → SSO ve e-posta iliştirme kolaylaşır.
-7. **Ücretlendirme nasıl?** Sabit mi, başarı primi mi, onaylanan tutarın yüzdesi mi? Ara ödeme? → "yüzde" ise küçük bir hakediş/tahsilat takibi gerekir (muhasebe modülü **değil**: sözleşme tutarı, başarı primi, hakediş, fatura durumu, tahsilat durumu). **Tutarı PM görecek mi?** — yetki matrisindeki tek gri alan.
-8. **Belge hacmi ne?** → OCR'ın fazını belirler: ayda kaç belge, e-posta mı WhatsApp mı, kaçı taranmış görüntü, yanlış sınıflandırmanın maliyeti, belgeler dış AI servisine gönderilebilir mi (KVKK).
+4. **Mevcut veri var mı?** (Excel / eski CRM) → ayrı iş kalemi, ayrı fiyat.
+5. **Şirket e-postası nerede?** (Google Workspace / M365) → SSO ve e-posta iliştirme kolaylaşır.
+6. **Ücretlendirme nasıl?** Sabit mi, başarı primi mi, onaylanan tutarın yüzdesi mi? Ara ödeme? → "yüzde" ise küçük bir hakediş/tahsilat takibi gerekir (muhasebe modülü **değil**: sözleşme tutarı, başarı primi, hakediş, fatura durumu, tahsilat durumu). **Tutarı PM görecek mi?** — yetki matrisindeki tek gri alan.
+7. **Belge hacmi ne?** → OCR'ın fazını belirler: ayda kaç belge, e-posta mı WhatsApp mı, kaçı taranmış görüntü, yanlış sınıflandırmanın maliyeti, belgeler dış AI servisine gönderilebilir mi (KVKK).
 
 ---
 
@@ -912,7 +911,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 ## 19. Sonraki adımlar
 
-1. §18'deki 8 soruyu müşteri/ekiple netleştir
+1. §18'deki 7 soruyu müşteri/ekiple netleştir
 2. **Faz 0 kabul kriterlerini yaz** — "atölye yapıldı" değil, ölçülebilir çıktı: statü listesi onaylandı · en az 3 programın gerçek evrak listesi girildi · rol/izin matrisi imzalandı · polymorphic subject deseni seçildi (§10.0) · veri göçü kapsamı belirlendi
 3. Yığın kararını ver (K-03) + framework sürümü için teknik spike
 4. Faz 0 atölyesini planla
@@ -943,6 +942,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.12 | 15.08.2026 | Müşteri portalının olmayacağı kesinleştirildi. Yorum görünürlüğü seçimi kaldırıldı; tüm yeni yorumlar ve yanıtlar sunucu tarafında yalnız iç not olarak kaydedilir. Geçmiş kayıtlar denetim bütünlüğü için silinmez veya geriye dönük değiştirilmez |
 | 1.11 | 15.08.2026 | Belge listesinden yetkili kullanıcıların yeni belge sürümü yüklemesi ve güvenli sürümleri tek tek indirmesi görünür hale getirildi. Dosya genelindeki toplu indirme, her evrakın yalnızca son temiz sürümünü süreli imzalı bağlantıyla tek ZIP içinde sunar; bekleyen, zararlı veya silinmiş sürümler pakete alınmaz ve talep/indirme denetim akışına yazılır |
 | 1.10 | 15.08.2026 | Takip panosundaki açık fırsatlar aktif huni statüleri arasında ileri ve geri sürüklenebilir hale getirildi. Geri hareketler de statü makinesi, yetki kontrolü, statü geçmişi ve aktör denetiminden geçer; iş alındı, kaybedildi ve aranmak istemiyor gibi terminal statüler güvenlik gereği kapalı kalır |
 | 1.9 | 14.08.2026 | Veri kaynağı kullanıcı arayüzünden tamamen kaldırıldı. Yeni potansiyel müşteri ve firma kişisi kayıtlarında kaynak, kullanıcıya sorulmadan işlem bağlamından otomatik yazılır; mevcut KVKK/denetim geçmişi korunur |

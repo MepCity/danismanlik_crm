@@ -289,12 +289,12 @@ final class DemoDataSeeder extends Seeder
         $internal = Comment::query()->where('deal_id', $deal->id)->where('body', 'Firma eksik imza sayfasını yarın iletecek.')->first();
 
         if ($internal === null) {
-            $internal = $comments->create($projectManager, $subject, 'Firma eksik imza sayfasını yarın iletecek.', 'internal');
-            $comments->create($marketing, $subject, 'Takip planına eklendi; yarın yeniden kontrol edeceğim.', 'internal', $internal->id);
+            $internal = $comments->create($projectManager, $subject, 'Firma eksik imza sayfasını yarın iletecek.');
+            $comments->create($marketing, $subject, 'Takip planına eklendi; yarın yeniden kontrol edeceğim.', $internal->id);
         }
 
         if (! Comment::query()->where('deal_id', $deal->id)->where('body', 'Başvuru evraklarınızı incelemeye aldık.')->exists()) {
-            $comments->create($projectManager, $subject, 'Başvuru evraklarınızı incelemeye aldık.', 'customer');
+            $comments->create($projectManager, $subject, 'Başvuru evraklarınızı incelemeye aldık.');
         }
 
         Activity::query()->firstOrCreate(

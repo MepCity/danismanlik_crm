@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Support\Audit\ActorSource;
 use App\Support\Collaboration\SubjectModelResolver;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -29,15 +28,14 @@ final readonly class CommentService
         User $actor,
         SubjectReference $subject,
         string $body,
-        string $visibility = 'internal',
         ?int $parentId = null,
     ): Comment {
         Gate::forUser($actor)->authorize('create', Comment::class);
         $subjectModel = $this->subjects->resolve($subject);
         Gate::forUser($actor)->authorize('view', $subjectModel);
-        $this->validate($body, $visibility);
+        $this->validate($body);
 
-        return $this->transactions->run(ActorSource::User, $actor->id, function () use ($actor, $subject, $subjectModel, $body, $visibility, $parentId): Comment {
+        return $this->transactions->run(ActorSource::User, $actor->id, function () use ($actor, $subject, $subjectModel, $body, $parentId): Comment {
             if ($parentId !== null) {
                 $parent = Comment::query()->findOrFail($parentId);
                 Gate::forUser($actor)->authorize('view', $parent);
@@ -53,7 +51,7 @@ final readonly class CommentService
                 'user_id' => $actor->id,
                 'body' => trim($body),
                 'mentions' => $mentionIds,
-                'visibility' => $visibility,
+                'visibility' => 'internal',
                 'parent_id' => $parentId,
             ]);
 
@@ -63,20 +61,18 @@ final readonly class CommentService
         });
     }
 
-    public function edit(User $actor, Comment $comment, string $body, ?string $visibility = null): Comment
+    public function edit(User $actor, Comment $comment, string $body): Comment
     {
         Gate::forUser($actor)->authorize('update', $comment);
-        $nextVisibility = $visibility ?? $comment->visibility;
-        $this->validate($body, $nextVisibility);
+        $this->validate($body);
         $subject = $this->referenceFor($comment);
         $subjectModel = $this->subjects->resolve($subject);
 
-        return $this->transactions->run(ActorSource::User, $actor->id, function () use ($actor, $comment, $body, $nextVisibility, $subject, $subjectModel): Comment {
+        return $this->transactions->run(ActorSource::User, $actor->id, function () use ($actor, $comment, $body, $subject, $subjectModel): Comment {
             $previousMentions = $comment->mentions;
             $mentionIds = $this->visibleMentionIds($body, $subjectModel);
             $comment->update([
                 'body' => trim($body),
-                'visibility' => $nextVisibility,
                 'mentions' => $mentionIds,
                 'edited_at' => now(),
             ]);
@@ -84,15 +80,6 @@ final readonly class CommentService
 
             return $comment->refresh();
         });
-    }
-
-    /** @return Builder<Comment> */
-    public function customerVisible(SubjectReference $subject): Builder
-    {
-        return Comment::query()
-            ->where($subject->type->column(), $subject->id)
-            ->where('visibility', 'customer')
-            ->with('user');
     }
 
     /** @return list<int> */
@@ -133,14 +120,10 @@ final readonly class CommentService
         throw new AuthorizationException;
     }
 
-    private function validate(string $body, string $visibility): void
+    private function validate(string $body): void
     {
         if (trim($body) === '') {
             throw ValidationException::withMessages(['body' => trans('collaboration.validation.body_required')]);
-        }
-
-        if (! in_array($visibility, ['internal', 'customer'], true)) {
-            throw ValidationException::withMessages(['visibility' => trans('collaboration.validation.visibility')]);
         }
     }
 }

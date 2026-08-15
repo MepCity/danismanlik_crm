@@ -23,11 +23,7 @@ final class CollaborationComments extends Component
 
     public int $subjectId;
 
-    public string $audience = 'internal';
-
     public string $body = '';
-
-    public string $visibility = 'internal';
 
     public ?int $parentId = null;
 
@@ -35,12 +31,10 @@ final class CollaborationComments extends Component
 
     public ?int $mentionUserId = null;
 
-    public function mount(string $subjectType, int $subjectId, string $audience = 'internal'): void
+    public function mount(string $subjectType, int $subjectId): void
     {
-        abort_unless(in_array($audience, ['internal', 'customer'], true), 422);
         $this->subjectType = $subjectType;
         $this->subjectId = $subjectId;
-        $this->audience = $audience;
         $this->authorizeSubject();
     }
 
@@ -64,7 +58,6 @@ final class CollaborationComments extends Component
         $comment = $this->comment($commentId);
         Gate::authorize('update', $comment);
         $this->body = $comment->body;
-        $this->visibility = $comment->visibility;
         $this->parentId = null;
         $this->editingId = $comment->id;
     }
@@ -76,38 +69,35 @@ final class CollaborationComments extends Component
 
     public function save(CommentService $comments): void
     {
-        abort_unless($this->audience === 'internal', 403);
         $this->validate([
             'body' => ['required', 'string', 'max:10000'],
-            'visibility' => ['required', 'in:internal,customer'],
         ]);
         $actor = Auth::user();
         abort_unless($actor !== null, 403);
 
         if ($this->editingId !== null) {
-            $comments->edit($actor, $this->comment($this->editingId), $this->body, $this->visibility);
+            $comments->edit($actor, $this->comment($this->editingId), $this->body);
         } else {
-            $comments->create($actor, $this->subject(), $this->body, $this->visibility, $this->parentId);
+            $comments->create($actor, $this->subject(), $this->body, $this->parentId);
         }
 
         $this->resetComposer();
         $this->dispatch('comments-updated');
     }
 
-    public function render(CommentService $comments): View
+    public function render(): View
     {
         $this->authorizeSubject();
-        $query = $this->audience === 'customer'
-            ? $comments->customerVisible($this->subject())
-            : Comment::query()->where($this->subject()->type->column(), $this->subjectId)->with('user');
-        $commentRows = $query->whereNull('parent_id')
+        $commentRows = Comment::query()
+            ->where($this->subject()->type->column(), $this->subjectId)
+            ->whereNull('parent_id')
             ->with(['replies' => fn ($query) => $query->with('user')->oldest(), 'user'])
             ->oldest()
             ->get();
 
         return view('livewire.collaboration-comments', [
             'comments' => $commentRows,
-            'mentionCandidates' => $this->audience === 'internal' ? $this->mentionCandidates() : collect(),
+            'mentionCandidates' => $this->mentionCandidates(),
         ]);
     }
 
@@ -145,7 +135,6 @@ final class CollaborationComments extends Component
     private function resetComposer(): void
     {
         $this->reset('body', 'parentId', 'editingId', 'mentionUserId');
-        $this->visibility = 'internal';
         $this->resetValidation();
     }
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 return [
     'validation' => [
         'body_required' => 'Yorum metni zorunludur.',
-        'visibility' => 'Yorum görünürlüğü geçersiz.',
         'parent_subject' => 'Yanıtlanan yorum aynı kayda ait olmalıdır.',
         'subject' => 'İlgili kayıt bulunamadı.',
         'task_title' => 'Görev başlığı zorunludur.',
@@ -95,7 +94,6 @@ return [
     'comments' => [
         'title' => 'Yeni yorum', 'reply_title' => 'Yanıt yaz', 'edit_title' => 'Yorumu düzenle',
         'placeholder' => 'Ekip için kısa ve bağlama bağlı bir not yazın…',
-        'visibility' => ['internal' => 'İç not', 'customer' => 'Müşteriye açık'],
         'mention' => 'Kişiden bahset', 'choose_person' => 'Kişi seçin', 'add_mention' => 'Bahset',
         'publish' => 'Yorumu yayımla', 'save_edit' => 'Değişikliği kaydet', 'cancel' => 'Vazgeç',
         'empty' => 'Henüz yorum yok.', 'edited' => 'düzenlendi', 'reply' => 'Yanıtla', 'edit' => 'Düzenle',

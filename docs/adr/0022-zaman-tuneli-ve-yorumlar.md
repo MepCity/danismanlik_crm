@@ -2,7 +2,7 @@
 
 ## Durum
 
-Kabul edildi
+Kabul edildi — yorum görünürlüğü kararı 15.08.2026 tarihinde güncellendi
 
 ## Bağlam
 
@@ -21,10 +21,10 @@ sonucunu gösterir; aktivite payload'ı Blade'e verilmez ve cümleler
 `ActivityTranslator` çıktısıdır. Filtreleme ve sayfalama sorgu katmanına
 iletilir. Otomasyon satırları “Sistem” aktörü ve ayrı durum zeminiyle görünür.
 
-Yorum bileşeni yazma ve düzenlemede yalnız `CommentService` çağırır. Varsayılan
-görünürlük `internal`dır; “İç not” ile “Müşteriye açık” hem metin, hem zemin,
-hem kenar şeridiyle ayrılır. Müşteriye açık okuma modu mevcut
-`customerVisible()` sorgusunu kullanır ve iç notları sunucu tarafında dışlar.
+Yorum bileşeni yazma ve düzenlemede yalnız `CommentService` çağırır. Sisteme
+müşteri girişi ve müşteri portalı olmayacağı için görünürlük seçimi sunulmaz;
+servis tüm yeni yorum ve yanıtları `internal` olarak kaydeder. Önceden oluşmuş
+kayıtların görünürlük değeri denetim bütünlüğü için geriye dönük değiştirilmez.
 Silme aksiyonu yoktur.
 
 Mention için kullanıcı ham `@[Ad](user:ID)` biçimini yazmaz. Arayüz yalnız
@@ -38,7 +38,6 @@ kapı olarak kalır.
 - Aynı bileşenler dosya, fırsat ve evrak bağlamında tekrar kullanılabilir.
 - Geçmiş statü etiketinin güncel yapılandırmaya göre değişmesi veya ham JSON'un
   arayüze sızması mümkün değildir.
-- Portal Faz 3'te geldiğinde müşteri görünümü geçmiş temizliği gerektirmeden
-  aynı görünürlük sorgusunu tüketebilir.
+- Müşteriye açık yorum seçeneği ve müşteri okuma modu ürün kapsamından çıkarılmıştır.
 - Gerçek zamanlı güncelleme eklenmemiştir; açık gereksinim oluşursa mevcut
   bileşenler olayla yenilenebilir.
