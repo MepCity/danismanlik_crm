@@ -150,6 +150,16 @@ it('kapsam dışı id ile doğrudan erişimi policy katmanında reddeder', funct
     expect(Gate::forUser($marketing)->allows('view', $foreign['deal']))->toBeFalse();
 });
 
+it('evrak görüntülemeyi üst dosyanın kapsamından miras alır', function (): void {
+    $marketing = scopedUser('Pazarlama', 'evrak-miras');
+    $own = scopedWorkGraph($marketing, 'DOCUMENT-INHERIT');
+    $foreign = scopedWorkGraph(scopedUser('Pazarlama', 'evrak-miras-diger'), 'DOCUMENT-FOREIGN');
+
+    expect($marketing->can('document.view'))->toBeFalse()
+        ->and(Gate::forUser($marketing)->allows('view', $own['document']))->toBeTrue()
+        ->and(Gate::forUser($marketing)->allows('view', $foreign['document']))->toBeFalse();
+});
+
 it('kullanıcı kapsam ezmesini uygular ve çok rolde en dar kapsamı seçer', function (): void {
     $overridden = scopedUser('Pazarlama', 'kapsam-ezme');
     $overridden->update(['data_scope' => 'all']);
