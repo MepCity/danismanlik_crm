@@ -8,6 +8,7 @@ use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $code
  * @property bool $is_active
  * @property-read Collection<int, ProgramVersion> $versions
+ * @property-read ProgramVersion|null $latestVersion
  */
 #[Fillable(['name', 'institution', 'code', 'is_active'])]
 final class Program extends Model
@@ -24,6 +26,12 @@ final class Program extends Model
     public function versions(): HasMany
     {
         return $this->hasMany(ProgramVersion::class);
+    }
+
+    /** @return HasOne<ProgramVersion, $this> */
+    public function latestVersion(): HasOne
+    {
+        return $this->hasOne(ProgramVersion::class)->latestOfMany();
     }
 
     /** @return array<string, string> */
