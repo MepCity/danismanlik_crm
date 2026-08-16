@@ -254,11 +254,15 @@ it('zaman tüneli render sorgu sayısını kayıt sayısından bağımsız tutar
     expect($fiveQueries)->toBe($twentyFiveQueries)->toBeLessThanOrEqual(16);
 });
 
-it('dosya sekmelerini ve fırsatın birleşik etkinlik alanını bağlar', function (): void {
+it('dosya ve fırsatın birleşik etkinlik alanını bağlar', function (): void {
     $fixture = collaborationScreenFixture();
     Auth::login($fixture['owner']);
 
-    Livewire::test(DealDetail::class, ['deal' => $fixture['deal']->id])->set('activeTab', 'comments')->assertSee('Yeni yorum');
+    Livewire::test(DealDetail::class, ['deal' => $fixture['deal']->id])
+        ->assertSee('Etkinlik')
+        ->assertDontSeeHtml('class="deal-tabs"')
+        ->set('activeTab', 'comments')
+        ->assertSet('activeTab', 'comments');
     Livewire::test(LeadDetail::class, ['lead' => $fixture['lead']->id])
         ->assertSee('Etkinlik')
         ->assertSee('Yeni yorum')

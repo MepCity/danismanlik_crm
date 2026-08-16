@@ -43,12 +43,19 @@
     --crm-surface-raised: var(--crm-neutral-0);
     --crm-surface-hover: var(--crm-accent-50);
     --crm-surface-active: var(--crm-accent-100);
+    --crm-surface-pressed: color-mix(in srgb, var(--crm-accent-100) 72%, var(--crm-neutral-0));
+    --crm-surface-disabled: var(--crm-neutral-100);
     --crm-border: var(--crm-neutral-200);
     --crm-border-strong: var(--crm-neutral-300);
+    --crm-border-hover: color-mix(in srgb, var(--crm-accent-300) 58%, var(--crm-neutral-300));
+    --crm-border-focus: var(--crm-accent-500);
     --crm-text: var(--crm-neutral-900);
     --crm-text-muted: var(--crm-neutral-600);
     --crm-text-subtle: var(--crm-neutral-500);
+    --crm-text-disabled: var(--crm-neutral-400);
     --crm-focus-ring: var(--crm-accent-200);
+    --crm-elevation-card: 0 1px 2px rgba(16, 23, 32, 0.055);
+    --crm-elevation-overlay: 0 14px 36px rgba(16, 23, 32, 0.14);
 
     --crm-font-ui: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
     --crm-font-data: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -69,19 +76,22 @@
     --crm-space-8: 2rem;
     --crm-space-10: 2.5rem;
     --crm-radius-sm: 0.375rem;
-    --crm-radius-md: 0.5rem;
-    --crm-radius-lg: 0.75rem;
+    --crm-radius-md: 0.625rem;
+    --crm-radius-lg: 0.875rem;
     --crm-radius-xl: 1rem;
+    --crm-radius-full: 999px;
     --crm-duration-fast: 120ms;
-    --crm-duration-base: 180ms;
-    --crm-duration-slow: 240ms;
-    --crm-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-    --crm-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --crm-duration-base: 170ms;
+    --crm-duration-slow: 220ms;
+    --crm-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --crm-ease-out: var(--crm-ease);
+    --crm-ease-standard: var(--crm-ease);
     --crm-content-max: 112rem;
     --crm-sidebar-width: 17rem;
+    --crm-control-height: 40px;
     --crm-table-divider-width: 1px;
-    --crm-row-height: 36px;
-    --crm-table-header-height: 32px;
+    --crm-row-height: 38px;
+    --crm-table-header-height: 34px;
     --crm-pagination-height: 40px;
 
     --primary-50: var(--crm-accent-50) !important;
@@ -140,10 +150,17 @@
     --crm-surface-raised: #1b2532;
     --crm-surface-hover: #202d41;
     --crm-surface-active: #263653;
+    --crm-surface-pressed: #2c3d59;
+    --crm-surface-disabled: #202a37;
     --crm-border: #303d4e;
     --crm-border-strong: #425168;
+    --crm-border-hover: #587092;
+    --crm-border-focus: var(--crm-accent-500);
     --crm-text: #e8edf4;
     --crm-text-muted: #a9b5c5;
     --crm-text-subtle: #7f90a5;
+    --crm-text-disabled: #66778d;
     --crm-focus-ring: #354a9a;
+    --crm-elevation-card: none;
+    --crm-elevation-overlay: 0 16px 40px rgba(3, 7, 12, 0.32);
 }

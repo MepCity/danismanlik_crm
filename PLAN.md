@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.14 — 16.08.2026
+> **Sürüm:** 1.16 — 16.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -247,14 +247,17 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 
 **Gerekçe:** Saf Filament en hızlısı ama günlük kullanılan ekranlar jenerik CRUD gibi durur. Ayrı bir React ön yüzü ise ikinci bir oturum, ikinci bir tasarım sistemi ve haftalarca ek iş demek. Hibrit, tek çatı altında kalırken ekibin yaşadığı 5 ekrana özel tasarım imkânı verir.
 
-**Tasarım referansı — ERPNext DEĞİL.** ERPNext'in arayüzü işlevsel ama yoğun ve tarihi eski; müşteri zaten onu reddetti, görsel dilini kopyalamak ters sinyal olur. Referans alınacaklar: **Linear**, **Attio**, **Twenty CRM** — yoğun ama nefes alan, ince kenarlıklı, gölgesiz, tek vurgu renkli, güçlü tipografik hiyerarşi.
+**Tasarım referansı — ERPNext DEĞİL.** ERPNext'in arayüzü işlevsel ama yoğun ve tarihi eski; müşteri zaten onu reddetti, görsel dilini kopyalamak ters sinyal olur. Referans alınacaklar: **Linear**, **Attio**, **Twenty CRM** — yoğun ama nefes alan, ince kenarlıklı, tek vurgu renkli, güçlü tipografik hiyerarşi.
 
 **Bağlayıcı tasarım kuralları** (WP-14'te token olarak kodlanır, sonraki tüm paketler bunlara uyar):
 
 - **Tek vurgu rengi.** Durum renkleri (bekliyor / tamam / gecikmiş / iptal) vurgu renginden ayrıdır ve yalnızca durum bildirir.
 - **Nötr renkler seçilir, miras alınmaz** — hafif mavi-gri eğilimli gri skala; saf `#808080` kullanılmaz.
-- **Gölge yerine kenarlık.** Kart ve panel ayrımı 1px kenarlık + arka plan tonu ile, `box-shadow` yığını ile değil.
-- **Yoğunluk operasyonel.** Satır yüksekliği kompakt; bir ekranda 25–30 dosya görünmeli, 8 değil.
+- **Katman ayrımı önce kenarlıkla.** Durağan kart ve paneller 1px kenarlık + arka plan tonuyla ayrılır. Yalnız etkileşimli kartın üzerine gelindiğinde çok hafif yükselti; menü, modal ve çekmece gibi geçici katmanlarda tek bir kaplama gölgesi kullanılabilir. Koyu temadaki durağan kartlar gölgesizdir.
+- **Yoğunluk operasyonel.** Form kontrolleri 40px, yoğun tablo satırları 38px ritmindedir; bir ekranda 25–30 dosya görünmeli, 8 değil.
+- **Hareket anlam taşır.** Tek hareket eğrisi ve 120/170/220 ms süreleri kullanılır; geçişler yalnız odak, durum ve katman değişimini açıklar. Hareket azaltma tercihi tüm hareketleri etkisizleştirir.
+- **Sayfa geçişi süreklidir.** Filament SPA gezinmesi tam sayfa parlamasını azaltır; tarayıcı desteği varsa aynı kısa hareket sözleşmesiyle görünüm geçişi uygulanır.
+- **Dosya detayı tek çalışma alanıdır.** Ayrı sekmeler yerine şirket ve satış bağlamı ile evrak listesi ana akışta; süreç, ayrıntı ve ekip sabit sağ panelde; yorum, görev, görüşme ve geçmiş alttaki birleşik Etkinlik alanında sunulur.
 - **Durum formla da kodlanır**, sadece renkle değil — rozet, şerit, ikon. Renk körlüğü ve siyah-beyaz çıktı için.
 - **Sayısal sütunlarda `tabular-nums`.**
 - **Açık ve koyu tema**, ikisi de tasarlanır — biri diğerinin ters çevrilmişi değil.
@@ -942,6 +945,8 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.16 | 16.08.2026 | İlk görsel pilotun fazla muhafazakâr kalması üzerine dosya detayı gerçek bir tek sayfalık çalışma alanına dönüştürüldü. Sekmeler kaldırıldı; şirket/satış bağlamı ve evrak listesi ana akışa, süreç geçişleri–ayrıntılar–ekip sabit sağ panele, yorum–görev–görüşme–geçmiş filtreli Etkinlik alanına taşındı. Dosya panosuna açık dosya, eksik evrak ve atanmamış iş özetleri ile aktör avatarları eklendi |
+| 1.15 | 16.08.2026 | “Dengeli” arayüz yönü kesinleştirildi: durağan yüzeylerde kenarlık önceliği korunurken etkileşimli kartlarda çok hafif yükselti, geçici katmanlarda tek kaplama gölgesi tanımlandı. Form ve tablo ritmi 40/38 px olarak ayrıldı; tek hareket eğrisi ve 120/170/220 ms süreleri benimsendi. Filament SPA gezinmesi, Docker içinde tekrarlanabilir ön yüz derlemesi ve dosya panosu/detayında pilot bilgi hiyerarşisi eklendi |
 | 1.14 | 16.08.2026 | Program, çağrı dönemi/başvuru süresi ve gerekli belge listesi tek bir yönetim ekranında toplanır. `program_versions` ve `doc_templates` geçmiş dosyaların bağlı olduğu tanımı korumak için veri modelinde kalır ancak ayrı ana menüler olarak gösterilmez. Birleşik kayıtta program, güncel dönem ve belgeler tek transaction ile oluşturulur; düzenlemede listeden çıkarılan belge silinmez, pasifleştirilir |
 | 1.13 | 16.08.2026 | Fırsat detayı sekmeler yerine Jira benzeri tek sayfalık çalışma alanına dönüştürüldü. Temel bilgiler, kişiler ve görüşmeler sol akışta; statü, sahip, program ve takip bilgileri sağ ayrıntı panelinde; yorumlar ile okunabilir aktör geçmişi alttaki birleşik Etkinlik alanında Yorumlar / Geçmiş / Tümü filtreleriyle sunulur. Ham `audit_log` kullanıcı arayüzüne taşınmaz |
 | 1.12 | 15.08.2026 | Müşteri portalının olmayacağı kesinleştirildi. Yorum görünürlüğü seçimi kaldırıldı; tüm yeni yorumlar ve yanıtlar sunucu tarafında yalnız iç not olarak kaydedilir. Geçmiş kayıtlar denetim bütünlüğü için silinmez veya geriye dönük değiştirilmez |

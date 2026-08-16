@@ -9,6 +9,8 @@ return [
         'eyebrow' => 'Proje operasyonu',
         'description' => 'Dosyaları süreç aşamaları arasında taşıyın; ayrıntı için karta tıklayın.',
         'drag_hint' => 'Kartları sürükleyerek statüyü değiştirin',
+        'scroll_hint' => 'Diğer aşamalar için yatay kaydırın',
+        'metrics' => ['active' => 'Açık dosya', 'missing' => 'Eksik evrak', 'unassigned' => 'Atanmamış'],
         'invalid_drop' => 'Bu iki statü arasında izinli bir geçiş yok.',
         'detail_title' => 'Dosya ayrıntısı',
         'documents_short' => 'evrak',
@@ -24,6 +26,24 @@ return [
     'detail' => [
         'title' => ':reference dosyası',
         'subtitle' => ':company · :program',
+        'summary' => [
+            'title' => 'Dosya özeti',
+            'status' => 'Mevcut statü',
+            'manager' => 'Sorumlu',
+            'documents' => 'Evrak ilerlemesi',
+            'document_progress' => ':completed / :total tamamlandı',
+            'missing' => ':count eksik zorunlu evrak',
+            'updated' => 'Son güncelleme',
+        ],
+        'workspace' => [
+            'context_eyebrow' => 'İş bağlamı',
+            'context' => 'Müşteri ve satış özeti',
+            'activity_eyebrow' => 'Ortak çalışma',
+            'activity' => 'Etkinlik',
+            'process_eyebrow' => 'Sonraki adım',
+            'process' => 'Süreci ilerlet',
+            'details' => 'Ayrıntılar',
+        ],
         'tabs' => [
             'general' => 'Genel', 'process' => 'Süreç', 'documents' => 'Belge listesi',
             'tasks' => 'Görevler', 'comments' => 'Yorumlar', 'interactions' => 'Görüşmeler',

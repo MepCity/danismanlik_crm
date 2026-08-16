@@ -18,7 +18,7 @@ APP          := app
 USER_ID     ?= $(shell id -u)
 GROUP_ID    ?= $(shell id -g)
 
-.PHONY: help up down restart build rebuild logs ps shell \
+.PHONY: help up assets frontend-assets down restart build rebuild logs ps shell \
         artisan composer php tinker migrate fresh fresh-test seed seed-demo test \
         minio-bucket clean purge-demo \
         lint lint-fix analyse test test-coverage prod-build prod-preflight
@@ -35,8 +35,16 @@ rebuild: ## İmajları temizleyip yeniden derle
 	$(COMPOSE) build --no-cache --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) app
 	$(COMPOSE) build --no-cache --build-arg USER_ID=$(USER_ID) --build-arg GROUP_ID=$(GROUP_ID) queue scheduler
 
-up: ## Servisleri ayağa kaldır (arka planda; gerekirse imajı derler)
+frontend-assets: ## Vite varlıklarını Node container'ında derle
+	USER_ID=$(USER_ID) GROUP_ID=$(GROUP_ID) $(COMPOSE) run --rm assets
+
+assets: frontend-assets ## Ön yüz ve Filament varlıklarını güvenilir biçimde üret
+	@$(COMPOSE) ps --status running --services | grep -qx '$(APP)' || (echo "Önce 'make up' ile app servisini başlatın." && exit 1)
+	$(COMPOSE) exec $(APP) php artisan filament:assets --no-interaction
+
+up: frontend-assets ## Varlıkları üretip servisleri ayağa kaldır
 	$(COMPOSE) up -d --build
+	$(COMPOSE) exec $(APP) php artisan filament:assets --no-interaction
 	@echo ""
 	@echo "Uygulama : http://localhost:$$(grep '^WEB_PORT=' .env 2>/dev/null | cut -d= -f2 || echo 8088)"
 	@echo "Mailpit  : http://localhost:$$(grep '^PUBLISH_MAILPIT_WEB_PORT=' .env 2>/dev/null | cut -d= -f2 || echo 8025)"
