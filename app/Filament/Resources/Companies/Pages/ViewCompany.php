@@ -11,6 +11,8 @@ use App\Filament\Resources\Companies\CompanyResource;
 use App\Filament\Support\CompanyOpportunityAction;
 use App\Filament\Support\CustomerFlowAction;
 use App\Support\Authorization\ScopedQuery;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -64,6 +66,14 @@ final class ViewCompany extends ViewRecord
             CompanyOpportunityAction::make(),
             EditAction::make()->label(__('panel.company_directory.edit')),
         ];
+    }
+
+    /**
+     * @return array<Action|ActionGroup>
+     */
+    public function getCachedHeaderActions(): array
+    {
+        return [];
     }
 
     public function setActivityFilter(string $filter): void

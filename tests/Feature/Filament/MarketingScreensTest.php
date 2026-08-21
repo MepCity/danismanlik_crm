@@ -286,7 +286,7 @@ it('firma detayını jira tarzı tek sayfada sekmeler olmadan iki kolon ve katla
         ->and($view)->toContain('company-tasks-section')
         ->and($view)->toContain('company-activity-section');
 
-    Livewire::test(ViewCompany::class, ['record' => $fixture['company']->getRouteKey()])
+    $test = Livewire::test(ViewCompany::class, ['record' => $fixture['company']->getRouteKey()])
         ->assertSee('Kişiler')
         ->assertSee('Fırsatlar')
         ->assertSee('Projeler')
@@ -296,6 +296,7 @@ it('firma detayını jira tarzı tek sayfada sekmeler olmadan iki kolon ve katla
         ->assertSee('Müşteri Oluştur')
         ->assertSee('Fırsat aç / arama planla')
         ->assertSee('Firma bilgilerini düzenle')
+        ->assertDontSeeHtml('fi-header-actions-ctn')
         ->assertSee($fixture['company']->legal_name)
         ->assertSee($fixture['contact']->full_name)
         ->assertDontSeeHtml('class="deal-tabs"')
@@ -308,6 +309,11 @@ it('firma detayını jira tarzı tek sayfada sekmeler olmadan iki kolon ve katla
         ->assertSet('activityDirection', 'asc')
         ->call('toggleActivityDirection')
         ->assertSet('activityDirection', 'desc');
+
+    $html = $test->html();
+    expect(substr_count($html, 'Müşteri Oluştur'))->toBe(1)
+        ->and(substr_count($html, 'Fırsat aç / arama planla'))->toBe(1)
+        ->and(substr_count($html, 'Firma bilgilerini düzenle'))->toBe(1);
 });
 
 it('boş bölümleri gizlemeden sıfır sayısıyla ve sağ raydaki boş alanları Yok olarak gösterir', function (): void {
