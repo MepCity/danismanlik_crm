@@ -6,7 +6,9 @@ namespace App\Filament\Resources\Companies\Pages;
 
 use App\Filament\Concerns\HasZohoListChrome;
 use App\Filament\Resources\Companies\CompanyResource;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\Select;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,8 +22,43 @@ final class ListCompanies extends ListRecords
     protected function getHeaderActions(): array
     {
         return $this->withListChromeActions([
+            Action::make('sort_list')
+                ->label(__('panel.list.sort'))
+                ->icon('heroicon-o-arrows-up-down')
+                ->color('gray')
+                ->fillForm(fn (): array => [
+                    'column' => $this->getTableSortColumn() ?: 'legal_name',
+                    'direction' => $this->getTableSortDirection() ?: 'asc',
+                ])
+                ->form([
+                    Select::make('column')
+                        ->label(__('panel.list.sort_by'))
+                        ->options([
+                            'legal_name' => __('panel.fields.legal_name'),
+                            'industry' => __('panel.fields.industry'),
+                            'city' => __('panel.fields.city'),
+                        ])
+                        ->required(),
+                    Select::make('direction')
+                        ->label(__('panel.list.sort_direction'))
+                        ->options([
+                            'asc' => __('panel.list.ascending'),
+                            'desc' => __('panel.list.descending'),
+                        ])
+                        ->required(),
+                ])
+                ->modalSubmitActionLabel(__('panel.list.apply_sort'))
+                ->action(fn (array $data): null => $this->applyListSort($data)),
             CreateAction::make()->label(__('panel.company_directory.create')),
         ]);
+    }
+
+    /** @param array{column: string, direction: string} $data */
+    private function applyListSort(array $data): null
+    {
+        $this->sortTable($data['column'], $data['direction']);
+
+        return null;
     }
 
     public function getSubheading(): string

@@ -106,6 +106,12 @@ it('firma rehberi ekranında sektör alanını zorunlu tutar ve sektörle filtre
     ], $actor);
 
     Livewire::test(ListCompanies::class)
+        ->assertActionExists('sort_list')
+        ->callAction('sort_list', [
+            'column' => 'legal_name',
+            'direction' => 'desc',
+        ])
+        ->assertSet('tableSort', 'legal_name:desc')
         ->filterTable('industry', 'food')
         ->assertTableBulkActionExists('send_bulk_email')
         ->assertSee($food->legal_name)

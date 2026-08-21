@@ -165,7 +165,7 @@ final class CompanyResource extends ScopedResource
                 CustomerFlowAction::forRecord(),
             ])
             ->defaultPaginationPageOption(25)
-            ->paginationPageOptions([25, 50, 100])
+            ->paginationPageOptions([10, 25, 50, 100])
             ->recordUrl(fn (Company $record): string => self::getUrl('view', ['record' => $record]));
     }
 
