@@ -28,7 +28,7 @@ final readonly class SaveCompanyDirectoryEntry
         $validated = Validator::make($data, [
             'legal_name' => ['required', 'string', 'max:255'],
             'industry' => ['required', 'string', Rule::in(config('operations.company_industries'))],
-            'city' => ['required', 'string', Rule::in(config('turkey.provinces'))],
+            'city' => ['nullable', 'string', Rule::in(config('turkey.provinces'))],
             'district' => ['nullable', 'string', 'max:255'],
             'tax_number' => [
                 'nullable',

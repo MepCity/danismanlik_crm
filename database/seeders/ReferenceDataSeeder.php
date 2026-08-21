@@ -29,6 +29,7 @@ final class ReferenceDataSeeder extends Seeder
     /** @var list<string> */
     private const PERMISSIONS = [
         'company.manage',
+        'company.bulk_email',
         'lead.manage',
         'interaction.manage',
         'deal.create',
@@ -64,7 +65,7 @@ final class ReferenceDataSeeder extends Seeder
         'Pazarlama' => [
             'scope' => 'own',
             'permissions' => [
-                'company.manage', 'lead.manage', 'interaction.manage', 'deal.create',
+                'company.manage', 'company.bulk_email', 'lead.manage', 'interaction.manage', 'deal.create',
                 'deal.view_own', 'deal.view', 'collaboration.manage', 'task.manage',
                 'document.upload', 'document.download', 'document.view',
                 'program.view', 'audit.view_own',
@@ -84,7 +85,7 @@ final class ReferenceDataSeeder extends Seeder
         'Şirket Yetkilisi' => [
             'scope' => 'all',
             'permissions' => [
-                'company.manage', 'lead.manage', 'interaction.manage', 'deal.create', 'deal.assign',
+                'company.manage', 'company.bulk_email', 'lead.manage', 'interaction.manage', 'deal.create', 'deal.assign',
                 'deal.transition', 'deal.view_all', 'deal.view', 'deal.amount.view',
                 'document.upload', 'document.approve', 'document.download', 'document.view',
                 'collaboration.manage', 'task.manage', 'program.manage', 'program.view',
@@ -95,7 +96,7 @@ final class ReferenceDataSeeder extends Seeder
         'Sistem Yöneticisi' => [
             'scope' => 'none',
             'permissions' => [
-                'company.manage', 'lead.manage', 'interaction.manage', 'deal.create', 'deal.assign',
+                'company.manage', 'company.bulk_email', 'lead.manage', 'interaction.manage', 'deal.create', 'deal.assign',
                 'deal.transition', 'document.upload', 'document.approve', 'program.manage',
                 'program.view', 'audit.view_all', 'system.users', 'system.roles',
                 'system.settings', 'system.templates',

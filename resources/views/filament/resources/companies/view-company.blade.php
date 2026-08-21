@@ -53,6 +53,9 @@
                 <label>{{ __('marketing.contacts.call_consent') }}
                     <select wire:model="contactCallConsent">@foreach (__('marketing.contacts.consent_options') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
                 </label>
+                <label>{{ __('marketing.contacts.email_consent') }}
+                    <select wire:model="contactEmailConsent">@foreach (__('marketing.contacts.consent_options') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                </label>
                 <label>{{ __('marketing.contacts.disclosure_date') }}<input type="date" wire:model="contactDisclosureDate"></label>
                 <button class="operations-button operations-button--primary" type="submit">{{ __('marketing.contacts.save') }}</button>
             </form>

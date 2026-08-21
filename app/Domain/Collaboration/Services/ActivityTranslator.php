@@ -45,6 +45,7 @@ final class ActivityTranslator
             'company.customer_flow_started' => [
                 'reference' => $payload['deal_reference'] ?? trans('collaboration.activity.unknown_value'),
             ],
+            'company.bulk_email_requested' => [],
             default => [],
         };
         $key = 'collaboration.activity.actions.'.str_replace('.', '_', $action);

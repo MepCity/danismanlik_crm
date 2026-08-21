@@ -202,6 +202,7 @@ return [
         'phone' => 'Telefon',
         'email' => 'E-posta',
         'call_consent' => 'Arama izni',
+        'email_consent' => 'Pazarlama e-postası izni',
         'consent_options' => ['unknown' => 'Belirsiz', 'granted' => 'Onay var', 'denied' => 'Ret var'],
         'disclosure_date' => 'Aydınlatma tarihi',
         'save' => 'Kişiyi kaydet',

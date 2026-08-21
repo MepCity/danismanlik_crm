@@ -31,6 +31,8 @@ final class ViewCompany extends ViewRecord
 
     public string $contactCallConsent = 'unknown';
 
+    public string $contactEmailConsent = 'unknown';
+
     public string $contactDisclosureDate = '';
 
     public string $activeTab = 'overview';
@@ -71,10 +73,16 @@ final class ViewCompany extends ViewRecord
             'contactPhone' => ['nullable', 'string', 'max:40'],
             'contactEmail' => ['nullable', 'email', 'max:255'],
             'contactCallConsent' => ['required', 'in:unknown,granted,denied'],
+            'contactEmailConsent' => ['required', 'in:unknown,granted,denied'],
             'contactDisclosureDate' => ['nullable', 'date'],
         ]);
         Gate::authorize('create', Contact::class);
         $consent = match ($this->contactCallConsent) {
+            'granted' => true,
+            'denied' => false,
+            default => null,
+        };
+        $emailConsent = match ($this->contactEmailConsent) {
             'granted' => true,
             'denied' => false,
             default => null,
@@ -87,10 +95,12 @@ final class ViewCompany extends ViewRecord
             email: $this->contactEmail ?: null,
             title: $this->contactTitle ?: null,
             callConsent: $consent,
+            emailConsent: $emailConsent,
             disclosureDate: $this->contactDisclosureDate ?: null,
         );
         $this->reset('contactFullName', 'contactTitle', 'contactPhone', 'contactEmail', 'contactDisclosureDate');
         $this->contactCallConsent = 'unknown';
+        $this->contactEmailConsent = 'unknown';
         Notification::make()->title(__('marketing.messages.contact_saved'))->success()->send();
     }
 

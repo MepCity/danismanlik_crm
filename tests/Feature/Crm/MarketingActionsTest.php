@@ -143,9 +143,22 @@ it('izinli giden aramayı ve ret sonrasındaki gelen aramayı ayrı bağlamla ka
 it('kişiyi sistem kaynağıyla oluşturur ve boş iç kaydı veritabanında reddeder', function (): void {
     $fixture = marketingActionFixture(suffix: 'kaynak');
 
-    $contact = app(SaveContact::class)->create($fixture['company']->id, $fixture['actor']->id, 'Kurgusal Yeni Kişi');
+    $contact = app(SaveContact::class)->create(
+        $fixture['company']->id,
+        $fixture['actor']->id,
+        'Kurgusal Yeni Kişi',
+        email: 'yeni-kisi@example.invalid',
+        emailConsent: true,
+    );
 
     expect($contact->data_source)->toBe('other')
+        ->and($contact->consent_email)->toBeTrue()
+        ->and(CommunicationConsent::query()
+            ->where('contact_id', $contact->id)
+            ->where('channel', 'email')
+            ->where('purpose', 'marketing')
+            ->where('status', 'granted')
+            ->exists())->toBeTrue()
         ->and(fn () => Contact::query()->create([
             'company_id' => $fixture['company']->id,
             'full_name' => 'Kurgusal Kaynaksız Kişi',

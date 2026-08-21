@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -21,7 +22,13 @@ it('firma rehberi alanlarını PostgreSQL üzerinde geri alıp yeniden kurar', f
             ->and(Schema::connection($connection)->hasColumn('companies', 'owner_user_id'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('companies', 'industry'))->toBeTrue();
 
-        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 2]))->toBe(0)
+        expect(fn () => DB::connection($connection)->table('companies')->insert([
+            'legal_name' => 'Kurgusal Geçersiz Sektör AŞ',
+            'industry' => 'serbest-metin',
+            'city' => null,
+        ]))->toThrow(QueryException::class);
+
+        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 3]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('companies', 'owner_user_id'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('companies', 'industry'))->toBeFalse();
 

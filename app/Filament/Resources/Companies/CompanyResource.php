@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Companies;
 
 use App\Domain\Crm\Models\Company;
+use App\Domain\Crm\Services\BulkCompanyEmailService;
 use App\Filament\Resources\Companies\Pages\CreateCompany;
 use App\Filament\Resources\Companies\Pages\EditCompany;
 use App\Filament\Resources\Companies\Pages\ListCompanies;
 use App\Filament\Resources\Companies\Pages\ViewCompany;
 use App\Filament\Resources\ScopedResource;
+use Filament\Actions\BulkAction;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -22,6 +26,8 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 
 /** @extends ScopedResource<Company> */
 final class CompanyResource extends ScopedResource
@@ -65,7 +71,7 @@ final class CompanyResource extends ScopedResource
                 ->schema([
                     TextInput::make('legal_name')->label(__('panel.fields.legal_name'))->required()->maxLength(255),
                     Select::make('industry')->label(__('panel.fields.industry'))->options(self::industryOptions())->searchable()->required(),
-                    Select::make('city')->label(__('panel.fields.city'))->options(self::provinceOptions())->searchable()->required(),
+                    Select::make('city')->label(__('panel.fields.city'))->options(self::provinceOptions())->searchable(),
                     TextInput::make('district')->label(__('panel.fields.district'))->maxLength(255),
                 ])->columns(2),
             Section::make(__('panel.company_directory.commercial'))
@@ -99,6 +105,8 @@ final class CompanyResource extends ScopedResource
             ->filters([
                 SelectFilter::make('industry')->label(__('panel.fields.industry'))->options(self::industryOptions()),
                 SelectFilter::make('city')->label(__('panel.fields.city'))->options(self::provinceOptions())->searchable(),
+                SelectFilter::make('size')->label(__('panel.fields.size'))->options(__('panel.company_directory.sizes')),
+                TernaryFilter::make('is_active')->label(__('panel.fields.status')),
                 TernaryFilter::make('customer_state')
                     ->label(__('panel.company_directory.customer_state'))
                     ->trueLabel(__('panel.company_directory.has_customer_flow'))
@@ -107,6 +115,50 @@ final class CompanyResource extends ScopedResource
                         true: fn (Builder $query): Builder => $query->whereHas('deals'),
                         false: fn (Builder $query): Builder => $query->whereDoesntHave('deals'),
                     ),
+            ])
+            ->toolbarActions([
+                    BulkAction::make('send_bulk_email')
+                        ->label(__('panel.company_directory.bulk_email.action'))
+                        ->icon(Heroicon::OutlinedEnvelope)
+                        ->modalHeading(__('panel.company_directory.bulk_email.heading'))
+                        ->modalDescription(__('panel.company_directory.bulk_email.description'))
+                        ->form([
+                            TextInput::make('subject')
+                                ->label(__('panel.company_directory.bulk_email.subject'))
+                                ->required()
+                                ->maxLength(255),
+                            Textarea::make('body')
+                                ->label(__('panel.company_directory.bulk_email.body'))
+                                ->helperText(__('panel.company_directory.bulk_email.body_help'))
+                                ->required()
+                                ->rows(8)
+                                ->maxLength(10000),
+                        ])
+                        ->modalSubmitActionLabel(__('panel.company_directory.bulk_email.send'))
+                        ->authorizeIndividualRecords('bulkEmail')
+                        ->action(function (Collection $records, array $data, ListCompanies $livewire, BulkCompanyEmailService $emails): void {
+                            $actor = Auth::user();
+                            abort_unless($actor !== null, 401);
+
+                            /** @var Collection<int, Company> $records */
+                            $result = $emails->send(
+                                $records,
+                                (string) $data['subject'],
+                                (string) $data['body'],
+                                $livewire->filterSnapshot(),
+                                $actor,
+                            );
+
+                            Notification::make()
+                                ->title(__('panel.company_directory.bulk_email.result', [
+                                    'queued' => $result->queuedCount,
+                                    'rejected' => $result->consentRejectedCount,
+                                    'missing' => $result->missingEmailCount,
+                                ]))
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
             ])
             ->defaultPaginationPageOption(25)
             ->paginationPageOptions([25, 50, 100])
