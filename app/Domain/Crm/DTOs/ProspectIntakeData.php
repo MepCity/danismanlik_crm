@@ -32,5 +32,6 @@ final readonly class ProspectIntakeData
         public ?string $taskTitle = null,
         public ?Carbon $taskDueAt = null,
         public ?Carbon $taskRemindAt = null,
+        public ?string $companyIndustry = null,
     ) {}
 }

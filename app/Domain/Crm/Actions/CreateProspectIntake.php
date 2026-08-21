@@ -114,8 +114,10 @@ final readonly class CreateProspectIntake
 
         Gate::forUser($actor)->authorize('create', Company::class);
         $company = Company::query()->create([
+            'owner_user_id' => $actor->id,
             'legal_name' => trim((string) $data->companyName),
             'tax_number' => filled($data->taxNumber) ? trim((string) $data->taxNumber) : null,
+            'industry' => $data->companyIndustry,
             'city' => $data->city,
             'source' => $data->source,
             'is_active' => true,
@@ -170,7 +172,11 @@ final readonly class CreateProspectIntake
     private function validate(ProspectIntakeData $data): void
     {
         $errors = [];
-        if ($data->companyId === null && (blank($data->companyName) || ! in_array($data->city, config('turkey.provinces'), true))) {
+        if ($data->companyId === null && (
+            blank($data->companyName)
+            || ! in_array($data->city, config('turkey.provinces'), true)
+            || ! in_array($data->companyIndustry, config('operations.company_industries'), true)
+        )) {
             $errors['company'] = trans('marketing.validation.company_required');
         }
         if ($data->contactId === null && (blank($data->contactName) || blank($data->contactTitle) || blank($data->phone) || blank($data->email))) {

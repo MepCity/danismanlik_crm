@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.16 — 16.08.2026
+> **Sürüm:** 1.17 — 21.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -247,13 +247,16 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 
 **Gerekçe:** Saf Filament en hızlısı ama günlük kullanılan ekranlar jenerik CRUD gibi durur. Ayrı bir React ön yüzü ise ikinci bir oturum, ikinci bir tasarım sistemi ve haftalarca ek iş demek. Hibrit, tek çatı altında kalırken ekibin yaşadığı 5 ekrana özel tasarım imkânı verir.
 
-**Tasarım referansı — ERPNext DEĞİL.** ERPNext'in arayüzü işlevsel ama yoğun ve tarihi eski; müşteri zaten onu reddetti, görsel dilini kopyalamak ters sinyal olur. Referans alınacaklar: **Linear**, **Attio**, **Twenty CRM** — yoğun ama nefes alan, ince kenarlıklı, tek vurgu renkli, güçlü tipografik hiyerarşi.
+**Tasarım referansı — Zoho CRM, ERPNext DEĞİL.** 21.08.2026 kararıyla birincil referans Zoho CRM'in çalışma ve tasarım dili oldu: tutarlı liste araçları, yoğun tablolar, koyu lacivert uygulama kabuğu, açık/nötr içerik yüzeyi, mavi birincil eylemler, kayıt detayında güçlü bağlam ve modüller arası ortak etkileşim kalıpları. Birebir marka veya ekran kopyası yapılmaz; Bizlife'ın dar kapsamına uyarlanır. ERPNext'in görsel dili referans değildir.
 
 **Bağlayıcı tasarım kuralları** (WP-14'te token olarak kodlanır, sonraki tüm paketler bunlara uyar):
 
+- **Zoho esinli uygulama kabuğu.** Koyu lacivert navigasyon, açık/nötr ana içerik ve mavi birincil eylemler; koyu tema aynı katman mantığının özel karşılığıdır.
+- **Ortak liste araç şeridi.** Görünüm, filtre, sıralama, yenileme ve oluşturma eylemlerinin konumu modüller arasında değişmez.
 - **Tek vurgu rengi.** Durum renkleri (bekliyor / tamam / gecikmiş / iptal) vurgu renginden ayrıdır ve yalnızca durum bildirir.
 - **Nötr renkler seçilir, miras alınmaz** — hafif mavi-gri eğilimli gri skala; saf `#808080` kullanılmaz.
 - **Katman ayrımı önce kenarlıkla.** Durağan kart ve paneller 1px kenarlık + arka plan tonuyla ayrılır. Yalnız etkileşimli kartın üzerine gelindiğinde çok hafif yükselti; menü, modal ve çekmece gibi geçici katmanlarda tek bir kaplama gölgesi kullanılabilir. Koyu temadaki durağan kartlar gölgesizdir.
+- **Formlar Zoho'dan daha sade uyarlanır.** Zorunlu ve sık kullanılan alanlar önce gelir; ikincil kurumsal ayrıntılar açılabilir bölümde kalır. Ana eylem tektir; yinelenen “Kaydet / Kaydet ve yeni” eylemleri varsayılan değildir.
 - **Yoğunluk operasyonel.** Form kontrolleri 40px, yoğun tablo satırları 38px ritmindedir; bir ekranda 25–30 dosya görünmeli, 8 değil.
 - **Hareket anlam taşır.** Tek hareket eğrisi ve 120/170/220 ms süreleri kullanılır; geçişler yalnız odak, durum ve katman değişimini açıklar. Hareket azaltma tercihi tüm hareketleri etkisizleştirir.
 - **Sayfa geçişi süreklidir.** Filament SPA gezinmesi tam sayfa parlamasını azaltır; tarayıcı desteği varsa aynı kısa hareket sözleşmesiyle görünüm geçişi uygulanır.
@@ -262,6 +265,16 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 - **Sayısal sütunlarda `tabular-nums`.**
 - **Açık ve koyu tema**, ikisi de tasarlanır — biri diğerinin ters çevrilmişi değil.
 - Bileşen üretmeden önce token dosyasına bakılır; hiçbir pakette çiğ hex kodu yazılmaz.
+
+### K-12 · Firma rehberi ile müşteri birbirinden ayrıdır
+
+**Karar:** `companies` yalnız müşterileri değil, pazarlama ekibinin temas ettiği bütün firmaları tutan ana rehberdir. Firma kaydının müşteri olması zorunlu değildir. Sektör kontrollü bir kodla tutulur ve firma sahibi/sorumlusu kaydedilir. Firma geneli yorumlar, fırsat veya dosya yorumlarından ayrı olarak firma kaydında kalır.
+
+**Müşteri tanımı:** Ayrı ve tekrar eden bir müşteri tablosu açılmaz. En az bir operasyon dosyası (`deal`) bulunan firma müşteri görünümünde yer alır. “Müşteri akışı başlat” eylemi, rehberdeki mevcut firmayı aktif program sürümüyle bağlayarak atama bekleyen operasyon dosyasını ve evrak listesini üretir. Aynı firma farklı programlar için birden fazla müşteri işi taşıyabilir.
+
+**Gerekçe:** Firma rehberi, potansiyel pazar bilgisini müşteri kayıtlarından bağımsız tutar; türetilen müşteri görünümü mükerrer firma verisini engeller. Sektörün kontrollü tutulması gelecekte izinli iletişim hedeflemesini mümkün kılar.
+
+**Bu değişiklikte yapılmayan:** Otomatik veya toplu pazarlama e-postası gönderimi yoktur. Bu özellik kanal bazlı güncel izin, gönderimden çıkma, şablon, kuyruk, teslimat/hata kaydı ve frekans sınırıyla ayrı paket olarak ele alınacaktır. Sektör filtresi bu gelecekteki iş için veri temelini hazırlar.
 
 ---
 

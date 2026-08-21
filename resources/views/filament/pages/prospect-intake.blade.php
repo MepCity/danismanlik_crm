@@ -12,6 +12,7 @@
                         <label class="intake-field intake-field--wide"><span>{{ __('marketing.intake.company.choose') }}</span><select wire:model.live="companyId" required><option value="">{{ __('marketing.intake.choose') }}</option>@foreach($companies as $company)<option value="{{ $company->id }}">{{ $company->legal_name }} · {{ $company->city }}</option>@endforeach</select></label>
                     @else
                         <label class="intake-field intake-field--wide"><span>{{ __('panel.fields.legal_name') }}</span><input wire:model.live.debounce.350ms="companyName" required></label>
+                        <label class="intake-field"><span>{{ __('panel.fields.industry') }}</span><select wire:model="companyIndustry" required><option value="">{{ __('marketing.intake.choose') }}</option>@foreach($industries as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></label>
                         <label class="intake-field"><span>{{ __('marketing.intake.company.tax_number') }}</span><input class="numeric-data" wire:model.live.debounce.350ms="taxNumber" inputmode="numeric"></label>
                         <label class="intake-field"><span>{{ __('panel.fields.city') }}</span><select wire:model="city" required><option value="">{{ __('marketing.intake.choose') }}</option>@foreach($provinces as $province)<option value="{{ $province }}">{{ $province }}</option>@endforeach</select></label>
                     @endif

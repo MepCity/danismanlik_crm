@@ -95,11 +95,15 @@ Policy + `own | team | all` kapsamı. Arayüzde butonu gizlemek yetki değildir.
 
 ## Tasarım sistemi (arayüz paketleri için bağlayıcı)
 
-Referans: **Linear · Attio · Twenty CRM**. **ERPNext'in görsel dili referans değildir** — müşteri onu zaten reddetti.
+Birincil referans: **Zoho CRM'in çalışma ve tasarım dili**. Birebir marka/ekran kopyası yapılmaz; bilgi yoğunluğu, sayfa iskeleti ve etkileşim tutarlılığı uyarlanır. **ERPNext'in görsel dili referans değildir** — müşteri onu zaten reddetti.
 
-- Tek vurgu rengi. Durum renkleri (bekliyor / tamam / gecikmiş / iptal) ayrı bir eksen, vurgu rengi sayılmaz.
-- Nötr gri skala hafif mavi eğilimli seçilir; saf gri kullanılmaz.
-- **Gölge değil kenarlık.** 1px kenarlık + arka plan tonu.
+- Koyu lacivert uygulama kabuğu + açık/nötr ana içerik, koyu temada aynı katman hiyerarşisinin özel karşılığı.
+- Birincil eylemler mavi; tek vurgu rengi korunur. Durum renkleri (bekliyor / tamam / gecikmiş / iptal) ayrı bir eksendir.
+- Nötr gri skala hafif mavi eğilimlidir; saf gri kullanılmaz.
+- Katman ayrımı **1px kenarlık + arka plan tonu** ile yapılır; gölge yalnız menü/modal/drawer gibi geçici yüzeylerde hafiftir.
+- Liste araçlarının konumu bütün modüllerde aynıdır: görünüm/filtre/sıralama solda veya üst araç şeridinde, ana oluşturma eylemi sağ üstte.
+- Kayıt detayında üst kimlik ve eylem alanı, ilişkili içerik navigasyonu, ana özet ve okunabilir etkinlik geçmişi tutarlı kalır.
+- Formlar Zoho'dan daha kısa tutulur: sık kullanılan alanlar önce, ikincil alanlar açıklanabilir bölümde; tek ana kaydet eylemi vardır.
 - Operasyonel yoğunluk: bir ekranda 25–30 satır görünmeli.
 - Durum renkle **ve** formla kodlanır (rozet, şerit, ikon).
 - Sayı sütunlarında `tabular-nums`.

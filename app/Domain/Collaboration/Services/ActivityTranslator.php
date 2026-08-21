@@ -42,6 +42,9 @@ final class ActivityTranslator
                 'task' => $this->snapshotLabel($payload['task'] ?? null),
                 'assignee' => $this->snapshotLabel($payload['to_assignee'] ?? null),
             ],
+            'company.customer_flow_started' => [
+                'reference' => $payload['deal_reference'] ?? trans('collaboration.activity.unknown_value'),
+            ],
             default => [],
         };
         $key = 'collaboration.activity.actions.'.str_replace('.', '_', $action);

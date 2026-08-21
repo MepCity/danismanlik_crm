@@ -218,7 +218,7 @@ return [
         'contact_saved' => 'Yetkili kişi kaydedildi.',
     ],
     'validation' => [
-        'company_required' => 'Yeni firma için unvan ve geçerli bir il seçimi zorunludur.',
+        'company_required' => 'Yeni firma için unvan, sektör ve geçerli bir il seçimi zorunludur.',
         'contact_details_required' => 'Yeni kişi için ad soyad, unvan, telefon ve e-posta zorunludur.',
         'call_direction' => 'Arama yönü geçersizdir.',
         'call_note_required' => 'Görüşmede konuşulanların özeti zorunludur.',

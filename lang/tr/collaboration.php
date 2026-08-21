@@ -46,6 +46,9 @@ return [
         'comment' => 'yorum: ":body"',
         'actions' => [
             'company_created' => 'firma kaydını oluşturdu',
+            'company_updated' => 'firma bilgilerini güncelledi',
+            'company_customer_flow_started' => 'firma için :reference numaralı müşteri akışını başlattı',
+            'deal_created' => 'müşteri operasyon dosyasını oluşturdu',
             'contact_created' => 'firma kişisi kaydını oluşturdu',
             'lead_created' => 'programa özel fırsatı oluşturdu',
             'interaction_recorded' => 'görüşmeyi kaydetti',
