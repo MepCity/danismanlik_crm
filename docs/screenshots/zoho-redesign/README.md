@@ -2,6 +2,9 @@
 
 Görüntüler aynı kurgusal demo verisi ve masaüstü tarayıcı oturumuyla alınmıştır.
 Her satırda solda önceki tema, sağda Zoho yönü yer alır.
+Kanıt seti 1440 × 900 piksel ölçüsündedir. Güncel ekranlar 1x cihaz piksel
+oranında alınmıştır; firma listesinde açık filtre paneli, sıralama aracı, sektör
+sütunu, toplu e-posta eylemi, toplam kayıt ve sayfalama birlikte görünür.
 
 ## Açık tema
 
