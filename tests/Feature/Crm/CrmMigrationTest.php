@@ -29,6 +29,8 @@ it('migrates rolls back and remigrates the CRM schema on PostgreSQL', function (
             ->and(Schema::connection($connection)->hasTable('contacts'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('contacts', 'consent_call'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('contacts', 'do_not_call'))->toBeFalse()
+            ->and(Schema::connection($connection)->hasColumn('contacts', 'consent_sms'))->toBeFalse()
+            ->and(Schema::connection($connection)->hasColumn('contacts', 'consent_email'))->toBeTrue()
             ->and(Schema::connection($connection)->hasTable('communication_consents'))->toBeTrue()
             ->and(Schema::connection($connection)->hasTable('leads'))->toBeTrue()
             ->and(Schema::connection($connection)->hasTable('interactions'))->toBeTrue()
