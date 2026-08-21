@@ -37,10 +37,14 @@ it('migrates the access schema up and down on PostgreSQL', function (): void {
                 ->where('column_name', 'id')
                 ->value('is_identity'))->toBe('YES');
 
+        $rollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_21_210000_replace_break_glass_with_page_permissions')
+            ->count();
+
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 1,
+            '--step' => $rollbackSteps,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('break_glass_grants'))->toBeTrue()
             ->and(DB::connection($connection)->table('permissions')->where('name', 'page.access_management')->where('is_active', false)->exists())->toBeTrue();

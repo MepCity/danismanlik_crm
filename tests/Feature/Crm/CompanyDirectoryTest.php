@@ -10,6 +10,7 @@ use App\Domain\Crm\Actions\StartCustomerFlow;
 use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
+use App\Domain\Crm\Models\EmailTemplate;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Crm\Services\BulkCompanyEmailService;
 use App\Domain\Deal\Models\Deal;
@@ -185,11 +186,16 @@ it('toplu e-postada yalnız güncel izni olan kişileri kuyruğa alır ve filtre
             'recorded_by' => $actor->id,
         ]);
     }
+    $template = EmailTemplate::query()->create([
+        'name' => 'Kurgusal destek şablonu',
+        'subject' => '{{firma_adi}} için destek',
+        'body' => 'Merhaba {{yetkili_adi}}, {{firma_adi}} için bilgi.',
+        'is_active' => true,
+    ]);
 
     $result = app(BulkCompanyEmailService::class)->send(
         Company::query()->whereKey($company->id)->get(),
-        '{{firma_adi}} için destek',
-        'Merhaba {{yetkili_adi}}, {{firma_adi}} için bilgi.',
+        $template->id,
         ['industry' => ['value' => 'metal']],
         $actor,
     );
@@ -219,11 +225,16 @@ it('toplu e-postayı yetkisiz rol için sunucu tarafında reddeder', function ()
         'city' => null,
         'is_active' => true,
     ], $owner);
+    $template = EmailTemplate::query()->create([
+        'name' => 'Kurgusal yetki şablonu',
+        'subject' => 'Kurgusal konu',
+        'body' => 'Kurgusal gövde',
+        'is_active' => true,
+    ]);
 
     expect(fn () => app(BulkCompanyEmailService::class)->send(
         Company::query()->whereKey($company->id)->get(),
-        'Kurgusal konu',
-        'Kurgusal gövde',
+        $template->id,
         [],
         $projectManager,
     ))->toThrow(AuthorizationException::class);
@@ -257,13 +268,18 @@ it('firma listesindeki seçimden toplu e-posta eylemini çalıştırır', functi
         'effective_from' => now()->subMinute(),
         'recorded_by' => $actor->id,
     ]);
+    $template = EmailTemplate::query()->create([
+        'name' => 'Kurgusal ekran şablonu',
+        'subject' => '{{firma_adi}} duyurusu',
+        'body' => 'Merhaba {{yetkili_adi}}',
+        'is_active' => true,
+    ]);
     Auth::login($actor);
 
     Livewire::test(ListCompanies::class)
         ->filterTable('industry', 'packaging')
         ->callTableBulkAction('send_bulk_email', [$company], [
-            'subject' => '{{firma_adi}} duyurusu',
-            'body' => 'Merhaba {{yetkili_adi}}',
+            'template_id' => $template->id,
         ])
         ->assertHasNoActionErrors();
 

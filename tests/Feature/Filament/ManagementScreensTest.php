@@ -7,6 +7,7 @@ use App\Domain\Program\Models\ProgramVersion;
 use App\Domain\Program\Models\ServiceWorkflow;
 use App\Filament\Resources\DocTemplates\DocTemplateResource;
 use App\Filament\Resources\DocTemplates\Pages\CreateDocTemplate;
+use App\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Filament\Resources\Programs\Pages\CreateProgram;
 use App\Filament\Resources\Programs\ProgramResource;
 use App\Filament\Resources\ProgramVersions\ProgramVersionResource;
@@ -74,6 +75,7 @@ it('yönetim kaynaklarının model etiketlerini açık ve tutarlı tanımlar', f
     'iş akışı' => [ServiceWorkflowResource::class, 'İş akışı', 'İş Akışları'],
     'program sürümü' => [ProgramVersionResource::class, 'Program sürümü', 'Program sürümleri'],
     'evrak şablonu' => [DocTemplateResource::class, 'Evrak şablonu', 'Evrak şablonları'],
+    'e-posta şablonu' => [EmailTemplateResource::class, 'E-posta şablonu', 'E-posta şablonları'],
     'statü' => [StatusResource::class, 'Statü', 'Statüler'],
     'geçiş' => [TransitionResource::class, 'Geçiş', 'Geçişler'],
     'kullanıcı' => [UserResource::class, 'Kullanıcı', 'Kullanıcılar'],
@@ -194,6 +196,7 @@ it('pazarlama rolünü bütün yönetim ekranlarında 403 ile reddeder', functio
         ServiceWorkflowResource::class,
         ProgramVersionResource::class,
         DocTemplateResource::class,
+        EmailTemplateResource::class,
         StatusResource::class,
         TransitionResource::class,
         UserResource::class,
@@ -207,7 +210,7 @@ it('pazarlama rolünü bütün yönetim ekranlarında 403 ile reddeder', functio
 it('yetkili rollerin yönetim listelerini açar', function (): void {
     $admin = wp15User('Sistem Yöneticisi', 'yonetim-admin');
 
-    foreach ([ProgramResource::class, ServiceWorkflowResource::class, ProgramVersionResource::class, DocTemplateResource::class] as $resource) {
+    foreach ([ProgramResource::class, ServiceWorkflowResource::class, ProgramVersionResource::class, DocTemplateResource::class, EmailTemplateResource::class] as $resource) {
         wp15Get($admin, $resource::getUrl('index'))->assertOk();
     }
 
