@@ -295,6 +295,7 @@ it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', fu
         ->assertSee('Potansiyel müşteri kaydı')
         ->assertDontSee('Veri kaynağı')
         ->set('companyName', 'Kurgusal Tek Ekran AŞ')
+        ->set('companyIndustry', 'food')
         ->set('city', 'İstanbul')
         ->set('contactName', 'Kurgusal Karar Verici')
         ->set('contactTitle', 'Genel Müdür')

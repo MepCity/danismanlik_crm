@@ -1,5 +1,6 @@
 <x-filament-panels::page>
     @php($company = $this->record->load([
+        'owner',
         'contacts.communicationConsents' => fn ($query) => $query->where('channel', 'call')->where('purpose', 'marketing')->latest('effective_from'),
         'leads' => fn ($query) => $query->with(['status', 'owner', 'interestedProgramVersion.program', 'primaryContact'])->latest(),
         'deals' => fn ($query) => $query->with(['status', 'projectManager', 'programVersion.program'])->latest(),
@@ -14,7 +15,9 @@
         @if ($activeTab === 'overview')
         <section class="operations-panel operations-facts">
             <div class="operations-fact"><dt>{{ __('panel.fields.legal_name') }}</dt><dd>{{ $company->legal_name }}</dd></div>
+            <div class="operations-fact"><dt>{{ __('panel.fields.industry') }}</dt><dd>{{ __('panel.industries.'.$company->industry) }}</dd></div>
             <div class="operations-fact"><dt>{{ __('panel.fields.city') }}</dt><dd>{{ $company->city }}</dd></div>
+            <div class="operations-fact"><dt>{{ __('panel.fields.owner') }}</dt><dd>{{ $company->owner?->name ?? '—' }}</dd></div>
             <div class="operations-fact"><dt>{{ __('marketing.company.open_opportunities') }}</dt><dd class="numeric-data">{{ $company->leads->whereNull('converted_deal_id')->count() }}</dd></div>
             <div class="operations-fact"><dt>{{ __('marketing.company.projects') }}</dt><dd class="numeric-data">{{ $company->deals->count() }}</dd></div>
         </section>

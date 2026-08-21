@@ -11,6 +11,7 @@ use App\Domain\Crm\Models\Lead;
 use App\Domain\Crm\Services\CompanyDuplicateFinder;
 use App\Domain\Deal\Models\Status;
 use App\Domain\Program\Models\ProgramVersion;
+use App\Filament\Resources\Companies\CompanyResource;
 use App\Support\Authorization\ScopedQuery;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -36,6 +37,8 @@ final class ProspectIntake extends Page
     public ?int $companyId = null;
 
     public string $companyName = '';
+
+    public string $companyIndustry = '';
 
     public string $taxNumber = '';
 
@@ -125,6 +128,7 @@ final class ProspectIntake extends Page
             'companyMode' => ['required', 'in:new,existing'],
             'companyId' => $newCompany ? ['nullable'] : ['required', 'integer'],
             'companyName' => $newCompany ? ['required', 'string', 'max:255'] : ['nullable'],
+            'companyIndustry' => $newCompany ? ['required', 'string', 'in:'.implode(',', config('operations.company_industries'))] : ['nullable'],
             'taxNumber' => ['nullable', 'regex:/^[0-9]{10}([0-9])?$/'],
             'city' => $newCompany ? ['required', 'string', 'in:'.implode(',', config('turkey.provinces'))] : ['nullable'],
             'contactId' => $newContact ? ['nullable'] : ['required', 'integer'],
@@ -179,6 +183,7 @@ final class ProspectIntake extends Page
             taskTitle: $this->taskTitle ?: null,
             taskDueAt: filled($this->taskDueAt) ? Carbon::parse($this->taskDueAt) : null,
             taskRemindAt: filled($this->taskRemindAt) ? Carbon::parse($this->taskRemindAt) : null,
+            companyIndustry: $newCompany ? $this->companyIndustry : null,
         ));
 
         Notification::make()->title(__('marketing.intake.saved'))->success()->send();
@@ -201,6 +206,7 @@ final class ProspectIntake extends Page
             'selectedStatus' => $this->targetStatusId === null ? null : Status::query()->find($this->targetStatusId),
             'duplicateCompanies' => app(CompanyDuplicateFinder::class)->find($companies, $this->companyName, $this->taxNumber),
             'provinces' => config('turkey.provinces'),
+            'industries' => CompanyResource::industryOptions(),
         ];
     }
 

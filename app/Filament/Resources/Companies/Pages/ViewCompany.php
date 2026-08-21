@@ -9,6 +9,7 @@ use App\Domain\Crm\Actions\WithdrawCallConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Filament\Resources\Companies\CompanyResource;
+use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Facades\Auth;
@@ -48,6 +49,11 @@ final class ViewCompany extends ViewRecord
             'opportunities' => $company->leads()->whereNull('converted_deal_id')->count(),
             'projects' => $company->deals()->count(),
         ]);
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [EditAction::make()->label(__('panel.company_directory.edit'))];
     }
 
     private function company(): Company
