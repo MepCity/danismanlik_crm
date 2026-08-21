@@ -14,8 +14,15 @@ use Illuminate\Support\Carbon;
 final class ChecklistDealGateway
 {
     /** @param array<string, mixed>|null $workflowSnapshot */
-    public function createAwaitingAssignment(int $companyId, int $programVersionId, ?array $workflowSnapshot, int $actorId, string $reference, string $reason): ChecklistDeal
-    {
+    public function createAwaitingAssignment(
+        int $companyId,
+        int $programVersionId,
+        ?array $workflowSnapshot,
+        int $actorId,
+        string $reference,
+        string $reason,
+        string $requestedAmount = '0.00',
+    ): ChecklistDeal {
         $initial = Status::query()->where('type', 'deal')->where('is_initial', true)->where('is_active', true)->sole();
         $revision = WorkflowRevision::query()->where('effective_from', '<=', now())->latest('effective_from')->firstOrFail();
         $deal = Deal::query()->create([
@@ -26,7 +33,7 @@ final class ChecklistDealGateway
             'status_id' => $initial->id,
             'status_changed_at' => now(),
             'opened_by_user_id' => $actorId,
-            'requested_amount' => '0.00',
+            'requested_amount' => $requestedAmount,
             'priority' => 'normal',
         ]);
         StatusHistory::query()->create([
@@ -40,6 +47,14 @@ final class ChecklistDealGateway
         ]);
 
         return $this->toData($deal);
+    }
+
+    /** @param array<string, mixed> $workflowSnapshot */
+    public function attachWorkflowSnapshotIfMissing(int $dealId, array $workflowSnapshot): void
+    {
+        Deal::query()->whereKey($dealId)->whereNull('workflow_snapshot')->update([
+            'workflow_snapshot' => $workflowSnapshot,
+        ]);
     }
 
     public function lock(int $dealId): ChecklistDeal

@@ -7,6 +7,7 @@
     @php($saleInteraction = $deal->originatingLead?->interactions?->first())
     @php($teamMembers = $deal->projectManager?->teams->flatMap->members->unique('id') ?? collect())
     @php($serviceWorkflow = $deal->workflow_snapshot)
+    @php($currentWorkflowStep = is_array($serviceWorkflow['steps'] ?? null) ? collect($serviceWorkflow['steps'])->search(fn ($step) => ! ($step['is_completed'] ?? false)) : false)
 
     <div class="deal-workspace" data-testid="deal-detail">
         <header class="deal-hero">
@@ -118,10 +119,15 @@
                         </header>
                         <ol class="service-workflow-guide">
                             @foreach ($serviceWorkflow['steps'] as $step)
-                                <li data-step-type="{{ $step['type'] ?? 'action' }}">
-                                    <span class="service-workflow-guide__index numeric-data">{{ $loop->iteration }}</span>
+                                @php($isCompletedWorkflowStep = (bool) ($step['is_completed'] ?? false))
+                                @php($isCurrentWorkflowStep = ! $isCompletedWorkflowStep && $currentWorkflowStep === $loop->index)
+                                <li class="{{ $isCompletedWorkflowStep ? 'is-completed' : ($isCurrentWorkflowStep ? 'is-current' : '') }}" data-step-type="{{ $step['type'] ?? 'action' }}">
+                                    <span class="service-workflow-guide__index numeric-data">{{ $isCompletedWorkflowStep ? '✓' : $loop->iteration }}</span>
                                     <div>
-                                        <small>{{ __('management.workflow_step_types.'.($step['type'] ?? 'action')) }}</small>
+                                        <small>
+                                            {{ __('management.workflow_step_types.'.($step['type'] ?? 'action')) }}
+                                            · {{ __('operations.detail.workspace.guide_states.'.($isCompletedWorkflowStep ? 'completed' : ($isCurrentWorkflowStep ? 'current' : 'pending'))) }}
+                                        </small>
                                         <strong>{{ $step['title'] ?? '' }}</strong>
                                         <p>{{ $step['guidance'] ?? '' }}</p>
                                         @if (filled($step['attention_note'] ?? null))

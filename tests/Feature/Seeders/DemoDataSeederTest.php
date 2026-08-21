@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Access\Models\Team;
+use App\Domain\Crm\Models\Company;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Document\Models\File;
@@ -41,15 +42,37 @@ it('tamamen kurgusal demo grafiğini ve sabit hesapları kurar', function (): vo
     (new DemoDataSeeder)->setContainer(app())->run();
 
     $marketing = User::query()->where('email', 'pazarlama@bizlife')->firstOrFail();
+    $deals = Deal::query()->withCount('documents')->orderBy('reference_no')->get();
+    $documentCounts = $deals->pluck('documents_count', 'reference_no')->all();
+    $snapshots = $deals->pluck('workflow_snapshot', 'reference_no');
+    /** @var array{name: string, description: string, steps: list<array{type: string, attention_note?: string|null, is_completed: bool}>} $firstSnapshot */
+    $firstSnapshot = $snapshots['DEMO-2026-001'];
+    /** @var array{name: string, description: string, steps: list<array{type: string, attention_note?: string|null, is_completed: bool}>} $newSnapshot */
+    $newSnapshot = $snapshots['DEMO-2026-003'];
 
     expect(User::query()->whereIn('email', ['pazarlama@bizlife', 'proje@bizlife', 'admin@bizlife'])->count())->toBe(3)
         ->and($marketing->hasRole('Pazarlama'))->toBeTrue()
         ->and(Hash::check(DemoDataSeeder::PASSWORD, $marketing->password))->toBeTrue()
         ->and(Team::query()->count())->toBe(2)
+        ->and(Company::query()->count())->toBe(30)
         ->and(Deal::query()->count())->toBe(4)
         ->and(Deal::query()->whereHas('company', fn ($query) => $query->where('legal_name', 'Kurgusal Ufuk Teknoloji Ltd. Şti.'))->count())->toBe(2)
-        ->and(Deal::query()->withCount('documents')->get()->pluck('documents_count')->all())
-        ->each->toBe(7);
+        ->and($documentCounts)->toBe([
+            'DEMO-2026-001' => 7,
+            'DEMO-2026-002' => 6,
+            'DEMO-2026-003' => 5,
+            'DEMO-2026-004' => 6,
+        ])
+        ->and($snapshots->filter()->count())->toBe(4)
+        ->and($firstSnapshot['name'])->not->toBeEmpty()
+        ->and($firstSnapshot['description'])->not->toBeEmpty()
+        ->and($firstSnapshot['steps'])->toHaveCount(4)
+        ->and(collect($firstSnapshot['steps'])->pluck('type')->unique()->sort()->values()->all())
+        ->toBe(['action', 'decision', 'waiting'])
+        ->and(collect($firstSnapshot['steps'])->contains(fn (array $step): bool => filled($step['attention_note'] ?? null)))
+        ->toBeTrue()
+        ->and(collect($firstSnapshot['steps'])->pluck('is_completed')->all())->toBe([true, false, false, false])
+        ->and(collect($newSnapshot['steps'])->pluck('is_completed')->all())->toBe([false, false, false, false]);
 });
 
 it('demo evraklarını gerçek yükleme akışıyla sürümlendirir ve panelde gösterir', function (): void {
@@ -85,6 +108,9 @@ it('demo evraklarını gerçek yükleme akışıyla sürümlendirir ve panelde g
     Auth::login(User::query()->where('email', 'admin@bizlife')->sole());
 
     Livewire::test(DealDetail::class, ['deal' => $versioned->deal_id])
+        ->assertSee('KOSGEB başvuru rehberi')
+        ->assertSee('Tamamlandı')
+        ->assertSee('Şimdiki adım')
         ->set('activeTab', 'documents')
         ->assertSee("{$versioned->name_snapshot} — Sürüm 2 · Kabul edildi")
         ->assertSee("{$versioned->name_snapshot} — Sürüm 1 · Kabul edildi");

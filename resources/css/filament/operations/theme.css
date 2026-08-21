@@ -3937,6 +3937,15 @@ body {
     border-block-end: 0;
 }
 
+.service-workflow-guide li.is-current {
+    box-shadow: inset 3px 0 var(--crm-accent-600);
+    background: var(--crm-surface-active);
+}
+
+.service-workflow-guide li.is-completed {
+    background: var(--crm-status-success-bg);
+}
+
 .service-workflow-guide__index {
     display: grid;
     width: 1.75rem;
@@ -3948,6 +3957,12 @@ body {
     color: var(--crm-accent-600);
     font-size: var(--crm-text-xs);
     font-weight: 750;
+}
+
+.service-workflow-guide li.is-completed .service-workflow-guide__index {
+    border-color: var(--crm-status-success-fg);
+    background: var(--crm-status-success-bg);
+    color: var(--crm-status-success-fg);
 }
 
 .service-workflow-guide li > div {

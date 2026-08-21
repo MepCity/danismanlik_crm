@@ -46,6 +46,11 @@ return [
             'guide' => 'Uygulama akışı',
             'attention' => 'Dikkat',
             'details' => 'Ayrıntılar',
+            'guide_states' => [
+                'completed' => 'Tamamlandı',
+                'current' => 'Şimdiki adım',
+                'pending' => 'Sırada',
+            ],
         ],
         'tabs' => [
             'general' => 'Genel', 'process' => 'Süreç', 'documents' => 'Belge listesi',

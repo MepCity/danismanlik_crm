@@ -16,19 +16,25 @@ use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
+use App\Domain\Deal\Actions\AssignDeal;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Status;
 use App\Domain\Deal\Models\StatusHistory;
 use App\Domain\Deal\Models\WorkflowRevision;
+use App\Domain\Deal\Services\ChecklistDealGateway;
+use App\Domain\Deal\Services\StatusMachineContract;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Document\Models\DocumentRequirementSuggestion;
+use App\Domain\Document\Services\ChecklistGeneratorContract;
 use App\Domain\Document\Services\DocumentStatusService;
 use App\Domain\Document\Services\DocumentUploadService;
-use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\Program;
 use App\Models\User;
+use App\Support\Workflow\StatusTransition;
+use App\Support\Workflow\SubjectType;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -108,17 +114,19 @@ final class DemoDataSeeder extends Seeder
         $companies = [
             Company::query()->updateOrCreate(
                 ['legal_name' => 'Kurgusal Ufuk Teknoloji Ltd. Şti.'],
-                ['tax_number' => null, 'city' => 'Hatay', 'size' => 'medium', 'source' => 'demo', 'is_active' => true],
+                ['tax_number' => null, 'industry' => 'manufacturing', 'city' => 'Hatay', 'size' => 'medium', 'source' => 'demo', 'is_active' => true],
             ),
             Company::query()->updateOrCreate(
                 ['legal_name' => 'Kurgusal Mavi Üretim A.Ş.'],
-                ['tax_number' => null, 'city' => 'Ankara', 'size' => 'small', 'source' => 'demo', 'is_active' => true],
+                ['tax_number' => null, 'industry' => 'machinery', 'city' => 'Ankara', 'size' => 'small', 'source' => 'demo', 'is_active' => true],
             ),
             Company::query()->updateOrCreate(
                 ['legal_name' => 'Kurgusal Pusula Sanayi Ltd. Şti.'],
-                ['tax_number' => null, 'city' => 'İstanbul', 'size' => 'micro', 'source' => 'demo', 'is_active' => true],
+                ['tax_number' => null, 'industry' => 'energy', 'city' => 'İstanbul', 'size' => 'micro', 'source' => 'demo', 'is_active' => true],
             ),
         ];
+
+        $this->seedDirectoryCompanies();
 
         foreach ($companies as $index => $company) {
             $contact = Contact::query()->updateOrCreate(
@@ -194,38 +202,35 @@ final class DemoDataSeeder extends Seeder
 
         $dealStatuses = Status::query()->where('type', 'deal')->get()->keyBy('code');
         $dealDefinitions = [
-            [$companies[0], 'DEMO-2026-001', 'collecting_documents', $users['project_manager'], '6500000.00'],
-            [$companies[1], 'DEMO-2026-002', 'preparing_application', $users['project_manager'], '2400000.00'],
-            [$companies[2], 'DEMO-2026-003', 'awaiting_assignment', null, '950000.00'],
-            [$companies[0], 'DEMO-2026-004', 'collecting_documents', $users['project_manager'], '1750000.00'],
+            [$companies[0], 'DEMO-2026-001', 'collecting_documents', $users['project_manager'], '6500000.00', 1],
+            [$companies[1], 'DEMO-2026-002', 'preparing_application', $users['project_manager'], '5400000.00', 2],
+            [$companies[2], 'DEMO-2026-003', 'awaiting_assignment', null, '950000.00', 0],
+            [$companies[0], 'DEMO-2026-004', 'collecting_documents', $users['project_manager'], '1750000.00', 1],
         ];
 
-        foreach ($dealDefinitions as [$company, $reference, $statusCode, $projectManager, $amount]) {
-            $deal = Deal::query()->updateOrCreate(
-                ['reference_no' => $reference],
-                [
-                    'company_id' => $company->id,
-                    'program_version_id' => $version->id,
-                    'status_id' => $dealStatuses[$statusCode]->id,
-                    'status_changed_at' => now(),
-                    'pm_user_id' => $projectManager?->id,
-                    'opened_by_user_id' => $users['marketing']->id,
-                    'requested_amount' => $amount,
-                    'priority' => 'normal',
-                ],
-            );
+        foreach ($dealDefinitions as [$company, $reference, $statusCode, $projectManager, $amount, $completedStepCount]) {
+            $workflowSnapshot = $this->workflowSnapshot($version->workflow_snapshot, $completedStepCount);
+            $deal = Deal::query()->where('reference_no', $reference)->first();
 
-            StatusHistory::query()->firstOrCreate(
-                ['deal_id' => $deal->id, 'exited_at' => null],
-                [
-                    'status_id' => $dealStatuses[$statusCode]->id,
-                    'status_label_snapshot' => $dealStatuses[$statusCode]->label,
-                    'workflow_revision_id' => $revision->id,
-                    'entered_at' => $deal->status_changed_at,
-                    'changed_by' => $users['marketing']->id,
-                    'reason' => 'demo veri kurulumu',
-                ],
-            );
+            if ($deal === null) {
+                $created = app(ChecklistDealGateway::class)->createAwaitingAssignment(
+                    $company->id,
+                    $version->id,
+                    $workflowSnapshot,
+                    $users['marketing']->id,
+                    $reference,
+                    'demo veri kurulumu',
+                    $amount,
+                );
+                $deal = Deal::query()->findOrFail($created->id);
+            } else {
+                app(ChecklistDealGateway::class)->attachWorkflowSnapshotIfMissing($deal->id, $workflowSnapshot);
+                $deal->update(['requested_amount' => $amount, 'priority' => 'normal']);
+                $deal->refresh();
+            }
+
+            app(ChecklistGeneratorContract::class)->generate($deal->id, $users['marketing']->id);
+            $this->advanceDeal($deal, (int) $dealStatuses[$statusCode]->id, $projectManager, $users, $dealStatuses);
 
             $wonStatus = $leadStatuses->first(fn (Status $status): bool => $status->converts_to_deal);
             $originatingLead = Lead::query()->updateOrCreate(
@@ -263,8 +268,6 @@ final class DemoDataSeeder extends Seeder
                 ],
             );
 
-            $this->seedDealDocuments($deal, $statusCode, $projectManager);
-
             if ($reference === 'DEMO-2026-001') {
                 $this->seedCollaborationDemo($deal, $users['marketing'], $users['project_manager']);
             }
@@ -279,6 +282,92 @@ final class DemoDataSeeder extends Seeder
                     ],
                 );
             }
+        }
+    }
+
+    private function seedDirectoryCompanies(): void
+    {
+        $industries = ['food', 'manufacturing', 'metal', 'machinery', 'textile', 'energy'];
+        $cities = ['Adana', 'Ankara', 'Bursa', 'Gaziantep', 'İstanbul', 'İzmir'];
+        $sizes = ['micro', 'small', 'medium'];
+
+        foreach (range(1, 27) as $index) {
+            Company::query()->updateOrCreate(
+                ['legal_name' => sprintf('Kurgusal Rehber Firması %02d Ltd. Şti.', $index)],
+                [
+                    'tax_number' => null,
+                    'industry' => $industries[($index - 1) % count($industries)],
+                    'city' => $cities[($index - 1) % count($cities)],
+                    'size' => $sizes[($index - 1) % count($sizes)],
+                    'source' => 'demo',
+                    'is_active' => true,
+                ],
+            );
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $snapshot
+     * @return array<string, mixed>
+     */
+    private function workflowSnapshot(?array $snapshot, int $completedStepCount): array
+    {
+        if ($snapshot === null || ! is_array($snapshot['steps'] ?? null) || $snapshot['steps'] === []) {
+            throw new RuntimeException('Kurgusal demo hizmet rehberi oluşturulamadı.');
+        }
+
+        $snapshot['steps'] = collect($snapshot['steps'])
+            ->values()
+            ->map(static fn (array $step, int $index): array => [
+                ...$step,
+                'is_completed' => $index < $completedStepCount,
+            ])
+            ->all();
+
+        return $snapshot;
+    }
+
+    /**
+     * @param  array<string, User>  $users
+     * @param  Collection<string, Status>  $dealStatuses
+     */
+    private function advanceDeal(Deal $deal, int $targetStatusId, ?User $projectManager, array $users, Collection $dealStatuses): void
+    {
+        $initialStatusId = (int) $dealStatuses['awaiting_assignment']->id;
+        $assignedStatusId = (int) $dealStatuses['pm_assigned']->id;
+        $collectingStatusId = (int) $dealStatuses['collecting_documents']->id;
+        $preparingStatusId = (int) $dealStatuses['preparing_application']->id;
+
+        if ($projectManager !== null && $deal->status_id === $initialStatusId) {
+            $deal = app(AssignDeal::class)->handle(
+                $deal->id,
+                $projectManager->id,
+                $assignedStatusId,
+                $users['company_authority']->id,
+            );
+        }
+
+        if ($projectManager !== null && $deal->status_id === $assignedStatusId) {
+            app(StatusMachineContract::class)->transition(new StatusTransition(
+                SubjectType::Deal,
+                $deal->id,
+                $collectingStatusId,
+                $projectManager->id,
+                'Kurgusal demo evrak toplama aşamasına geçti.',
+            ));
+            $deal->refresh();
+        }
+
+        $this->seedDealDocuments($deal, $targetStatusId === $preparingStatusId, $projectManager);
+
+        if ($targetStatusId === $preparingStatusId && $deal->status_id === $collectingStatusId) {
+            app(StatusMachineContract::class)->transition(new StatusTransition(
+                SubjectType::Deal,
+                $deal->id,
+                $preparingStatusId,
+                $projectManager->id,
+                'Kurgusal demo başvuru hazırlama aşamasına geçti.',
+            ));
         }
     }
 
@@ -313,32 +402,16 @@ final class DemoDataSeeder extends Seeder
         );
     }
 
-    private function seedDealDocuments(Deal $deal, string $dealStatus, ?User $projectManager): void
+    private function seedDealDocuments(Deal $deal, bool $acceptAll, ?User $projectManager): void
     {
-        $templates = DocTemplate::query()
-            ->where('program_version_id', $deal->program_version_id)
-            ->orderBy('sort_order')
-            ->get();
+        $documents = $deal->documents()->orderBy('id')->get();
 
-        foreach ($templates as $index => $template) {
-            $document = DealDocument::query()->firstOrCreate(
-                ['deal_id' => $deal->id, 'source_doc_template_id' => $template->id],
-                [
-                    'source_program_version_id' => $deal->program_version_id,
-                    'name_snapshot' => $template->name,
-                    'description_snapshot' => $template->description,
-                    'required_snapshot' => $template->is_required,
-                    'condition_snapshot' => $template->condition,
-                    'status' => 'requested',
-                    'requested_at' => now()->subDays(3),
-                ],
-            );
-
+        foreach ($documents as $index => $document) {
             if ($projectManager === null) {
                 continue;
             }
 
-            if ($dealStatus === 'preparing_application') {
+            if ($acceptAll) {
                 $this->seedDocumentFlow($document, $projectManager, 'accepted');
 
                 continue;
