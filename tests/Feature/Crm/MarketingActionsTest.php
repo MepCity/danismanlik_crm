@@ -8,7 +8,6 @@ use App\Domain\Crm\Actions\ConvertLead;
 use App\Domain\Crm\Actions\RecordInteraction;
 use App\Domain\Crm\Actions\SaveContact;
 use App\Domain\Crm\Actions\TransitionLead;
-use App\Domain\Crm\Actions\WithdrawCallConsent;
 use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
@@ -50,19 +49,7 @@ function marketingActionFixture(string $statusCode = 'proposal_sent', string $su
         'full_name' => 'Kurgusal İrtibat',
         'data_source' => 'form',
         'phone' => '+90 000 000 00 00',
-        'consent_call' => true,
-        'do_not_call' => false,
         'is_primary' => true,
-    ]);
-    CommunicationConsent::query()->create([
-        'contact_id' => $contact->id,
-        'channel' => 'call',
-        'purpose' => 'marketing',
-        'status' => 'granted',
-        'legal_basis' => 'explicit_consent',
-        'source' => 'form',
-        'effective_from' => now()->subMonths(2),
-        'recorded_by' => $actor->id,
     ]);
     $status = Status::query()->where('type', 'lead')->where('code', $statusCode)->sole();
     $version = ProgramVersion::query()->firstOrFail();
@@ -85,52 +72,11 @@ function marketingActionFixture(string $statusCode = 'proposal_sent', string $su
     return compact('actor', 'officer', 'company', 'contact', 'lead', 'version');
 }
 
-it('ret kaydını izin defterine ekler ve önceki satırı değiştirmez', function (): void {
-    $fixture = marketingActionFixture(suffix: 'ret');
-    $original = CommunicationConsent::query()->create([
-        'contact_id' => $fixture['contact']->id,
-        'channel' => 'call',
-        'purpose' => 'marketing',
-        'status' => 'granted',
-        'legal_basis' => 'explicit_consent',
-        'source' => 'form',
-        'effective_from' => now()->subMonth(),
-        'recorded_by' => $fixture['actor']->id,
-    ]);
-    $originalId = $original->id;
-    $originalCreatedAt = $original->created_at->toDateTimeString();
-
-    app(WithdrawCallConsent::class)->handle($fixture['contact']->id, $fixture['actor']->id);
-
-    expect(CommunicationConsent::query()->where('contact_id', $fixture['contact']->id)->count())->toBe(3)
-        ->and($original->fresh()?->id)->toBe($originalId)
-        ->and($original->fresh()?->status)->toBe('granted')
-        ->and($original->fresh()?->created_at?->toDateTimeString())->toBe($originalCreatedAt)
-        ->and($fixture['contact']->refresh()->do_not_call)->toBeTrue()
-        ->and($fixture['contact']->consent_call)->toBeFalse();
-});
-
-it('geri çekilmiş izinde giden pazarlama aramasını doğrudan action seviyesinde reddeder', function (): void {
-    $fixture = marketingActionFixture(suffix: 'servis-ret');
-    app(WithdrawCallConsent::class)->handle($fixture['contact']->id, $fixture['actor']->id);
-
-    expect(fn () => app(RecordInteraction::class)->forLead(
-        $fixture['lead']->id,
-        $fixture['actor']->id,
-        'call',
-        Carbon::now(),
-        'contacted',
-        'Kaydedilmemesi gereken kurgusal arama',
-    ))->toThrow(ValidationException::class, 'Giden pazarlama araması reddedildi')
-        ->and(Interaction::query()->where('lead_id', $fixture['lead']->id)->exists())->toBeFalse();
-});
-
-it('izinli giden aramayı ve ret sonrasındaki gelen aramayı ayrı bağlamla kaydeder', function (): void {
+it('giden ve gelen aramayı izin seçeneği olmadan ayrı bağlamla kaydeder', function (): void {
     $fixture = marketingActionFixture(suffix: 'arama-baglam');
     $action = app(RecordInteraction::class);
 
     $outbound = $action->forLead($fixture['lead']->id, $fixture['actor']->id, 'call', Carbon::now(), 'contacted', null);
-    app(WithdrawCallConsent::class)->handle($fixture['contact']->id, $fixture['actor']->id);
     $inbound = $action->forInboundLeadCall($fixture['lead']->id, $fixture['actor']->id, Carbon::now(), 'contacted', 'Kişi kendisi aradı.');
 
     expect($outbound->direction)->toBe('outbound')
