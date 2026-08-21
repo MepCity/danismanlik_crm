@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Customers\Pages;
 
 use App\Domain\Crm\Actions\StartCustomerFlow;
 use App\Domain\Program\Services\ActiveProgramVersionReader;
+use App\Filament\Concerns\HasZohoListChrome;
 use App\Filament\Pages\DealDetail;
 use App\Filament\Resources\Companies\CompanyResource;
 use App\Filament\Resources\Customers\CustomerResource;
@@ -17,11 +18,13 @@ use Filament\Resources\Pages\ListRecords;
 
 final class ListCustomers extends ListRecords
 {
+    use HasZohoListChrome;
+
     protected static string $resource = CustomerResource::class;
 
     protected function getHeaderActions(): array
     {
-        return [
+        return $this->withListChromeActions([
             Action::make('start_customer_flow')
                 ->label(__('panel.customers.start'))
                 ->icon('heroicon-o-play')
@@ -64,11 +67,16 @@ final class ListCustomers extends ListRecords
                     Notification::make()->title(__('panel.customers.started'))->success()->send();
                     $this->redirect(DealDetail::getUrl(['deal' => $dealId]), navigate: true);
                 }),
-        ];
+        ]);
     }
 
     public function getSubheading(): string
     {
         return __('panel.customers.description');
+    }
+
+    protected function getAllRecordsViewLabel(): string
+    {
+        return __('panel.list.all_customers');
     }
 }

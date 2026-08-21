@@ -21,6 +21,12 @@ return [
             'configuration' => 'Yapılandırma',
         ],
     ],
+    'list' => [
+        'all_records' => 'Tüm kayıtlar',
+        'all_companies' => 'Tüm firmalar',
+        'all_customers' => 'Tüm müşteriler',
+        'refresh' => 'Yenile',
+    ],
     'resources' => [
         'companies' => [
             'navigation' => 'Firma rehberi',

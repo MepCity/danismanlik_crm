@@ -6,6 +6,7 @@ namespace App\Filament\Resources\ProgramVersions\Pages;
 
 use App\Domain\Program\Actions\CopyProgramVersion;
 use App\Domain\Program\Models\ProgramVersion;
+use App\Filament\Concerns\HasZohoListChrome;
 use App\Filament\Resources\ProgramVersions\ProgramVersionResource;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -18,11 +19,13 @@ use Filament\Resources\Pages\ListRecords;
 
 final class ListProgramVersions extends ListRecords
 {
+    use HasZohoListChrome;
+
     protected static string $resource = ProgramVersionResource::class;
 
     protected function getHeaderActions(): array
     {
-        return [
+        return $this->withListChromeActions([
             CreateAction::make()->label(__('management.actions.create')),
             Action::make('copy_previous')
                 ->label(__('management.actions.copy_previous'))
@@ -44,6 +47,6 @@ final class ListProgramVersions extends ListRecords
                     app(CopyProgramVersion::class)->execute($source, [...$data, 'is_active' => true]);
                     Notification::make()->success()->title(__('management.messages.copied'))->send();
                 }),
-        ];
+        ]);
     }
 }

@@ -113,6 +113,34 @@ it('zoho esintili operasyon kabuğunu tokenlarla uygular', function (): void {
         ->and($provider)->toContain("->sidebarWidth('22.875rem')");
 });
 
+it('bütün kaynak listelerinde ortak zoho liste kabuğunu kullanır', function (): void {
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(app_path('Filament/Resources')));
+    $violations = [];
+
+    foreach ($iterator as $file) {
+        if (! $file->isFile() || ! str_starts_with($file->getFilename(), 'List') || $file->getExtension() !== 'php') {
+            continue;
+        }
+
+        $contents = file_get_contents($file->getPathname());
+
+        if ($contents === false || ! str_contains($contents, 'extends ListRecords')) {
+            continue;
+        }
+
+        if (! str_contains($contents, 'use HasZohoListChrome;')) {
+            $violations[] = $file->getPathname();
+        }
+    }
+
+    $chrome = file_get_contents(app_path('Filament/Concerns/HasZohoListChrome.php'));
+
+    expect($violations)->toBe([], 'Ortak liste kabuğunu kullanmayan kaynak bulundu: '.implode(', ', $violations))
+        ->and($chrome)->not->toBeFalse()
+        ->and($chrome)->toContain("'all' => Tab::make")
+        ->and($chrome)->toContain("Action::make('refresh_list')");
+});
+
 it('varlıkları host node kurulumu olmadan container içinde derler', function (): void {
     $makefile = file_get_contents(base_path('Makefile'));
     $compose = file_get_contents(base_path('compose.yaml'));
