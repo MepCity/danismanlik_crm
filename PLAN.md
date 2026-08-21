@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.20 — 21.08.2026
+> **Sürüm:** 1.21 — 21.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -270,13 +270,13 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 
 ### K-12 · Firma rehberi ile müşteri birbirinden ayrıdır
 
-**Karar:** `companies` yalnız müşterileri değil, pazarlama ekibinin temas ettiği bütün firmaları tutan ana rehberdir. Firma kaydının müşteri olması zorunlu değildir. Sektör kontrollü bir kodla tutulur ve firma sahibi/sorumlusu kaydedilir. Firma geneli yorumlar, fırsat veya dosya yorumlarından ayrı olarak firma kaydında kalır.
+**Karar:** `companies` yalnız müşterileri değil, pazarlama ekibinin temas ettiği bütün firmaları tutan ana rehberdir. Firma kaydının müşteri olması zorunlu değildir. Pazarlama segmenti, uygulama doğrulaması ve PostgreSQL `CHECK` kısıtıyla korunan kontrollü bir sektör kodudur; NACE kodundan türetilmez. NACE mevzuat ve program koşulları için ince taneli, isteğe bağlı ayrı veridir. Firma sahibi/sorumlusu kaydedilir. Firma geneli yorumlar, fırsat veya dosya yorumlarından ayrı olarak firma kaydında kalır.
 
 **Müşteri tanımı:** Ayrı ve tekrar eden bir müşteri tablosu açılmaz. En az bir operasyon dosyası (`deal`) bulunan firma müşteri görünümünde yer alır. “Müşteri akışı başlat” eylemi, rehberdeki mevcut firmayı aktif program sürümüyle bağlayarak atama bekleyen operasyon dosyasını ve evrak listesini üretir. Aynı firma farklı programlar için birden fazla müşteri işi taşıyabilir.
 
-**Gerekçe:** Firma rehberi, potansiyel pazar bilgisini müşteri kayıtlarından bağımsız tutar; türetilen müşteri görünümü mükerrer firma verisini engeller. Sektörün kontrollü tutulması gelecekte izinli iletişim hedeflemesini mümkün kılar.
+**Gerekçe:** Firma rehberi, potansiyel pazar bilgisini müşteri kayıtlarından bağımsız tutar; türetilen müşteri görünümü mükerrer firma verisini engeller. Sabit ve az sayıdaki kaba sektör için ayrı referans tablosu yerine kısıtlı kolon seçilmesi gereksiz join ve yönetim ekranını önler. Kontrollü sektör, filtrelenmiş izinli iletişim hedeflemesini güvenilir kılar.
 
-**Bu değişiklikte yapılmayan:** Otomatik veya toplu pazarlama e-postası gönderimi yoktur. Bu özellik kanal bazlı güncel izin, gönderimden çıkma, şablon, kuyruk, teslimat/hata kaydı ve frekans sınırıyla ayrı paket olarak ele alınacaktır. Sektör filtresi bu gelecekteki iş için veri temelini hazırlar.
+**Toplu e-posta:** Seçili firmaların aktif kişileri, `communication_consents` defterindeki güncel pazarlama/e-posta izni ve `contacts.consent_email` sorgu özeti birlikte doğrulandıktan sonra mevcut bildirim kuyruğuna alınır. İzni olmayan, e-postası eksik veya mükerrer alıcılar otomatik çıkarılır ve sayıları kullanıcıya bildirilir. Aktör, alıcı sayıları ve etkin filtre anlık görüntüsü firma etkinliklerine yazılır. Frekans sınırı ve kampanya otomasyonu bu dar kapsamın dışındadır.
 
 ### K-13 · Hizmet ile uygulama rehberi birbirinden ayrıdır
 
@@ -968,6 +968,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.21 | 21.08.2026 | Firma rehberinin kontrollü kaba sektör kodları NACE’den ayrılaştırıldı; PostgreSQL kısıtı, sektör/il/ölçek/aktiflik filtreleri ve kayıtlı görünümler eklendi. Seçili firmalara toplu e-posta, güncel e-posta pazarlama izni, kapsam policy’si, mevcut bildirim kuyruğu ve filtre anlık görüntülü etkinlik kaydı üzerinden sınırlandı |
 | 1.20 | 21.08.2026 | Linear / Attio / Twenty yönünün yerini kullanıcı talimatıyla Zoho paleti ve kabuğu aldı; bütün Filament kaynak listelerine ortak “Tüm kayıtlar” görünümü ve yenileme eylemi eklendi. Filtre, sütun görünümü, yoğun tablo ve sayfalama aynı liste iskeletinde korunur |
 | 1.19 | 21.08.2026 | Zoho CRM tasarım incelemesi uygulama kabuğuna taşındı: 320 px lacivert navigasyon, beyaz üst çubuk, açık mavi-gri çalışma yüzeyi, 36 px kontroller, 6–10 px yarıçap, çizgi ağırlıklı tablo/form/kartlar ve sakin mikro geçişler ortak token sözleşmesi oldu. Yeni oturumlarda açık tema varsayılan; koyu tema aynı yüzey hiyerarşisinin bağımsız karşılığı olarak korunur |
 | 1.18 | 21.08.2026 | Programlar kullanıcı dilinde Hizmetler olarak konumlandırıldı. Yeniden kullanılabilir İş Akışları ve sıralı işlem/bekleme/karar aşamaları eklendi; hizmet dönemi seçilen rehberin anlık görüntüsünü saklar ve dosya detayında ekibe gösterir |
