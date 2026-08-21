@@ -89,7 +89,7 @@ Policy + `own | team | all` kapsamı. Arayüzde butonu gizlemek yetki değildir.
 
 ### 6. Kişisel veri
 
-İzinler `communication_consents` tablosunda **append-only** tutulur — satır güncellenmez, yeni satır eklenir. `contacts` üzerindeki izin alanları yalnızca hızlı sorgu için denormalize özettir.
+İzinler `communication_consents` tablosunda **append-only** tutulur — satır güncellenmez, yeni satır eklenir. `contacts.consent_email` yalnızca e-posta için hızlı sorguya yarayan denormalize özettir; pazarlama araması izin kontrolü müşteri kararıyla ürün kapsamından çıkarılmıştır.
 
 ---
 

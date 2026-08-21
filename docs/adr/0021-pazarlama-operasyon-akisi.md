@@ -2,7 +2,11 @@
 
 ## Durum
 
-Kabul edildi
+Geri çekildi — arama izni bölümü (21.08.2026)
+
+Pazarlama operasyon akışının geri kalanı geçerlidir. Arama izni koruması,
+`consent_call` / `do_not_call` alanları ve “Bir daha aranmasın” eylemi müşteri
+talebiyle ürün kapsamından çıkarılmıştır. Bu değişiklik bir regresyon değildir.
 
 ## Bağlam
 
@@ -18,14 +22,19 @@ Statüler, geçiş davranışları ve zorunlu evraklar koda gömülemez.
 veya geçmişte olan, kullanıcının kapsamındaki fırsatlar alınır; en eski tarih
 önce gelir. Kart firma, kişi, telefon, son görüşme sonucu ve arama sırasını
 birlikte gösterir. Telefon `tel:` bağlantısıdır. Hazır sonuç seçimi ve isteğe
-bağlı not kaydı iki adımlıdır. Arama izni seçeneği, buna bağlı engelleme ve
-“Bir daha aranmasın” eylemi ürün kapsamından çıkarılmıştır.
+bağlı not kaydı iki adımlıdır. Yazılım pazarlama araması için izin uygunluğu
+hesaplamaz veya aramayı engellemez; hukuki uyum süreç ve manuel sorumlulukta
+kalır. Toplu pazarlama e-postası ise append-only izin defterindeki en son
+`email / marketing` kaydını doğrulamaya devam eder.
 
 Kişinin yaptığı arama `direction=inbound, purpose=marketing` bağlamıyla ayrı
 kaydedilir. Bu yol fırsat detayında “Gelen arama” adıyla açıkça ayrılır. Dosya
 sürecindeki görüşmeler pazarlama değil hizmet iletişimidir ve
 `purpose=service` olarak kaydedilir. Çağrı bağlamı veritabanı CHECK kısıtıyla
 yalnız telefon görüşmelerinde ve geçerli değerlerle tutulur.
+Bu metadata izin kontrolü değildir; gelen/giden aramaları ve pazarlama/hizmet
+görüşmelerini raporlama, denetim ve operasyon analizi için ayırdığı için
+korunmuştur.
 
 Takip panosunun sütunları etkin `lead` statülerinden üretilir. Kartlar doğrudan
 geçiş bulunan statüler arasında sürüklenebilir ve tıklanınca hızlı detay açar. Hedef statünün
@@ -54,7 +63,7 @@ ikinci dönüşümü veritabanında da engeller.
 - Görüşmeler fırsat/dosyadan ayrı, her temas için yeni satırdır ve fırsat
   statüsünü kendiliğinden değiştirmez.
 - Giden, gelen ve hizmet görüşmeleri ayrı bağlam işaretleriyle denetlenebilir
-  kalır; görüşme kaydı arama iznine bağlı değildir.
+  kalır; yazılım arama izni değerlendirmesi yapmaz.
 - Statü davranışı veritabanı yapılandırması olarak kalır.
 - Dönüşüm yarım dosya, yarım checklist veya çift dosya üretemez.
 

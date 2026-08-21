@@ -41,7 +41,7 @@ Bu belge yayın kapısıdır. Her madde kanıtı ve sorumlusu yazılarak işaret
 - [ ] Aydınlatma metni veri kaynakları/amaçlarla uyumlu ve kullanıcılara sunuldu. Sürüm/tarih: ______
 - [ ] Saklama/imha politikasında veri türü bazında süre, yöntem ve sorumlu yazılı. Belge: ______
 - [ ] Alt işleyen envanteri e-posta, hata izleme, SSO, tönel, nesne/yedek dahil güncel; yurt dışı aktarım güvenceleri kontrol edildi. Onay: ______
-- [ ] Pazarlama araması, SMS/e-posta, ret ve “bir daha aranmasın” senaryoları hukuk/KVKK danışmanınca İYS/KVKK açısından yazılı onaylandı. Onay/tarih: ______
+- [ ] Pazarlama aramalarının manuel süreç sorumlulukları ile ticari e-posta izin akışı hukuk/KVKK danışmanınca İYS/KVKK açısından yazılı onaylandı. Onay/tarih: ______
 
 ## Veri, içerik ve kabul
 

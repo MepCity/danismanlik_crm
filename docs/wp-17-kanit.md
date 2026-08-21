@@ -1,5 +1,10 @@
 # Bizlife CRM — WP-17 doğrulama kanıtı
 
+> **Geçerlilik notu — 21.08.2026:** WP-17'deki arama izni korumasına ait eski
+> kanıtlar müşteri kararıyla geri çekilmiştir. Güncel davranışta arama izni
+> alanı veya engeli yoktur; aşağıdaki otomatik kanıt listesi yeni davranışı
+> anlatır. E-posta izni kontrolü bu karardan etkilenmemiştir.
+
 ## Görsel doğrulama
 
 - Masaüstü arama listesi: `docs/screenshots/wp-17/arama-listesi-masaustu.png`

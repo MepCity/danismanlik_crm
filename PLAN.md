@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.22 — 21.08.2026
+> **Sürüm:** 1.23 — 21.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -294,7 +294,7 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 
 ### 4.1 Kapsam içi (v1)
 
-- Firma + yetkili kişi kartı (KVKK/İYS izin alanlarıyla)
+- Firma + yetkili kişi kartı (pazarlama e-postası izin özetiyle)
 - Fırsat (lead) kaydı ve ayrı görüşme (interaction) kayıtları
 - Dosya = firma × destek programı sürümü
 - Yapılandırılabilir statüler ve geçiş kuralları (izin / koşul / yan etki)
@@ -323,7 +323,7 @@ Muhasebe · fatura / e-fatura · stok · İK / bordro · üretim · satın alma 
 
 Hayırsa Faz 3 kuyruğuna gider, ayrı fiyatlanır.
 
-**B · Zorunlu kalite / güvenlik / mevzuat gereksinimi** (yedekleme, denetim kaydı, yetki kontrolü, şifreleme, KVKK-İYS alanları, hata izleme, geri dönüş tatbikatı) → **filtreye tabi değildir, kapsam içidir.**
+**B · Zorunlu kalite / güvenlik / mevzuat gereksinimi** (yedekleme, denetim kaydı, yetki kontrolü, şifreleme, e-posta izin kaydı, hata izleme, geri dönüş tatbikatı) → **filtreye tabi değildir, kapsam içidir.**
 
 > Bu ayrım olmadan kapsam filtresi kendi güvenlik önlemlerinizi de eler. "Yedekten geri dönüş tatbikatı dosya statüsünü göstermiyor" diye kesilirse, filtre projeyi korumaz, sakatlar.
 
@@ -341,7 +341,6 @@ Tek statüde birleştirilmez: **fırsat**, **dosya**, **belge**.
 Yeni → Arandı → İlgileniyor → Teklif gönderildi → İş alındı
                                                  ↘ Kaybedildi (neden zorunlu)
                                                  ↘ Sonra aranacak (tarih + sorumlu zorunlu)
-                                                 ↘ Aranmak istemiyor → aranmasın = true
 ```
 
 **"İş alındı" seçildiğinde sistem otomatik olarak:**
@@ -650,8 +649,8 @@ Alternatif (daha katı, daha çok kolon): her hedef için ayrı nullable FK + `C
 | Tablo | Kritik alanlar | Not |
 |---|---|---|
 | `companies` | unvan, **vergi_no (tekil)**, vergi_dairesi, nace_kodu, il/ilçe, ölçek, personel_sayısı, kaynak | Tekil indeks mükerrer firmayı kökten engeller |
-| `contacts` | ad, unvan, telefon, e-posta, birincil_mi + **güncel izin özeti** (izin_arama, izin_sms, izin_eposta, `aranmasın`) | Unvan kişinin şirket içindeki görevini anlatır. İzin alanları yalnızca hızlı sorgu için denormalize özet; gerçek kaynak `communication_consents` |
-| `communication_consents` | contact_id, **kanal** (arama/sms/eposta), **amaç** (pazarlama/hizmet), **durum** (onay/ret), hukuki_sebep, kaynak (form/telefon/liste/referans/İYS), aydınlatma_tarihi + yöntemi, kanıt (JSONB/dosya ref), İYS_referansı, geçerlilik_başlangıç, kayıt_zamanı, kaydeden | **Append-only.** Satır güncellenmez, yeni satır eklenir; güncel durum en son satırdır. Mutable kolonla tutulursa **önceki onayın kaynağı, hukuki sebebi ve kanıtı kaybolur** — KVKK/İYS savunmasının tamamı bu kanıta dayanıyor |
+| `contacts` | ad, unvan, telefon, e-posta, birincil_mi + **güncel e-posta izin özeti** (`consent_email`) | Unvan kişinin şirket içindeki görevini anlatır. E-posta izin alanı yalnızca hızlı sorgu için denormalize özettir; gerçek kaynak `communication_consents`. Arama ve SMS izin özeti tutulmaz |
+| `communication_consents` | contact_id, **kanal**, **amaç**, **durum** (onay/ret), hukuki_sebep, kaynak (form/telefon/liste/referans/İYS), aydınlatma_tarihi + yöntemi, kanıt (JSONB/dosya ref), İYS_referansı, geçerlilik_başlangıç, kayıt_zamanı, kaydeden | **Append-only.** Toplu pazarlama e-postası için güncel e-posta izninin gerçek kaynağıdır. Geçmiş kanal kayıtları denetim bütünlüğü için korunur; uygulama pazarlama aramalarında bu defteri kontrol etmez |
 | `leads` | company_id, **primary_contact_id**, sahip_user_id, kaynak, ilgilenilen_program, statü, tekrar_arama_tarihi, kayıp_nedeni | **Programa özel fırsatın kendisi**, tek bir aramanın veya firmanın statüsü değil |
 | `interactions` | lead_id / deal_id, **contact_id**, user_id, tip (telefon/toplantı/e-posta), tarih, süre, sonuç, not | Bir firma beş kez aranır; her satırda gerçekten görüşülen kişi bellidir |
 | `programs` | ad, kurum, kod, aktif_mi | KOSGEB / TÜBİTAK / Sanayi Bak. / Kalkınma Ajansı |
@@ -724,13 +723,13 @@ Dosya panosu · bekleyen atamalar · PM iş yükü · eksik evrak listesi · yak
 - Saklama/imha politikası: her tablo için saklama süresi + süresi dolan kayıtlar için otomatik anonimleştirme
 - Şifreleme: aktarımda TLS 1.3, diskte disk düzeyi, nesne deposunda sunucu tarafı. Yedekler de şifreli.
 
-### 12.3 İYS ve pazarlama aramaları
+### 12.3 İYS, e-posta izni ve pazarlama aramaları
 
-Ticari nitelikli SMS/e-posta ve sesli aramalar için İYS onay/ret süreçleri işler. Tacir/esnaf alıcılar için istisnalar olabilse de **ret hakkı her hâlükârda geçerlidir**.
+Ticari elektronik ileti ve pazarlama süreçlerinin hukuki yükümlülükleri devam eder; yazılım kapsamı ise müşteri kararıyla kanallara göre ayrılmıştır.
 
-> **Zamanlama:** İYS *teknik entegrasyonu* Faz 2'ye kalabilir, ama **izin/ret kaydı v1'de zorunlu**.
+> **Karar değişikliği — 21.08.2026:** Pazarlama aramalarındaki `consent_call` / `do_not_call` kontrolü ve kullanıcı arayüzü müşteri talebiyle kaldırıldı. Arama uygunluğu yazılım tarafından tutulmaz veya engellenmez; KVKK/İYS uyumu bu kanalda süreç ve manuel sorumluluk olarak yürütülür.
 
-**İzin defteri append-only olmalı.** İzinleri `contacts` üzerinde güncellenen kolonlar olarak tutmak, bir denetimde işe yaramaz: "bu numarayı Mart'ta hangi hukuki sebeple aradınız?" sorusunun cevabı, Nisan'da üzerine yazılmış bir kolonda yoktur. `communication_consents` tablosu her onay ve reddi ayrı satır olarak saklar — kanal, amaç, hukuki sebep, kaynak (form / telefon / liste / referans / İYS), aydınlatma tarihi, kanıt, İYS referansı, zaman ve kaydeden. `contacts` yalnızca güncel özeti taşır.
+**E-posta izni kontrolü devam eder.** Seçili firmalara toplu pazarlama e-postası gönderilirken `communication_consents` defterindeki en son `email / marketing` kaydı doğrulanır; `contacts.consent_email` yalnız hızlı sorgu özetidir. Defter append-only kalır, geçmiş satırlar güncellenmez veya silinmez. SMS Faz 3 kapsamındadır ve v1'de `contacts` üzerinde SMS izin özeti tutulmaz.
 
 KVKK Kurumu, üçüncü kişilerden (liste, referans, tavsiye) elde edilen iletişim bilgilerinin aydınlatma ve işleme şartları sağlanmadan pazarlamada kullanılmasına dair açık uyarı yayımladı — soğuk arama yapan ekip için doğrudan risk. **Canlıya çıkmadan şirketin KVKK danışmanı pazarlama senaryolarını doğrulamalı.**
 
@@ -790,7 +789,7 @@ Pazarlama için mobil öncelikli tek ekran: **"bugün aranacaklar"**. Sahada diz
 ### Faz 1 — Çekirdek → dar pilot · 4–5 hafta · 20–25 adam-gün
 
 - Giriş, 4 rol, `own/team/all` kapsamı, kullanıcı yönetimi
-- Firma + yetkili (KVKK/İYS izin alanlarıyla) + fırsat + görüşme kaydı
+- Firma + yetkili (e-posta izin özetiyle) + fırsat + görüşme kaydı
 - Dosya, statü makinesi (DB tabanlı) + `status_history`, PM atama
 - Program & evrak şablonu yöneticisi + otomatik checklist üretimi
 - Evrak yükleme, 9 durumlu belge akışı, sürümleme, imzalı indirme
@@ -902,7 +901,7 @@ Kişi başı lisans yok — kullanıcı eklemek bedava. *(Karşılaştırma: ki�
 | **Kapsam kayması** | Yüksek | İmzalı kapsam belgesi (§4.3 filtresi); her yeni istek Faz 3 kuyruğuna, ayrı fiyatla |
 | **Ekip sisteme girmez, Excel'e döner** | Yüksek | Mobil "bugün aranacaklar", 3 tıkta kayıt, 5-6. haftada pilot, ilk ay Excel'i resmen kapat |
 | **Evrak kaybı / yanlış sürüm** | Yüksek | Sürümleme + hash + denetim kaydı + ayrı depolama + yedek tatbikatı |
-| **KVKK / İYS ihlali** | Yüksek | İzin-ret alanları v1'de, TR lokasyon + alt işleyen envanteri, indirme logu, imha politikası, hukuk onayı |
+| **KVKK / İYS ihlali** | Yüksek | E-posta izin defteri, TR lokasyon + alt işleyen envanteri, indirme logu, imha politikası ve hukuk onayı. Pazarlama araması uygunluğu müşteri kararıyla manuel süreç sorumluluğunda |
 | **Statülerin sık değişmesi** | Orta | DB tabanlı statü/geçiş (K-05) |
 | **e-TUYS entegrasyon beklentisi** | Orta | Bugün yazılı olarak "kamuya açık API bulunamadı"; alternatif olarak alan eşlemesi + başvuru paketi (K-08) |
 | **Takvim aşımı** | Orta | Pilot ve üretim tarihleri ayrı taahhüt; haftalık demo |
@@ -947,7 +946,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 6. Depo kur, CI/CD, staging ortamı
 7. Faz 1'e başla
 
-> **Migration yazmadan önce kapatılması gereken 4 madde** (§21 v1.2'de çözüldü, kod yazılırken doğrulanacak): iş akışı revizyonu + yetim kontrolü (K-09) · append-only izin defteri (§12.3) · tetikleyici session context (§8.2) · polymorphic subject + eksik tablolar (§10.0, §10.1).
+> **Migration yazmadan önce kapatılması gereken 4 madde** (§21 v1.2'de çözüldü, kod yazılırken doğrulanacak): iş akışı revizyonu + yetim kontrolü (K-09) · append-only e-posta izin defteri (§12.3) · tetikleyici session context (§8.2) · polymorphic subject + eksik tablolar (§10.0, §10.1).
 
 ---
 
@@ -970,6 +969,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.23 | 21.08.2026 | Müşteri talebiyle pazarlama araması izin kontrolü, `consent_call` / `do_not_call` ve kullanılmayan SMS izin özeti ürün kapsamından çıkarıldı. Arama uygunluğu manuel süreç sorumluluğunda kaldı; toplu pazarlama e-postası append-only defterdeki güncel e-posta iznini doğrulamaya devam eder. Gelen/giden ve pazarlama/hizmet görüşme metadatası raporlama için korundu |
 | 1.22 | 21.08.2026 | Hizmet dönemindeki bilgilendirici iş akışı anlık görüntüsü dosya açılışında `deals.workflow_snapshot` alanına kopyalanır; dosya detayı program sürümü yerine bu değişmez kopyayı okur. Rehber ile `transitions`/`StatusMachine` yetkili statü akışının sınırı açıkça ayrıldı |
 | 1.21 | 21.08.2026 | Firma rehberinin kontrollü kaba sektör kodları NACE’den ayrılaştırıldı; PostgreSQL kısıtı, sektör/il/ölçek/aktiflik filtreleri ve kayıtlı görünümler eklendi. Seçili firmalara toplu e-posta, güncel e-posta pazarlama izni, kapsam policy’si, mevcut bildirim kuyruğu ve filtre anlık görüntülü etkinlik kaydı üzerinden sınırlandı |
 | 1.20 | 21.08.2026 | Linear / Attio / Twenty yönünün yerini kullanıcı talimatıyla Zoho paleti ve kabuğu aldı; bütün Filament kaynak listelerine ortak “Tüm kayıtlar” görünümü ve yenileme eylemi eklendi. Filtre, sütun görünümü, yoğun tablo ve sayfalama aynı liste iskeletinde korunur |
