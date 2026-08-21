@@ -93,7 +93,6 @@ function acceptanceLead(User $marketing): array
         'email' => 'firma@kabul.invalid',
         'data_source' => 'form',
         'is_primary' => true,
-        'consent_call' => true,
         'consent_email' => true,
     ]);
     CommunicationConsent::query()->create([

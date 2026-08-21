@@ -260,7 +260,7 @@ it('eksik evrak e-postasını doğru izinli kontağa kuyruğa alır', function (
         'company_id' => $fixture['company']->id, 'full_name' => 'Kurgusal Firma Yetkilisi',
         'data_source' => 'other',
         'email' => 'firma-yetkilisi@example.invalid', 'is_primary' => true, 'is_active' => true,
-        'consent_email' => true, 'do_not_call' => false,
+        'consent_email' => true,
     ]);
     operationDocument($fixture['deal'], 'Kurgusal Eksik Findeks', 'to_request');
     operationDocument($fixture['deal'], 'Kurgusal Eksik Fizibilite', 'requested');
