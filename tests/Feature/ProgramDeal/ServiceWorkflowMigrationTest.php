@@ -28,7 +28,7 @@ it('hizmet iş akışı şemasını PostgreSQL üzerinde geri alıp yeniden kura
             ->and(Schema::connection($connection)->hasColumn('program_versions', 'workflow_snapshot'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('deals', 'workflow_snapshot'))->toBeTrue();
 
-        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 2]))->toBe(0)
+        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 3]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('service_workflows'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('program_versions', 'workflow_snapshot'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('deals', 'workflow_snapshot'))->toBeFalse();

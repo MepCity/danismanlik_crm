@@ -22,7 +22,7 @@ it('potansiyel müşteri genişletmesini PostgreSQL üzerinde geri alıp yeniden
             ->and(Schema::connection($connection)->hasColumn('interactions', 'contact_id'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('comments', 'company_id'))->toBeTrue();
 
-        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 8]))->toBe(0)
+        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 9]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('leads', 'primary_contact_id'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('comments', 'company_id'))->toBeFalse();
 

@@ -32,7 +32,7 @@ it('migrates rolls back and remigrates the audit collaboration schema', function
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 19,
+            '--step' => 20,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('activities'))->toBeFalse()
             ->and(Schema::connection($connection)->hasTable('audit_log'))->toBeFalse()

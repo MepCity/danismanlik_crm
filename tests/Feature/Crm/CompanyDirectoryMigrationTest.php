@@ -28,7 +28,7 @@ it('firma rehberi alanlarını PostgreSQL üzerinde geri alıp yeniden kurar', f
             'city' => null,
         ]))->toThrow(QueryException::class);
 
-        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 4]))->toBe(0)
+        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 5]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('companies', 'owner_user_id'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('companies', 'industry'))->toBeFalse();
 
