@@ -6,6 +6,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\OperationsDashboard;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
+use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -42,9 +43,10 @@ final class AdminPanelProvider extends PanelProvider
             ], isRequired: false)
             ->strictAuthorization()
             ->spa()
+            ->defaultThemeMode(ThemeMode::Light)
             ->maxContentWidth(Width::Full)
             ->sidebarCollapsibleOnDesktop()
-            ->sidebarWidth('17rem')
+            ->sidebarWidth('22.875rem')
             ->collapsedSidebarWidth('4.5rem')
             ->navigationGroups([
                 NavigationGroup::make()->label(__('panel.navigation.groups.overview')),

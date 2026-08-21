@@ -4199,6 +4199,477 @@ body {
     }
 }
 
+/* Zoho-inspired operations language ------------------------------------
+ * The reference informs density, hierarchy and navigation. Product data,
+ * branding and interaction flows remain native to Bizlife CRM.
+ */
+
+.fi-sidebar,
+.fi-sidebar-header {
+    background: var(--crm-nav-bg);
+    border-color: var(--crm-nav-border);
+}
+
+.fi-sidebar-header {
+    min-height: 3.5rem;
+    padding-inline: var(--crm-space-4);
+}
+
+.fi-sidebar-nav {
+    padding: var(--crm-space-3) var(--crm-space-2);
+}
+
+.fi-sidebar-nav-groups {
+    gap: var(--crm-space-4);
+}
+
+.fi-sidebar .crm-brand {
+    color: var(--crm-nav-text);
+}
+
+.fi-sidebar .crm-brand__mark {
+    width: 2rem;
+    height: 2rem;
+    border-color: var(--crm-accent-400);
+    border-radius: var(--crm-radius-md);
+}
+
+.fi-sidebar .crm-brand__copy small,
+.fi-sidebar .fi-sidebar-group-label {
+    color: var(--crm-nav-text-subtle);
+}
+
+.fi-sidebar .fi-sidebar-item-button,
+.fi-sidebar .fi-sidebar-item-btn {
+    min-height: 2.125rem;
+    border-radius: var(--crm-radius-md);
+    color: var(--crm-nav-text-muted);
+    transition: background-color var(--crm-duration-base) var(--crm-ease), color var(--crm-duration-base) var(--crm-ease);
+}
+
+.fi-sidebar .fi-sidebar-item-button:hover,
+.fi-sidebar .fi-sidebar-item-btn:hover {
+    background: var(--crm-nav-bg-hover);
+    color: var(--crm-nav-text);
+    transform: none;
+}
+
+.fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-button,
+.fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+    background: var(--crm-nav-bg-active);
+    border-color: transparent;
+    color: var(--crm-nav-text);
+}
+
+.fi-sidebar .fi-sidebar-item-btn .fi-sidebar-item-label,
+.fi-sidebar .fi-sidebar-item-btn .fi-sidebar-item-icon,
+.fi-sidebar .fi-sidebar-item-icon,
+.fi-sidebar .fi-sidebar-group-collapse-button {
+    color: currentColor;
+}
+
+.fi-sidebar .fi-sidebar-item-button:hover .fi-sidebar-item-icon,
+.fi-sidebar .fi-sidebar-item-btn:hover .fi-sidebar-item-icon {
+    transform: none;
+}
+
+.fi-topbar {
+    min-height: 3.5rem;
+    background: var(--crm-topbar-bg);
+    border-color: var(--crm-border);
+    backdrop-filter: none;
+}
+
+.fi-topbar nav {
+    min-height: 3.5rem;
+    padding-inline: var(--crm-space-4);
+}
+
+.fi-main {
+    width: min(100%, var(--crm-content-max));
+    padding-block: var(--crm-space-4) var(--crm-space-8);
+}
+
+.fi-header {
+    align-items: center;
+    min-height: 3.75rem;
+    gap: var(--crm-space-3);
+    padding-block-end: var(--crm-space-3);
+}
+
+.fi-header-heading {
+    font-size: var(--crm-text-xl);
+    font-weight: 720;
+    letter-spacing: -0.025em;
+}
+
+.fi-section,
+.fi-ta-ctn,
+.fi-wi-stats-overview-stat,
+.operations-panel,
+.checklist-table-wrap,
+.deal-column {
+    background: var(--crm-surface-panel);
+    border-radius: var(--crm-radius-lg);
+    box-shadow: none;
+}
+
+.fi-section-header {
+    padding: var(--crm-space-3) var(--crm-space-4);
+}
+
+.fi-section-content {
+    padding: var(--crm-space-4);
+}
+
+.fi-btn,
+.operations-button {
+    border-radius: var(--crm-radius-md);
+    font-size: var(--crm-text-sm);
+    font-weight: 650;
+}
+
+.fi-btn:hover,
+.operations-button:hover,
+.fi-icon-btn:hover {
+    box-shadow: none;
+    transform: none;
+}
+
+.fi-btn.fi-color-primary,
+.fi-btn.fi-ac-btn-action,
+.operations-button--primary {
+    background: linear-gradient(135deg, var(--crm-accent-gradient-start), var(--crm-accent-gradient-end));
+    border-color: var(--crm-accent-600);
+    color: var(--crm-neutral-0);
+}
+
+.fi-btn.fi-color-primary:hover,
+.fi-btn.fi-ac-btn-action:hover,
+.operations-button--primary:hover {
+    background: var(--crm-accent-700);
+    border-color: var(--crm-accent-700);
+}
+
+.fi-input-wrp,
+.fi-select-input,
+.fi-fo-textarea,
+.intake-field input,
+.intake-field select,
+.intake-field textarea,
+.operations-inline-form input,
+.operations-inline-form select,
+.operations-inline-form textarea,
+.assignment-action select,
+.quick-note textarea,
+.comment-composer textarea,
+.mention-picker select {
+    background: var(--crm-surface-panel);
+    border-radius: var(--crm-radius-md);
+}
+
+.fi-input-wrp:focus-within,
+.intake-field input:focus,
+.intake-field select:focus,
+.intake-field textarea:focus,
+.operations-inline-form input:focus,
+.operations-inline-form select:focus,
+.operations-inline-form textarea:focus,
+.comment-composer textarea:focus,
+.mention-picker select:focus {
+    outline-width: 2px;
+}
+
+.fi-dropdown-panel,
+.fi-modal-window {
+    border-radius: var(--crm-radius-lg);
+}
+
+.fi-ta-header {
+    min-height: 2.75rem;
+}
+
+.fi-ta-header-cell {
+    background: var(--crm-surface-panel);
+    color: var(--crm-text-muted);
+    font-weight: 650;
+    letter-spacing: 0.015em;
+    text-transform: none;
+}
+
+.fi-ta-row:hover {
+    background: var(--crm-surface-muted);
+}
+
+.fi-badge,
+.status-token {
+    border-width: 1px;
+    font-weight: 650;
+}
+
+.fi-simple-layout::before,
+.fi-simple-layout::after {
+    display: none;
+}
+
+.fi-simple-main {
+    width: min(100% - 2rem, 25rem);
+    padding: var(--crm-space-6);
+    border-radius: var(--crm-radius-xl);
+}
+
+.fi-simple-header-heading {
+    font-size: var(--crm-text-2xl);
+    font-weight: 720;
+}
+
+.workspace-hero {
+    align-items: center;
+    min-height: auto;
+    padding: var(--crm-space-4) var(--crm-space-5);
+    border-radius: var(--crm-radius-lg);
+}
+
+.workspace-hero h2 {
+    margin-block-start: var(--crm-space-1);
+    font-size: var(--crm-text-xl);
+    font-weight: 720;
+    letter-spacing: -0.025em;
+}
+
+.workspace-hero p {
+    margin-block-start: var(--crm-space-1);
+    font-size: var(--crm-text-sm);
+}
+
+.workspace-hero__date {
+    min-width: 6.5rem;
+    padding-inline-start: var(--crm-space-4);
+}
+
+.workspace-hero__date strong {
+    font-size: var(--crm-text-2xl);
+}
+
+.dashboard-cards {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    gap: var(--crm-space-3);
+}
+
+.dashboard-card {
+    min-height: 7.5rem;
+    padding: var(--crm-space-4);
+    border-radius: var(--crm-radius-lg);
+}
+
+.dashboard-card:hover,
+.dashboard-card:focus-visible,
+.deal-card:hover,
+.call-card:hover,
+.contact-card:hover,
+.quick-result:hover,
+.timeline-filter:hover {
+    background: var(--crm-surface-muted);
+    box-shadow: none;
+    transform: none;
+}
+
+.dashboard-card__stripe {
+    width: 2px;
+}
+
+.dashboard-card__icon {
+    border-radius: var(--crm-radius-md);
+}
+
+.report-table th,
+.checklist-table th {
+    color: var(--crm-text-muted);
+    font-weight: 650;
+    letter-spacing: 0.015em;
+    text-transform: none;
+}
+
+.pipeline-workspace {
+    gap: var(--crm-space-3);
+}
+
+.pipeline-toolbar {
+    padding: var(--crm-space-3) var(--crm-space-4);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-lg);
+}
+
+.pipeline-toolbar__hint,
+.pipeline-scroll-cue {
+    color: var(--crm-text-subtle);
+    font-size: var(--crm-text-2xs);
+}
+
+.pipeline-board {
+    gap: var(--crm-space-2);
+    padding: 0;
+}
+
+.pipeline-stage {
+    flex-basis: 18rem;
+    background: var(--crm-surface-muted);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-lg);
+}
+
+.pipeline-stage__header {
+    min-height: 2.75rem;
+    padding: var(--crm-space-2) var(--crm-space-3);
+    background: var(--crm-accent-50);
+    border-block-end: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-lg) var(--crm-radius-lg) 0 0;
+}
+
+.dark .pipeline-stage__header {
+    background: var(--crm-surface-active);
+}
+
+.pipeline-stage__cards {
+    gap: var(--crm-space-2);
+    padding: var(--crm-space-2);
+}
+
+.pipeline-card {
+    padding: var(--crm-space-3);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: none;
+}
+
+.pipeline-card:hover,
+.pipeline-card:focus-visible {
+    border-color: var(--crm-border-strong);
+    box-shadow: none;
+    transform: none;
+}
+
+.pipeline-stage--target {
+    background: var(--crm-accent-50);
+    border-color: var(--crm-border-focus);
+}
+
+.record-peek {
+    border-inline-start: 1px solid var(--crm-border-strong);
+    box-shadow: var(--crm-elevation-overlay);
+}
+
+.deal-workspace {
+    max-width: none;
+    gap: var(--crm-space-3);
+}
+
+.deal-hero {
+    align-items: center;
+    padding-block: var(--crm-space-2) var(--crm-space-3);
+}
+
+.deal-hero h1 {
+    font-size: clamp(var(--crm-text-xl), 2vw, var(--crm-text-2xl));
+    font-weight: 720;
+}
+
+.deal-hero__identity > p {
+    margin-block-start: var(--crm-space-2);
+    font-size: var(--crm-text-sm);
+    line-height: 1.45;
+}
+
+.deal-hero__state {
+    gap: var(--crm-space-1);
+    padding: 0;
+}
+
+.deal-progress {
+    gap: var(--crm-space-4);
+    padding: var(--crm-space-3) var(--crm-space-4);
+    border-radius: var(--crm-radius-lg);
+}
+
+.deal-workspace__grid {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    gap: var(--crm-space-4);
+}
+
+.deal-workspace__main {
+    gap: var(--crm-space-4);
+}
+
+.deal-section,
+.deal-side-panel {
+    border-radius: var(--crm-radius-lg);
+}
+
+.deal-section__header {
+    padding: var(--crm-space-3) var(--crm-space-4);
+}
+
+.deal-section__header h2,
+.deal-side-panel h2 {
+    font-size: var(--crm-text-base);
+    font-weight: 700;
+}
+
+.deal-context-grid article {
+    min-height: 4.5rem;
+    padding: var(--crm-space-3) var(--crm-space-4);
+}
+
+.deal-section--documents,
+.deal-activity__body {
+    padding: var(--crm-space-4);
+}
+
+.deal-activity__filters {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+
+.deal-activity__filter {
+    border-block-end: 2px solid transparent;
+    border-radius: 0;
+}
+
+.deal-activity__filter.is-active {
+    background: transparent;
+    border-block-end-color: var(--crm-accent-500);
+    box-shadow: none;
+}
+
+.deal-workspace__sidebar {
+    gap: var(--crm-space-3);
+}
+
+.deal-side-panel--process {
+    border-color: var(--crm-border);
+}
+
+.deal-side-panel--process > header {
+    background: var(--crm-accent-50);
+}
+
+.dark .deal-side-panel--process > header {
+    background: var(--crm-surface-active);
+}
+
+.deal-transition-action:hover {
+    transform: none;
+}
+
+@media (max-width: 64rem) {
+    .fi-main {
+        padding-inline: var(--crm-space-3);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

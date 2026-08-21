@@ -84,7 +84,7 @@ it('tasarım paketi ortak hareket ve erişilebilirlik sözleşmesini uygular', f
         ->and($theme)->not->toBeFalse()
         ->and($tokens)->toContain('--crm-duration-base: 170ms;')
         ->and($tokens)->toContain('--crm-ease: cubic-bezier(0.16, 1, 0.3, 1);')
-        ->and($tokens)->toContain('--crm-radius-md: 0.625rem;')
+        ->and($tokens)->toContain('--crm-radius-md: 0.375rem;')
         ->and($tokens)->toContain('--crm-elevation-overlay:')
         ->and($tokens)->toContain('--crm-surface-pressed:')
         ->and($tokens)->toContain('--crm-border-focus:')
@@ -94,6 +94,23 @@ it('tasarım paketi ortak hareket ve erişilebilirlik sözleşmesini uygular', f
         ->and($theme)->toContain('outline: 2px solid var(--crm-focus-ring);')
         ->and($theme)->toContain('.operations-button:active')
         ->and($theme)->toContain('transform: translateY(0) scale(0.985);');
+});
+
+it('zoho esintili operasyon kabuğunu tokenlarla uygular', function (): void {
+    $tokens = file_get_contents(resource_path('css/filament/operations/tokens.css'));
+    $theme = file_get_contents(resource_path('css/filament/operations/theme.css'));
+    $provider = file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
+
+    expect($tokens)->not->toBeFalse()
+        ->and($theme)->not->toBeFalse()
+        ->and($provider)->not->toBeFalse()
+        ->and($tokens)->toContain('--crm-nav-bg:')
+        ->and($tokens)->toContain('--crm-topbar-bg:')
+        ->and($tokens)->toContain('--crm-control-height: 36px;')
+        ->and($theme)->toContain('.fi-sidebar .fi-sidebar-item-button')
+        ->and($theme)->toContain('background: var(--crm-nav-bg);')
+        ->and($provider)->toContain('->defaultThemeMode(ThemeMode::Light)')
+        ->and($provider)->toContain("->sidebarWidth('22.875rem')");
 });
 
 it('varlıkları host node kurulumu olmadan container içinde derler', function (): void {
