@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.18 — 21.08.2026
+> **Sürüm:** 1.19 — 21.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -966,6 +966,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.19 | 21.08.2026 | Zoho CRM tasarım incelemesi uygulama kabuğuna taşındı: 320 px lacivert navigasyon, beyaz üst çubuk, açık mavi-gri çalışma yüzeyi, 36 px kontroller, 6–10 px yarıçap, çizgi ağırlıklı tablo/form/kartlar ve sakin mikro geçişler ortak token sözleşmesi oldu. Yeni oturumlarda açık tema varsayılan; koyu tema aynı yüzey hiyerarşisinin bağımsız karşılığı olarak korunur |
 | 1.18 | 21.08.2026 | Programlar kullanıcı dilinde Hizmetler olarak konumlandırıldı. Yeniden kullanılabilir İş Akışları ve sıralı işlem/bekleme/karar aşamaları eklendi; hizmet dönemi seçilen rehberin anlık görüntüsünü saklar ve dosya detayında ekibe gösterir |
 | 1.16 | 16.08.2026 | İlk görsel pilotun fazla muhafazakâr kalması üzerine dosya detayı gerçek bir tek sayfalık çalışma alanına dönüştürüldü. Sekmeler kaldırıldı; şirket/satış bağlamı ve evrak listesi ana akışa, süreç geçişleri–ayrıntılar–ekip sabit sağ panele, yorum–görev–görüşme–geçmiş filtreli Etkinlik alanına taşındı. Dosya panosuna açık dosya, eksik evrak ve atanmamış iş özetleri ile aktör avatarları eklendi |
 | 1.15 | 16.08.2026 | “Dengeli” arayüz yönü kesinleştirildi: durağan yüzeylerde kenarlık önceliği korunurken etkileşimli kartlarda çok hafif yükselti, geçici katmanlarda tek kaplama gölgesi tanımlandı. Form ve tablo ritmi 40/38 px olarak ayrıldı; tek hareket eğrisi ve 120/170/220 ms süreleri benimsendi. Filament SPA gezinmesi, Docker içinde tekrarlanabilir ön yüz derlemesi ve dosya panosu/detayında pilot bilgi hiyerarşisi eklendi |
