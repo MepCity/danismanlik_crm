@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\DealDocumentArchiveController;
 use App\Http\Controllers\DocumentDownloadController;
+use App\Http\Controllers\MarketingUnsubscribeController;
 use App\Http\Controllers\ReportExportController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,3 +25,8 @@ Route::get('/deals/{deal}/documents/archive', DealDocumentArchiveController::cla
 Route::get('/reports/{report}/export', ReportExportController::class)
     ->middleware('auth')
     ->name('reports.export');
+
+Route::get('/e-posta/abonelikten-cik/{contact}', MarketingUnsubscribeController::class)
+    ->middleware('signed')
+    ->whereNumber('contact')
+    ->name('marketing.unsubscribe');
