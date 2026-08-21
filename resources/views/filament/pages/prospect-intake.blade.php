@@ -38,7 +38,6 @@
                         <label class="intake-field"><span>{{ __('marketing.contacts.title') }}</span><input wire:model="contactTitle" required></label>
                         <label class="intake-field"><span>{{ __('marketing.contacts.phone') }}</span><input class="numeric-data" wire:model="phone" required></label>
                         <label class="intake-field"><span>{{ __('marketing.contacts.email') }}</span><input type="email" wire:model="email" required></label>
-                        <label class="intake-field"><span>{{ __('marketing.contacts.call_consent') }}</span><select wire:model="callConsent">@foreach(__('marketing.contacts.consent_options') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select></label>
                         <label class="intake-field"><span>{{ __('marketing.contacts.disclosure_date') }}</span><input type="date" wire:model="disclosureDate"></label>
                     </div>
                 @endif

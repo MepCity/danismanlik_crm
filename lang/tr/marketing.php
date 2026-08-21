@@ -80,7 +80,6 @@ return [
         'call' => 'Ara',
         'no_contact' => 'Aktif kişi yok',
         'no_phone' => 'Telefon kaydı yok',
-        'blocked_reason' => 'Arama engellendi: geçerli pazarlama araması izni yok veya izin geri çekilmiş.',
         'filters' => [
             'today' => 'Bugün aranacaklar',
             'overdue' => 'Geciken takipler',
@@ -153,13 +152,9 @@ return [
         'tabs' => ['general' => 'Genel', 'contacts' => 'Kişiler', 'interactions' => 'Görüşmeler', 'comments' => 'Yorumlar', 'history' => 'İşlem geçmişi'],
     ],
     'consent' => [
-        'call_allowed' => 'Arama izni var',
-        'call_not_allowed' => 'Arama izni yok',
         'disclosure' => 'Aydınlatma',
-        'rejected_at' => 'Ret tarihi',
         'not_recorded' => 'Kaydedilmedi',
         'unknown' => 'Bilinmiyor',
-        'do_not_call' => 'Bir daha aranmasın',
     ],
     'interactions' => [
         'title' => 'Görüşmeler',
@@ -201,7 +196,6 @@ return [
         'title' => 'Unvan',
         'phone' => 'Telefon',
         'email' => 'E-posta',
-        'call_consent' => 'Arama izni',
         'email_consent' => 'Pazarlama e-postası izni',
         'consent_options' => ['unknown' => 'Belirsiz', 'granted' => 'Onay var', 'denied' => 'Ret var'],
         'disclosure_date' => 'Aydınlatma tarihi',
@@ -213,7 +207,6 @@ return [
     ],
     'messages' => [
         'interaction_saved' => 'Görüşme kaydedildi.',
-        'do_not_call_saved' => 'Ret kaydı izin defterine eklendi; arama engellendi.',
         'transitioned' => 'Fırsat statüsü güncellendi.',
         'converted' => 'Fırsat dosyaya dönüştürüldü.',
         'contact_saved' => 'Yetkili kişi kaydedildi.',
@@ -233,6 +226,5 @@ return [
         'lost_reason_required' => 'Kaybedildi statüsü için kayıp nedeni zorunludur.',
         'program_version_id_required' => 'İş alındı dönüşümü için program sürümü zorunludur.',
         'already_converted' => 'Bu fırsat daha önce dosyaya dönüştürülmüş.',
-        'outbound_marketing_call_blocked' => 'Giden pazarlama araması reddedildi: kişinin geçerli arama izni yok veya izin geri çekilmiş.',
     ],
 ];

@@ -6,7 +6,7 @@ Bu betik canlıya çıkmadan önce sistemi günlük işinde kullanacak kişilerc
 
 - En az bir Pazarlama, Proje Yöneticisi, Şirket Yetkilisi ve Sistem Yöneticisi hesabı hazır olmalı.
 - Test programında en az iki zorunlu ve firma ili veya tutarla devreye giren bir koşullu evrak bulunmalı.
-- Test firmasında e-posta ve arama izni; ulaşılabilir bir test e-posta adresi olmalı.
+- Test firmasında e-posta izni ve ulaşılabilir bir test e-posta adresi olmalı.
 - Bir PDF'nin ilk ve düzeltilmiş iki kurgusal sürümü hazır olmalı.
 
 ## 1. Pazarlama — arama ve fırsat
@@ -16,7 +16,6 @@ Bu betik canlıya çıkmadan önce sistemi günlük işinde kullanacak kişilerc
 | Pazarlama hesabıyla “Bugün aranacaklar” ekranını açın. | Yalnız bu kullanıcının bugün arayacağı ve geciken firmalar görünür. | ☐ ✅ ☐ ❌ |
 | Test firmasında “Ara” deyip sonuç ve kısa not girin. | Görüşme; saat, kullanıcı ve sonuçla geçmişte görünür. | ☐ ✅ ☐ ❌ |
 | Fırsatı “İlgileniyor” yapın. | Kart doğru sütuna geçer; eski ve yeni statü geçmişte okunur. | ☐ ✅ ☐ ❌ |
-| Başka bir test kişisinde “Bir daha aranmasın”ı işaretleyin, sonra arama kaydetmeyi deneyin. | Arama izni geri çekilmiş görünür; yeni pazarlama araması kapatılır veya reddedilir. | ☐ ✅ ☐ ❌ |
 | Ana fırsatı “Teklif gönderildi”, sonra “İş alındı” yapıp program sürümünü seçin. | Tek dosya otomatik açılır; “Atama bekliyor” durumunda, seçilen program ve evrak listesiyle görünür. | ☐ ✅ ☐ ❌ |
 
 ## 2. Şirket yetkilisi — atama
