@@ -42,6 +42,9 @@ return [
             'activity' => 'Etkinlik',
             'process_eyebrow' => 'Sonraki adım',
             'process' => 'Süreci ilerlet',
+            'guide_eyebrow' => 'Hizmet rehberi',
+            'guide' => 'Uygulama akışı',
+            'attention' => 'Dikkat',
             'details' => 'Ayrıntılar',
         ],
         'tabs' => [
@@ -50,7 +53,7 @@ return [
             'team' => 'Ekip', 'history' => 'İşlem geçmişi',
         ],
         'fields' => [
-            'company' => 'Firma', 'reference' => 'Dosya no', 'program' => 'Program',
+            'company' => 'Firma', 'reference' => 'Dosya no', 'program' => 'Hizmet',
             'manager' => 'Proje yöneticisi', 'opened_by' => 'Dosyayı açan', 'priority' => 'Öncelik',
             'marketer' => 'İşi alan pazarlamacı', 'contacted_person' => 'Görüşülen kişi',
             'won_at' => 'İşin alındığı zaman', 'sale_summary' => 'Satış görüşmesi özeti',

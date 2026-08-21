@@ -41,6 +41,8 @@ use App\Domain\Document\Models\File;
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\Program;
 use App\Domain\Program\Models\ProgramVersion;
+use App\Domain\Program\Models\ServiceWorkflow;
+use App\Domain\Program\Models\ServiceWorkflowStep;
 use App\Domain\Program\ProgramServiceProvider;
 use App\Models\User;
 use App\Support\Conditions\ConditionDefinitionObserver;
@@ -100,6 +102,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Program::class, ProgramPolicy::class);
         Gate::policy(ProgramVersion::class, ProgramVersionPolicy::class);
         Gate::policy(DocTemplate::class, DocTemplatePolicy::class);
+        Gate::policy(ServiceWorkflow::class, ProgramPolicy::class);
+        Gate::policy(ServiceWorkflowStep::class, ProgramPolicy::class);
         Gate::policy(Comment::class, CommentPolicy::class);
         Gate::policy(Task::class, TaskPolicy::class);
         Gate::policy(Status::class, StatusPolicy::class);

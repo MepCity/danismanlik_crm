@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Programs;
 
 use App\Domain\Program\Models\Program;
+use App\Domain\Program\Models\ServiceWorkflow;
 use App\Filament\Resources\Programs\Pages\CreateProgram;
 use App\Filament\Resources\Programs\Pages\EditProgram;
 use App\Filament\Resources\Programs\Pages\ListPrograms;
@@ -64,6 +65,12 @@ final class ProgramResource extends ScopedResource
                 ->schema([
                     TextInput::make('name')->label(__('management.fields.name'))->required()->maxLength(255),
                     Select::make('institution')->label(__('management.fields.institution'))->options(__('management.institutions'))->required(),
+                    Select::make('service_workflow_id')
+                        ->label(__('management.fields.service_workflow'))
+                        ->options(fn (): array => ServiceWorkflow::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all())
+                        ->helperText(__('management.service_setup.workflow_help'))
+                        ->searchable()
+                        ->required(),
                     Toggle::make('is_active')->label(__('management.fields.active'))->default(true),
                 ])->columns(2),
             Section::make(__('management.program_setup.sections.period.title'))
@@ -102,11 +109,12 @@ final class ProgramResource extends ScopedResource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['latestVersion.docTemplates']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['latestVersion.docTemplates', 'latestVersion.serviceWorkflow']))
             ->columns([
                 TextColumn::make('name')->label(__('management.fields.name'))->searchable()->sortable(),
                 TextColumn::make('institution')->label(__('management.fields.institution'))->formatStateUsing(fn (string $state): string => __('management.institutions.'.$state)),
                 TextColumn::make('latestVersion.call_period')->label(__('management.fields.call_period'))->placeholder(__('management.messages.not_set')),
+                TextColumn::make('latestVersion.serviceWorkflow.name')->label(__('management.fields.service_workflow'))->placeholder(__('management.messages.not_set')),
                 TextColumn::make('application_period')
                     ->label(__('management.fields.application_period'))
                     ->state(fn (Program $record): string => self::applicationPeriod($record))

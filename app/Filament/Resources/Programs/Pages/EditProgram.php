@@ -23,6 +23,7 @@ final class EditProgram extends EditRecord
 
         return [
             ...$data,
+            'service_workflow_id' => $version?->service_workflow_id,
             'call_period' => $version?->call_period,
             'application_opens_at' => $version?->application_opens_at?->toDateString(),
             'application_closes_at' => $version?->application_closes_at?->toDateString(),

@@ -10,6 +10,9 @@ use App\Domain\Deal\Models\WorkflowRevision;
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\Program;
 use App\Domain\Program\Models\ProgramVersion;
+use App\Domain\Program\Models\ServiceWorkflow;
+use App\Domain\Program\Models\ServiceWorkflowStep;
+use App\Domain\Program\Services\ServiceWorkflowSnapshot;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -313,6 +316,33 @@ final class ReferenceDataSeeder extends Seeder
 
     private function seedProgram(): void
     {
+        $workflow = ServiceWorkflow::query()->updateOrCreate(
+            ['name' => 'KOSGEB başvuru rehberi'],
+            [
+                'description' => 'KOSGEB destek dosyalarında hazırlıktan kurul kararına kadar izlenecek genel uygulama akışı.',
+                'is_active' => true,
+            ],
+        );
+        $steps = [
+            ['action', 'Belgeleri topla ve doğrula', 'Hizmete ait belge listesini firma yetkilisiyle paylaşın; gelen sürümleri kontrol ederek eksikleri tamamlatın.', 'Unvan, imza, tarih ve güncellik kontrollerini atlamayın.'],
+            ['action', 'Kurum sistemine veri girişi yap', 'Onaylanan bilgileri ve belgeleri ilgili KOSGEB ekranına eksiksiz aktarın.', 'Sisteme girilen tutarların belge ve başvuru formuyla aynı olduğunu karşılaştırın.'],
+            ['decision', 'Başvuru ön kontrolünü tamamla', 'Gönderim öncesi zorunlu alanları, ekleri ve yetkili onaylarını ikinci kez kontrol edin.', null],
+            ['waiting', 'Değerlendirme ve kurul sonucunu bekle', 'Kurum bildirimlerini izleyin; ek bilgi talebi gelirse dosyada görev açarak süre içinde yanıtlayın.', 'Bildirim ve son yanıt tarihlerini dosya etkinliğine kaydedin.'],
+        ];
+
+        foreach ($steps as $order => [$type, $title, $guidance, $attention]) {
+            ServiceWorkflowStep::query()->updateOrCreate(
+                ['service_workflow_id' => $workflow->id, 'title' => $title],
+                [
+                    'type' => $type,
+                    'guidance' => $guidance,
+                    'attention_note' => $attention,
+                    'sort_order' => $order,
+                    'is_active' => true,
+                ],
+            );
+        }
+
         $program = Program::query()->updateOrCreate(
             ['code' => 'KOSGEB-YESIL-SANAYI'],
             [
@@ -324,9 +354,11 @@ final class ReferenceDataSeeder extends Seeder
         $version = ProgramVersion::query()->updateOrCreate(
             ['program_id' => $program->id, 'call_period' => '2026 çağrısı'],
             [
+                'service_workflow_id' => $workflow->id,
                 'application_opens_at' => '2026-01-15 09:00:00',
                 'application_closes_at' => '2026-12-15 17:00:00',
                 'description' => '2026 çağrısı için başlangıç referans sürümü.',
+                'workflow_snapshot' => app(ServiceWorkflowSnapshot::class)->capture($workflow->id),
                 'is_active' => true,
             ],
         );

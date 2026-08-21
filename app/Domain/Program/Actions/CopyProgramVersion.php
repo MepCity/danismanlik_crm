@@ -16,6 +16,8 @@ final class CopyProgramVersion
         return DB::transaction(function () use ($source, $attributes): ProgramVersion {
             $target = ProgramVersion::query()->create([
                 'program_id' => $source->program_id,
+                'service_workflow_id' => $source->service_workflow_id,
+                'workflow_snapshot' => $source->workflow_snapshot,
                 ...$attributes,
             ]);
 

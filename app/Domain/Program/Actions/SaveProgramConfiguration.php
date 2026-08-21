@@ -7,6 +7,7 @@ namespace App\Domain\Program\Actions;
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\Program;
 use App\Domain\Program\Models\ProgramVersion;
+use App\Domain\Program\Services\ServiceWorkflowSnapshot;
 use App\Models\User;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,8 @@ use Illuminate\Validation\ValidationException;
 
 final class SaveProgramConfiguration
 {
+    public function __construct(private readonly ServiceWorkflowSnapshot $workflows) {}
+
     /** @param array<string, mixed> $data */
     public function execute(?Program $program, array $data, User $actor): Program
     {
@@ -60,7 +63,7 @@ final class SaveProgramConfiguration
     }
 
     /** @param array<string, mixed> $data
-     * @return array{name: string, institution: string, is_active: bool, call_period: string, application_opens_at: mixed, application_closes_at: mixed, description: mixed, documents: list<array{id?: int|null, name: string, description?: mixed, is_required: bool, accepted_formats: list<string>, validity_days?: int|null}>}
+     * @return array{name: string, institution: string, is_active: bool, service_workflow_id: int|null, call_period: string, application_opens_at: mixed, application_closes_at: mixed, description: mixed, documents: list<array{id?: int|null, name: string, description?: mixed, is_required: bool, accepted_formats: list<string>, validity_days?: int|null}>}
      */
     private function validate(array $data, ?Program $program, ?ProgramVersion $version): array
     {
@@ -70,6 +73,7 @@ final class SaveProgramConfiguration
             'name' => ['required', 'string', 'max:255'],
             'institution' => ['required', Rule::in(array_keys((array) trans('management.institutions')))],
             'is_active' => ['required', 'boolean'],
+            'service_workflow_id' => [$program === null ? 'required' : 'nullable', 'integer', Rule::exists('service_workflows', 'id')->where('is_active', true)],
             'call_period' => [
                 'required',
                 'string',
@@ -95,7 +99,7 @@ final class SaveProgramConfiguration
             'documents.*.name.distinct' => trans('management.validation.document_names_unique'),
         ]);
 
-        /** @var array{name: string, institution: string, is_active: bool, call_period: string, application_opens_at: mixed, application_closes_at: mixed, description: mixed, documents: list<array{id?: int|null, name: string, description?: mixed, is_required: bool, accepted_formats: list<string>, validity_days?: int|null}>} $validated */
+        /** @var array{name: string, institution: string, is_active: bool, service_workflow_id: int|null, call_period: string, application_opens_at: mixed, application_closes_at: mixed, description: mixed, documents: list<array{id?: int|null, name: string, description?: mixed, is_required: bool, accepted_formats: list<string>, validity_days?: int|null}>} $validated */
         $validated = $validator->validate();
 
         return $validated;
@@ -106,11 +110,15 @@ final class SaveProgramConfiguration
      */
     private function versionAttributes(array $validated): array
     {
+        $workflowId = isset($validated['service_workflow_id']) ? (int) $validated['service_workflow_id'] : null;
+
         return [
+            'service_workflow_id' => $workflowId,
             'call_period' => $validated['call_period'],
             'application_opens_at' => $validated['application_opens_at'] ?? null,
             'application_closes_at' => $validated['application_closes_at'] ?? null,
             'description' => $validated['description'] ?? null,
+            'workflow_snapshot' => $workflowId === null ? null : $this->workflows->capture($workflowId),
             'is_active' => $validated['is_active'],
         ];
     }

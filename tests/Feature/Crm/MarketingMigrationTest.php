@@ -24,7 +24,7 @@ it('pazarlama operasyon şemasını PostgreSQL üzerinde geri alıp yeniden kura
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 9,
+            '--step' => 10,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('contacts', 'data_source'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('statuses', 'required_fields'))->toBeFalse()

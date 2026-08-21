@@ -6,6 +6,7 @@
     @php($wonHistory = $deal->originatingLead?->statusHistory?->first(fn ($history) => $history->status->converts_to_deal))
     @php($saleInteraction = $deal->originatingLead?->interactions?->first())
     @php($teamMembers = $deal->projectManager?->teams->flatMap->members->unique('id') ?? collect())
+    @php($serviceWorkflow = $deal->programVersion->workflow_snapshot)
 
     <div class="deal-workspace" data-testid="deal-detail">
         <header class="deal-hero">
@@ -106,6 +107,33 @@
             </main>
 
             <aside class="deal-workspace__sidebar" aria-label="{{ __('operations.detail.workspace.details') }}">
+                @if (is_array($serviceWorkflow) && filled($serviceWorkflow['steps'] ?? null))
+                    <section class="deal-side-panel deal-side-panel--guide" data-testid="service-workflow-guide">
+                        <header>
+                            <span class="operations-label">{{ __('operations.detail.workspace.guide_eyebrow') }}</span>
+                            <h2>{{ $serviceWorkflow['name'] ?? __('operations.detail.workspace.guide') }}</h2>
+                            @if (filled($serviceWorkflow['description'] ?? null))
+                                <p>{{ $serviceWorkflow['description'] }}</p>
+                            @endif
+                        </header>
+                        <ol class="service-workflow-guide">
+                            @foreach ($serviceWorkflow['steps'] as $step)
+                                <li data-step-type="{{ $step['type'] ?? 'action' }}">
+                                    <span class="service-workflow-guide__index numeric-data">{{ $loop->iteration }}</span>
+                                    <div>
+                                        <small>{{ __('management.workflow_step_types.'.($step['type'] ?? 'action')) }}</small>
+                                        <strong>{{ $step['title'] ?? '' }}</strong>
+                                        <p>{{ $step['guidance'] ?? '' }}</p>
+                                        @if (filled($step['attention_note'] ?? null))
+                                            <aside>{{ __('operations.detail.workspace.attention') }} · {{ $step['attention_note'] }}</aside>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ol>
+                    </section>
+                @endif
+
                 <section class="deal-side-panel deal-side-panel--process">
                     <header>
                         <span class="operations-label">{{ __('operations.detail.workspace.process_eyebrow') }}</span>

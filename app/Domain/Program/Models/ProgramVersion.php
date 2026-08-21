@@ -15,17 +15,20 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $program_id
+ * @property int|null $service_workflow_id
  * @property string $call_period
  * @property Carbon|null $application_opens_at
  * @property Carbon|null $application_closes_at
  * @property string|null $description
+ * @property array<string, mixed>|null $workflow_snapshot
  * @property bool $is_active
  * @property-read Program $program
+ * @property-read ServiceWorkflow|null $serviceWorkflow
  * @property-read Collection<int, DocTemplate> $docTemplates
  */
 #[Fillable([
-    'program_id', 'call_period', 'application_opens_at', 'application_closes_at',
-    'description', 'is_active',
+    'program_id', 'service_workflow_id', 'call_period', 'application_opens_at', 'application_closes_at',
+    'description', 'workflow_snapshot', 'is_active',
 ])]
 final class ProgramVersion extends Model
 {
@@ -33,6 +36,12 @@ final class ProgramVersion extends Model
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
+    }
+
+    /** @return BelongsTo<ServiceWorkflow, $this> */
+    public function serviceWorkflow(): BelongsTo
+    {
+        return $this->belongsTo(ServiceWorkflow::class);
     }
 
     /** @return HasMany<DocTemplate, $this> */
@@ -53,6 +62,7 @@ final class ProgramVersion extends Model
         return [
             'application_opens_at' => 'datetime',
             'application_closes_at' => 'datetime',
+            'workflow_snapshot' => 'array',
             'is_active' => 'boolean',
         ];
     }

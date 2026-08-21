@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.17 — 21.08.2026
+> **Sürüm:** 1.18 — 21.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -275,6 +275,14 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 **Gerekçe:** Firma rehberi, potansiyel pazar bilgisini müşteri kayıtlarından bağımsız tutar; türetilen müşteri görünümü mükerrer firma verisini engeller. Sektörün kontrollü tutulması gelecekte izinli iletişim hedeflemesini mümkün kılar.
 
 **Bu değişiklikte yapılmayan:** Otomatik veya toplu pazarlama e-postası gönderimi yoktur. Bu özellik kanal bazlı güncel izin, gönderimden çıkma, şablon, kuyruk, teslimat/hata kaydı ve frekans sınırıyla ayrı paket olarak ele alınacaktır. Sektör filtresi bu gelecekteki iş için veri temelini hazırlar.
+
+### K-13 · Hizmet ile uygulama rehberi birbirinden ayrıdır
+
+**Karar:** Kullanıcı arayüzündeki “Program” kavramı **Hizmet** olarak adlandırılır. KOSGEB Kapasite Geliştirme veya Yeşil Sanayi gibi hizmetler kurum, çağrı dönemi, başvuru tarihleri ve evrak listesini taşır. **İş Akışı** ise birden fazla hizmette yeniden kullanılabilen, yönetici tarafından sıralanan uygulama rehberidir.
+
+İş akışı aşamaları `Yapılacak işlem`, `Bekleme aşaması` veya `Kontrol / karar` tipindedir; her aşama ad, uygulama açıklaması ve isteğe bağlı dikkat notu taşır. Aşamalar silinmez, listeden çıkarıldığında pasifleştirilir. Hizmet dönemi bir iş akışına bağlanırken etkin aşamalar `program_versions.workflow_snapshot` alanına okunabilir anlık görüntü olarak kopyalanır. Böylece rehber daha sonra düzenlense bile açık veya geçmiş dosyanın hangi talimata göre yürütüldüğü değişmez.
+
+**Ayrım:** Bu rehber, K-09’daki statü/geçiş makinesi değildir. Statü makinesi yetki ve koşulları uygulayan sistem kuralıdır; hizmet iş akışı ise proje yöneticisine “hangi sırayla ne yapılmalı, nerede beklenmeli ve neye dikkat edilmeli?” sorusunun cevabını gösteren operasyon bilgisidir.
 
 ---
 
@@ -958,6 +966,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.18 | 21.08.2026 | Programlar kullanıcı dilinde Hizmetler olarak konumlandırıldı. Yeniden kullanılabilir İş Akışları ve sıralı işlem/bekleme/karar aşamaları eklendi; hizmet dönemi seçilen rehberin anlık görüntüsünü saklar ve dosya detayında ekibe gösterir |
 | 1.16 | 16.08.2026 | İlk görsel pilotun fazla muhafazakâr kalması üzerine dosya detayı gerçek bir tek sayfalık çalışma alanına dönüştürüldü. Sekmeler kaldırıldı; şirket/satış bağlamı ve evrak listesi ana akışa, süreç geçişleri–ayrıntılar–ekip sabit sağ panele, yorum–görev–görüşme–geçmiş filtreli Etkinlik alanına taşındı. Dosya panosuna açık dosya, eksik evrak ve atanmamış iş özetleri ile aktör avatarları eklendi |
 | 1.15 | 16.08.2026 | “Dengeli” arayüz yönü kesinleştirildi: durağan yüzeylerde kenarlık önceliği korunurken etkileşimli kartlarda çok hafif yükselti, geçici katmanlarda tek kaplama gölgesi tanımlandı. Form ve tablo ritmi 40/38 px olarak ayrıldı; tek hareket eğrisi ve 120/170/220 ms süreleri benimsendi. Filament SPA gezinmesi, Docker içinde tekrarlanabilir ön yüz derlemesi ve dosya panosu/detayında pilot bilgi hiyerarşisi eklendi |
 | 1.14 | 16.08.2026 | Program, çağrı dönemi/başvuru süresi ve gerekli belge listesi tek bir yönetim ekranında toplanır. `program_versions` ve `doc_templates` geçmiş dosyaların bağlı olduğu tanımı korumak için veri modelinde kalır ancak ayrı ana menüler olarak gösterilmez. Birleşik kayıtta program, güncel dönem ve belgeler tek transaction ile oluşturulur; düzenlemede listeden çıkarılan belge silinmez, pasifleştirilir |
