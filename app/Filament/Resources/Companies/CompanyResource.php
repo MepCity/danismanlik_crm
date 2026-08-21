@@ -11,6 +11,7 @@ use App\Filament\Resources\Companies\Pages\EditCompany;
 use App\Filament\Resources\Companies\Pages\ListCompanies;
 use App\Filament\Resources\Companies\Pages\ViewCompany;
 use App\Filament\Resources\ScopedResource;
+use App\Filament\Support\CustomerFlowAction;
 use Filament\Actions\BulkAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -117,48 +118,51 @@ final class CompanyResource extends ScopedResource
                     ),
             ])
             ->toolbarActions([
-                    BulkAction::make('send_bulk_email')
-                        ->label(__('panel.company_directory.bulk_email.action'))
-                        ->icon(Heroicon::OutlinedEnvelope)
-                        ->modalHeading(__('panel.company_directory.bulk_email.heading'))
-                        ->modalDescription(__('panel.company_directory.bulk_email.description'))
-                        ->form([
-                            TextInput::make('subject')
-                                ->label(__('panel.company_directory.bulk_email.subject'))
-                                ->required()
-                                ->maxLength(255),
-                            Textarea::make('body')
-                                ->label(__('panel.company_directory.bulk_email.body'))
-                                ->helperText(__('panel.company_directory.bulk_email.body_help'))
-                                ->required()
-                                ->rows(8)
-                                ->maxLength(10000),
-                        ])
-                        ->modalSubmitActionLabel(__('panel.company_directory.bulk_email.send'))
-                        ->authorizeIndividualRecords('bulkEmail')
-                        ->action(function (Collection $records, array $data, ListCompanies $livewire, BulkCompanyEmailService $emails): void {
-                            $actor = Auth::user();
-                            abort_unless($actor !== null, 401);
+                BulkAction::make('send_bulk_email')
+                    ->label(__('panel.company_directory.bulk_email.action'))
+                    ->icon(Heroicon::OutlinedEnvelope)
+                    ->modalHeading(__('panel.company_directory.bulk_email.heading'))
+                    ->modalDescription(__('panel.company_directory.bulk_email.description'))
+                    ->form([
+                        TextInput::make('subject')
+                            ->label(__('panel.company_directory.bulk_email.subject'))
+                            ->required()
+                            ->maxLength(255),
+                        Textarea::make('body')
+                            ->label(__('panel.company_directory.bulk_email.body'))
+                            ->helperText(__('panel.company_directory.bulk_email.body_help'))
+                            ->required()
+                            ->rows(8)
+                            ->maxLength(10000),
+                    ])
+                    ->modalSubmitActionLabel(__('panel.company_directory.bulk_email.send'))
+                    ->authorizeIndividualRecords('bulkEmail')
+                    ->action(function (Collection $records, array $data, ListCompanies $livewire, BulkCompanyEmailService $emails): void {
+                        $actor = Auth::user();
+                        abort_unless($actor !== null, 401);
 
-                            /** @var Collection<int, Company> $records */
-                            $result = $emails->send(
-                                $records,
-                                (string) $data['subject'],
-                                (string) $data['body'],
-                                $livewire->filterSnapshot(),
-                                $actor,
-                            );
+                        /** @var Collection<int, Company> $records */
+                        $result = $emails->send(
+                            $records,
+                            (string) $data['subject'],
+                            (string) $data['body'],
+                            $livewire->filterSnapshot(),
+                            $actor,
+                        );
 
-                            Notification::make()
-                                ->title(__('panel.company_directory.bulk_email.result', [
-                                    'queued' => $result->queuedCount,
-                                    'rejected' => $result->consentRejectedCount,
-                                    'missing' => $result->missingEmailCount,
-                                ]))
-                                ->success()
-                                ->send();
-                        })
-                        ->deselectRecordsAfterCompletion(),
+                        Notification::make()
+                            ->title(__('panel.company_directory.bulk_email.result', [
+                                'queued' => $result->queuedCount,
+                                'rejected' => $result->consentRejectedCount,
+                                'missing' => $result->missingEmailCount,
+                            ]))
+                            ->success()
+                            ->send();
+                    })
+                    ->deselectRecordsAfterCompletion(),
+            ])
+            ->recordActions([
+                CustomerFlowAction::forRecord(),
             ])
             ->defaultPaginationPageOption(25)
             ->paginationPageOptions([25, 50, 100])

@@ -12,11 +12,13 @@ use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Services\BulkCompanyEmailService;
 use App\Domain\Deal\Models\Deal;
+use App\Domain\Deal\Models\Status;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Filament\Resources\Companies\CompanyResource;
 use App\Filament\Resources\Companies\Pages\CreateCompany;
 use App\Filament\Resources\Companies\Pages\ListCompanies;
+use App\Filament\Resources\Companies\Pages\ViewCompany;
 use App\Filament\Resources\Customers\Pages\ListCustomers;
 use App\Models\User;
 use App\Support\Authorization\ScopedQuery;
@@ -281,6 +283,60 @@ it('mevcut firmadan müşteri akışı başlatıp evrak listesini üretir', func
     Livewire::test(ListCustomers::class)
         ->assertSee($company->legal_name)
         ->assertSee('İmalat');
+
+    Livewire::test(ListCompanies::class)
+        ->assertTableActionExists('start_customer_flow', record: $company)
+        ->callTableAction('start_customer_flow', $company, ['program_version_id' => $version->id])
+        ->assertRedirect();
+    Livewire::test(ViewCompany::class, ['record' => $company->getRouteKey()])
+        ->assertActionExists('start_customer_flow');
+
+    expect(Deal::query()->where('company_id', $company->id)->count())->toBe(2);
+});
+
+it('müşteri satırında yalnız kapsamdaki aktif dosya sayısını son statüyü ve proje yöneticisini gösterir', function (): void {
+    $actor = User::factory()->create(['email' => 'musteri-ozet@example.invalid']);
+    $actor->assignRole('Pazarlama');
+    $other = User::factory()->create(['email' => 'musteri-yabanci@example.invalid']);
+    $other->assignRole('Pazarlama');
+    $manager = User::factory()->create(['email' => 'musteri-pm@example.invalid', 'name' => 'Kurgusal Görünür PM']);
+    $manager->assignRole('Proje Yöneticisi');
+    $foreignManager = User::factory()->create(['email' => 'musteri-yabanci-pm@example.invalid', 'name' => 'Kurgusal Gizli PM']);
+    $foreignManager->assignRole('Proje Yöneticisi');
+    $company = app(SaveCompanyDirectoryEntry::class)->execute(null, [
+        'legal_name' => 'Kurgusal Müşteri Özeti AŞ',
+        'industry' => 'machinery',
+        'city' => null,
+        'is_active' => true,
+    ], $actor);
+    $version = ProgramVersion::query()->firstOrFail();
+    $activeStatus = Status::query()->where('type', 'deal')->where('code', 'pm_assigned')->sole();
+    $foreignStatus = Status::query()->where('type', 'deal')->where('code', 'under_review')->sole();
+
+    $visibleDealId = app(StartCustomerFlow::class)->execute($company->id, $version->id, $actor);
+    Deal::query()->whereKey($visibleDealId)->update([
+        'status_id' => $activeStatus->id,
+        'pm_user_id' => $manager->id,
+        'created_at' => now()->subDay(),
+    ]);
+    Deal::query()->create([
+        'company_id' => $company->id,
+        'program_version_id' => $version->id,
+        'reference_no' => 'BLF-KURGUSAL-GIZLI',
+        'status_id' => $foreignStatus->id,
+        'status_changed_at' => now(),
+        'pm_user_id' => $foreignManager->id,
+        'opened_by_user_id' => $other->id,
+        'priority' => 'normal',
+    ]);
+    Auth::login($actor);
+
+    Livewire::test(ListCustomers::class)
+        ->assertSee($company->legal_name)
+        ->assertSee($activeStatus->label)
+        ->assertSee($manager->name)
+        ->assertDontSee($foreignStatus->label)
+        ->assertDontSee($foreignManager->name);
 });
 
 it('müşteri akışını yetkisiz rol için sunucu tarafında reddeder', function (): void {

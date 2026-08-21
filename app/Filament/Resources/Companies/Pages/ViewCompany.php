@@ -9,6 +9,7 @@ use App\Domain\Crm\Actions\WithdrawCallConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Filament\Resources\Companies\CompanyResource;
+use App\Filament\Support\CustomerFlowAction;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -55,7 +56,10 @@ final class ViewCompany extends ViewRecord
 
     protected function getHeaderActions(): array
     {
-        return [EditAction::make()->label(__('panel.company_directory.edit'))];
+        return [
+            CustomerFlowAction::forRecord(),
+            EditAction::make()->label(__('panel.company_directory.edit')),
+        ];
     }
 
     private function company(): Company
