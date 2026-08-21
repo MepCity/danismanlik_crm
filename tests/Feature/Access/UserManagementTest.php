@@ -6,6 +6,7 @@ use App\Domain\Access\Actions\SaveUser;
 use App\Domain\Access\Actions\UpdateRolePermissions;
 use App\Domain\Access\Models\RolePermissionHistory;
 use App\Domain\Access\Services\PageAccess;
+use App\Filament\Pages\OperationsDashboard;
 use App\Filament\Resources\Companies\CompanyResource;
 use App\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
@@ -26,6 +27,16 @@ beforeEach(function (): void {
     $this->disableVite();
     (new ReferenceDataSeeder)->setContainer(app())->run();
     Filament::setCurrentPanel(Filament::getPanel('operations'));
+});
+
+it('izin önbelleğinde bulunmayan yönetim işareti sayfayı 500 hatasına düşürmez', function (): void {
+    /** @var TestCase $this */
+    $user = User::factory()->create(['email' => 'eski-izin-onbellegi@example.invalid']);
+    $user->assignRole('Şirket Yetkilisi');
+    config()->set('access.page_management_permission', 'page.cache_stale_marker');
+
+    expect(app(PageAccess::class)->allows($user, OperationsDashboard::class))->toBeTrue();
+    $this->actingAs($user)->get(OperationsDashboard::getUrl())->assertOk();
 });
 
 it('kullanıcı pasifleştirilince tüm oturumlarını kapatır ve yeniden girişi reddeder', function (): void {

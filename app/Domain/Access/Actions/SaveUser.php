@@ -99,7 +99,10 @@ final class SaveUser
         $preserved = $user->getDirectPermissions()->reject(
             static fn (Permission $permission): bool => str_starts_with($permission->name, 'page.'),
         );
-        $marker = Permission::findByName((string) config('access.page_management_permission'));
+        $marker = Permission::query()
+            ->where('name', (string) config('access.page_management_permission'))
+            ->where('guard_name', 'web')
+            ->firstOrFail();
         $user->syncPermissions($preserved->push($marker)->concat($allowed));
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }

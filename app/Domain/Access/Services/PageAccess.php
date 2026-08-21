@@ -22,8 +22,8 @@ final class PageAccess
         }
 
         $managementPermission = (string) config('access.page_management_permission');
-        if ($user->hasDirectPermission($managementPermission)) {
-            return $user->hasDirectPermission($definition['permission']);
+        if ($this->hasDirectPermission($user, $managementPermission)) {
+            return $this->hasDirectPermission($user, $definition['permission']);
         }
 
         return $user->can($definition['fallback']);
@@ -89,5 +89,13 @@ final class PageAccess
         $definitions = config('access.pages', []);
 
         return $definitions;
+    }
+
+    private function hasDirectPermission(User $user, string $permission): bool
+    {
+        return $user->permissions()
+            ->where('permissions.name', $permission)
+            ->where('permissions.guard_name', 'web')
+            ->exists();
     }
 }
