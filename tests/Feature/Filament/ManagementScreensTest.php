@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\ProgramVersion;
+use App\Domain\Program\Models\ServiceWorkflow;
 use App\Filament\Resources\BreakGlassGrants\BreakGlassGrantResource;
 use App\Filament\Resources\DocTemplates\DocTemplateResource;
 use App\Filament\Resources\DocTemplates\Pages\CreateDocTemplate;
@@ -11,6 +12,7 @@ use App\Filament\Resources\Programs\Pages\CreateProgram;
 use App\Filament\Resources\Programs\ProgramResource;
 use App\Filament\Resources\ProgramVersions\ProgramVersionResource;
 use App\Filament\Resources\Roles\RoleResource;
+use App\Filament\Resources\ServiceWorkflows\ServiceWorkflowResource;
 use App\Filament\Resources\Statuses\Pages\CreateStatus;
 use App\Filament\Resources\Statuses\StatusResource;
 use App\Filament\Resources\Transitions\TransitionResource;
@@ -70,7 +72,8 @@ it('yönetim kaynaklarının model etiketlerini açık ve tutarlı tanımlar', f
     expect((string) $resource::getModelLabel())->toBe($singular)
         ->and((string) $resource::getPluralModelLabel())->toBe($plural);
 })->with([
-    'program' => [ProgramResource::class, 'Program', 'Programlar'],
+    'hizmet' => [ProgramResource::class, 'Hizmet', 'Hizmetler'],
+    'iş akışı' => [ServiceWorkflowResource::class, 'İş akışı', 'İş Akışları'],
     'program sürümü' => [ProgramVersionResource::class, 'Program sürümü', 'Program sürümleri'],
     'evrak şablonu' => [DocTemplateResource::class, 'Evrak şablonu', 'Evrak şablonları'],
     'statü' => [StatusResource::class, 'Statü', 'Statüler'],
@@ -91,11 +94,12 @@ it('programı dönem ve belge listesiyle tek formdan oluşturur', function (): v
     Auth::login($admin);
 
     Livewire::test(CreateProgram::class)
-        ->assertSee('Programı oluştur')
+        ->assertSee('Hizmeti oluştur')
         ->assertDontSee('Oluştur ve yeni oluştur')
         ->fillForm([
             'name' => 'Kurgusal Tek Ekran Programı',
             'institution' => 'tubitak',
+            'service_workflow_id' => ServiceWorkflow::query()->firstOrFail()->id,
             'is_active' => true,
             'call_period' => '2030 dönemi',
             'application_opens_at' => '2030-02-01',
@@ -191,6 +195,7 @@ it('pazarlama rolünü bütün yönetim ekranlarında 403 ile reddeder', functio
     $marketing = wp15User('Pazarlama', 'yonetim-yetkisiz');
     $resources = [
         ProgramResource::class,
+        ServiceWorkflowResource::class,
         ProgramVersionResource::class,
         DocTemplateResource::class,
         StatusResource::class,
@@ -209,7 +214,7 @@ it('yetkili rollerin yönetim listelerini açar', function (): void {
     $admin = wp15User('Sistem Yöneticisi', 'yonetim-admin');
     $officer = wp15User('Şirket Yetkilisi', 'yonetim-yetkili');
 
-    foreach ([ProgramResource::class, ProgramVersionResource::class, DocTemplateResource::class] as $resource) {
+    foreach ([ProgramResource::class, ServiceWorkflowResource::class, ProgramVersionResource::class, DocTemplateResource::class] as $resource) {
         wp15Get($admin, $resource::getUrl('index'))->assertOk();
     }
 

@@ -153,6 +153,9 @@ it('dosya detayında statü sorumlu ve evrak ilerlemesini özetler', function ()
         ->assertSee('Evrak ilerlemesi')
         ->assertSee('1 / 2 tamamlandı')
         ->assertSee('1 eksik zorunlu evrak')
+        ->assertSee('KOSGEB başvuru rehberi')
+        ->assertSee('Belgeleri topla ve doğrula')
+        ->assertSee('Değerlendirme ve kurul sonucunu bekle')
         ->assertSee($fixture['pm']->name);
 });
 

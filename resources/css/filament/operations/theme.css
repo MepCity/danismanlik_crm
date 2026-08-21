@@ -3911,6 +3911,75 @@ body {
     background: var(--crm-surface-active);
 }
 
+.deal-side-panel--guide > header p {
+    margin: var(--crm-space-2) 0 0;
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+    line-height: 1.55;
+}
+
+.service-workflow-guide {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.service-workflow-guide li {
+    display: grid;
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    gap: var(--crm-space-3);
+    padding: var(--crm-space-3) var(--crm-space-4);
+    border-block-end: 1px solid var(--crm-border);
+}
+
+.service-workflow-guide li:last-child {
+    border-block-end: 0;
+}
+
+.service-workflow-guide__index {
+    display: grid;
+    width: 1.75rem;
+    height: 1.75rem;
+    place-items: center;
+    border: 1px solid var(--crm-border-focus);
+    border-radius: 999px;
+    background: var(--crm-surface-active);
+    color: var(--crm-accent-600);
+    font-size: var(--crm-text-xs);
+    font-weight: 750;
+}
+
+.service-workflow-guide li > div {
+    display: grid;
+    gap: var(--crm-space-1);
+    min-width: 0;
+}
+
+.service-workflow-guide small {
+    color: var(--crm-text-subtle);
+    font-size: var(--crm-text-xs);
+}
+
+.service-workflow-guide strong {
+    color: var(--crm-text);
+    font-size: var(--crm-text-sm);
+}
+
+.service-workflow-guide p,
+.service-workflow-guide aside {
+    margin: 0;
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-xs);
+    line-height: 1.5;
+}
+
+.service-workflow-guide aside {
+    padding: var(--crm-space-2);
+    border-inline-start: 2px solid var(--crm-status-waiting-fg);
+    background: var(--crm-status-waiting-bg);
+}
+
 .deal-side-panel__actions {
     display: grid;
     gap: var(--crm-space-2);
