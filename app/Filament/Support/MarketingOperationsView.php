@@ -28,12 +28,6 @@ final class MarketingOperationsView
         return $query
             ->with([
                 'company.contacts' => fn ($contacts) => $contacts->where('is_active', true)->orderByDesc('is_primary')->orderBy('id'),
-                'company.contacts.communicationConsents' => fn ($consents) => $consents
-                    ->where('channel', 'call')
-                    ->where('purpose', 'marketing')
-                    ->where('effective_from', '<=', now())
-                    ->orderByDesc('effective_from')
-                    ->orderByDesc('id'),
                 'status',
                 'interactions' => fn ($interactions) => $interactions->latest('occurred_at'),
             ])

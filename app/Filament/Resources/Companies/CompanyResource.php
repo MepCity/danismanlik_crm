@@ -92,38 +92,12 @@ final class CompanyResource extends ScopedResource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query
-                ->with([
-                    'owner',
-                    'contacts' => fn ($contacts) => $contacts
-                        ->where('is_active', true)
-                        ->orderByDesc('is_primary')
-                        ->orderBy('id'),
-                ])
-                ->withCount(['contacts', 'leads', 'deals']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('owner')->withCount(['contacts', 'leads', 'deals']))
             ->columns([
                 TextColumn::make('legal_name')->label(__('panel.fields.legal_name'))->searchable()->sortable(),
                 TextColumn::make('industry')->label(__('panel.fields.industry'))->formatStateUsing(fn (string $state): string => __('panel.industries.'.$state))->sortable(),
                 TextColumn::make('city')->label(__('panel.fields.city'))->sortable(),
                 TextColumn::make('owner.name')->label(__('panel.fields.owner'))->placeholder('—')->toggleable(),
-                TextColumn::make('call_consent_status')
-                    ->label(__('marketing.contacts.call_consent'))
-                    ->getStateUsing(function (Company $record): string {
-                        $contact = $record->contacts->first();
-
-                        return $contact?->marketingCallConsentSummary() ?? 'unknown';
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'allowed' => __('marketing.consent.call_allowed'),
-                        'blocked' => __('marketing.consent.call_not_allowed'),
-                        default => __('marketing.consent.not_recorded'),
-                    })
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'allowed' => 'success',
-                        'blocked' => 'danger',
-                        default => 'gray',
-                    }),
                 TextColumn::make('contacts_count')->label(__('panel.company_directory.contacts'))->alignEnd()->extraAttributes(['class' => 'numeric-data']),
                 TextColumn::make('leads_count')->label(__('panel.company_directory.opportunities'))->alignEnd()->extraAttributes(['class' => 'numeric-data']),
                 TextColumn::make('deals_count')->label(__('panel.company_directory.projects'))->alignEnd()->extraAttributes(['class' => 'numeric-data']),

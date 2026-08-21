@@ -56,8 +56,6 @@ final class ProspectIntake extends Page
 
     public string $email = '';
 
-    public string $callConsent = 'granted';
-
     public string $disclosureDate = '';
 
     public ?int $programVersionId = null;
@@ -136,7 +134,6 @@ final class ProspectIntake extends Page
             'contactTitle' => $newContact ? ['required', 'string', 'max:255'] : ['nullable'],
             'phone' => $newContact ? ['required', 'string', 'max:40'] : ['nullable'],
             'email' => $newContact ? ['required', 'email', 'max:255'] : ['nullable'],
-            'callConsent' => $newContact ? ['required', 'in:unknown,granted,denied'] : ['nullable'],
             'programVersionId' => ['required', 'integer'],
             'targetStatusId' => ['required', 'integer'],
             'calledAt' => ['required', 'date'],
@@ -168,9 +165,6 @@ final class ProspectIntake extends Page
             contactTitle: $newContact ? $this->contactTitle : null,
             phone: $newContact ? $this->phone : null,
             email: $newContact ? $this->email : null,
-            callConsent: $newContact ? match ($this->callConsent) {
-                'granted' => true, 'denied' => false, default => null
-            } : null,
             disclosureDate: $newContact && filled($this->disclosureDate) ? $this->disclosureDate : null,
             programVersionId: (int) $this->programVersionId,
             targetStatusId: (int) $this->targetStatusId,

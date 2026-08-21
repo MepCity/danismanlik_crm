@@ -23,9 +23,6 @@
         <section class="call-ledger" aria-label="{{ __('marketing.calls.title') }}">
             @forelse ($leads as $lead)
                 @php($contact = $lead->company->contacts->first())
-                @php($latestConsent = $contact?->communicationConsents->first())
-                @php($marketingCallAllowed = $latestConsent?->status === 'granted')
-                @php($rejection = $contact?->communicationConsents->first(fn ($consent) => in_array($consent->status, ['denied', 'withdrawn'], true)))
                 @php($isOverdue = $lead->next_call_at->isBefore(today()))
                 <article class="call-ledger__row {{ $isOverdue ? 'is-overdue' : '' }}" data-testid="call-card-{{ $lead->id }}">
                     <div class="call-ledger__time numeric-data"><strong>{{ $lead->next_call_at->format('H:i') }}</strong><span>{{ $isOverdue ? $lead->next_call_at->format('d.m') : __('marketing.calls.today') }}</span></div>
@@ -34,19 +31,10 @@
                         <span>{{ $contact?->full_name ?? __('marketing.calls.no_contact') }}@if($contact?->title) · {{ $contact->title }}@endif</span>
                     </div>
                     <div class="call-ledger__context"><strong>{{ $lead->interestedProgramVersion?->program?->name ?? __('marketing.board.no_program') }}</strong><span>{{ __('marketing.calls.call_number', ['count' => $lead->interactions_count + 1]) }} · {{ __('marketing.calls.last_outcome') }}: {{ $lead->interactions->first()?->outcome ? __('marketing.interactions.outcomes.'.$lead->interactions->first()->outcome) : __('marketing.calls.no_interaction') }}</span></div>
-                    <div class="call-ledger__consent {{ $marketingCallAllowed ? 'is-allowed' : 'is-blocked' }}">
-                        <span aria-hidden="true">{{ $marketingCallAllowed ? '●' : '×' }}</span>{{ $marketingCallAllowed ? __('marketing.consent.call_allowed') : __('marketing.consent.call_not_allowed') }}
+                    <div class="call-ledger__actions">
+                        @if($contact?->phone)<a class="call-ledger__phone numeric-data" href="tel:{{ $contact->phone }}">{{ $contact->phone }}</a>@endif
+                        <button type="button" class="operations-button" wire:click="chooseOutcome({{ $lead->id }}, 'contacted')">{{ __('marketing.calls.log_result') }}</button>
                     </div>
-                    @if($marketingCallAllowed)
-                        <div class="call-ledger__actions">
-                            @if($contact?->phone)<a class="call-ledger__phone numeric-data" href="tel:{{ $contact->phone }}">{{ $contact->phone }}</a>@endif
-                            <button type="button" class="operations-button" wire:click="chooseOutcome({{ $lead->id }}, 'contacted')">{{ __('marketing.calls.log_result') }}</button>
-                        </div>
-                    @endif
-
-                    @unless($marketingCallAllowed)
-                        <div class="call-ledger__notice" role="status" data-testid="call-blocked">{{ __('marketing.calls.blocked_reason') }}@if($rejection) · {{ __('marketing.consent.rejected_at') }}: {{ $rejection->effective_from->format('d.m.Y H:i') }}@endif</div>
-                    @endunless
 
                     @if($activeLeadId === $lead->id)
                         <form wire:submit="saveOutcome" class="call-composer">

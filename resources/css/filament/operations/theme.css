@@ -787,8 +787,7 @@ body {
 .lead-overview__identity div,
 .lead-overview__facts dd,
 .lead-contact__identity,
-.lead-contact__channels,
-.lead-contact__consent {
+.lead-contact__channels {
     display: grid;
     min-width: 0;
     gap: var(--crm-space-1);
@@ -802,7 +801,6 @@ body {
 .lead-overview__facts dt,
 .lead-contact__identity span,
 .lead-contact__channels,
-.lead-contact__consent small,
 .lead-details-list dt {
     color: var(--crm-text-muted);
     font-size: var(--crm-text-xs);
@@ -842,7 +840,7 @@ body {
 
 .lead-contact {
     display: grid;
-    grid-template-columns: var(--crm-row-height) minmax(9rem, 1fr) minmax(11rem, 1.2fr) minmax(8rem, 0.8fr) auto;
+    grid-template-columns: var(--crm-row-height) minmax(9rem, 1fr) minmax(11rem, 1.2fr) auto;
     align-items: center;
     gap: var(--crm-space-3);
     min-height: calc(var(--crm-row-height) * 1.8);
@@ -864,28 +862,6 @@ body {
     align-items: center;
     justify-content: flex-end;
     gap: var(--crm-space-2);
-}
-
-.consent-pill {
-    display: inline-flex;
-    width: fit-content;
-    align-items: center;
-    gap: var(--crm-space-1);
-    padding: var(--crm-space-1) var(--crm-space-2);
-    border: 1px solid currentColor;
-    border-radius: 999px;
-    font-size: var(--crm-text-2xs);
-    font-weight: 680;
-}
-
-.consent-pill--allowed {
-    background: var(--crm-status-success-bg);
-    color: var(--crm-status-success-fg);
-}
-
-.consent-pill--blocked {
-    background: var(--crm-status-danger-bg);
-    color: var(--crm-status-danger-fg);
 }
 
 .lead-aside-card {
@@ -985,9 +961,6 @@ body {
         grid-template-columns: var(--crm-row-height) minmax(8rem, 1fr) minmax(10rem, 1fr) auto;
     }
 
-    .lead-contact__consent {
-        display: none;
-    }
 }
 
 @media (max-width: 64rem) {
@@ -1028,13 +1001,8 @@ body {
     }
 
     .lead-contact__channels,
-    .lead-contact__consent,
     .lead-contact__actions {
         grid-column: 2;
-    }
-
-    .lead-contact__consent {
-        display: grid;
     }
 
     .lead-contact__actions {
@@ -1102,35 +1070,6 @@ body {
 .call-card__facts > * + * {
     padding-inline-start: var(--crm-space-2);
     border-inline-start: 1px solid var(--crm-border);
-}
-
-.consent-strip {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--crm-space-2);
-    padding: var(--crm-space-2);
-    border-inline-start: var(--crm-space-1) solid currentColor;
-    border-radius: var(--crm-radius-sm);
-    font-size: var(--crm-text-xs);
-}
-
-.consent-strip--allowed {
-    background: var(--crm-status-success-bg);
-    color: var(--crm-status-success-fg);
-}
-
-.consent-strip--blocked,
-.call-blocked {
-    background: var(--crm-status-danger-bg);
-    color: var(--crm-status-danger-fg);
-}
-
-.call-blocked {
-    padding: var(--crm-space-2);
-    border-inline-start: var(--crm-space-1) solid var(--crm-status-danger-fg);
-    border-radius: var(--crm-radius-sm);
-    font-size: var(--crm-text-xs);
-    font-weight: 650;
 }
 
 .call-link {
@@ -3361,7 +3300,7 @@ body {
 
 .call-ledger__row {
     display: grid;
-    grid-template-columns: 4rem minmax(12rem, 1.15fr) minmax(12rem, 1fr) 8rem minmax(12rem, auto);
+    grid-template-columns: 4rem minmax(12rem, 1.15fr) minmax(12rem, 1fr) minmax(12rem, auto);
     align-items: center;
     gap: var(--crm-space-4);
     min-height: 5.25rem;
@@ -3410,16 +3349,6 @@ body {
     white-space: nowrap;
 }
 
-.call-ledger__consent {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--crm-space-2);
-    font-size: var(--crm-text-xs);
-}
-
-.call-ledger__consent.is-allowed { color: var(--crm-status-success-fg); }
-.call-ledger__consent.is-blocked { color: var(--crm-status-danger-fg); }
-
 .call-ledger__actions {
     display: flex;
     align-items: center;
@@ -3432,16 +3361,8 @@ body {
     font-size: var(--crm-text-xs);
 }
 
-.call-ledger__notice,
 .call-composer {
     grid-column: 2 / -1;
-}
-
-.call-ledger__notice {
-    padding-block-start: var(--crm-space-2);
-    border-block-start: 1px solid var(--crm-border);
-    color: var(--crm-status-danger-fg);
-    font-size: var(--crm-text-xs);
 }
 
 .call-composer {
@@ -3515,8 +3436,7 @@ body {
         grid-template-columns: 3.5rem 1fr auto;
     }
 
-    .call-ledger__context,
-    .call-ledger__consent {
+    .call-ledger__context {
         grid-column: 2;
     }
 
@@ -3526,7 +3446,6 @@ body {
         flex-direction: column;
     }
 
-    .call-ledger__notice,
     .call-composer {
         grid-column: 2 / -1;
     }
@@ -3557,7 +3476,7 @@ body {
     .call-filter-tabs { padding-inline: var(--crm-space-4); }
     .call-ledger__row { grid-template-columns: 3rem 1fr; padding: var(--crm-space-3); }
     .call-ledger__actions { grid-column: 1 / -1; grid-row: auto; align-items: stretch; flex-direction: row; justify-content: flex-start; }
-    .call-ledger__context, .call-ledger__consent, .call-ledger__notice, .call-composer { grid-column: 2; }
+    .call-ledger__context, .call-composer { grid-column: 2; }
 }
 
 /* Deal workspace — a single, Jira-like operational surface. */

@@ -18,8 +18,7 @@ görsel tur sonunda hata ve uyarı üretmedi.
 
 - pazarlamacının yalnız kendi fırsatlarını görmesi ve kapsam dışı doğrudan
   URL'nin 403 dönmesi;
-- `do_not_call` kişide `tel:` aksiyonunun üretilmemesi ve nedenin görünmesi;
-- ret kaydının mevcut izin satırını değiştirmeden deftere eklenmesi;
+- arama izni alanı olmadan telefon ve görüşme sonucu aksiyonlarının çalışması;
 - veri kaynağının action ve PostgreSQL katmanlarında zorunlu olması;
 - callback tarih/sorumlu ve lost gerekçesinin veritabanı yapılandırmasından
   okunarak doğrulanması;
@@ -45,5 +44,5 @@ görsel tur sonunda hata ve uyarı üretmedi.
 - Atomiklik testindeki sahte checklist üreticisi önce bir belge satırı yazıp
   sonra bilinçli exception fırlatır; dosya ve belge satırlarının ikisinin de
   kalmadığı doğrulanır.
-- Kapsam ve arama engeli testleri doğrudan URL/metot çağrılarıyla sunucu tarafı
-  korumalarını sınar; yalnız buton görünürlüğüne güvenmez.
+- Kapsam testleri doğrudan URL/metot çağrılarıyla sunucu tarafı korumalarını
+  sınar; yalnız buton görünürlüğüne güvenmez.

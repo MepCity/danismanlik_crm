@@ -19,7 +19,6 @@ final readonly class ProspectIntakeData
         public ?string $contactTitle,
         public ?string $phone,
         public ?string $email,
-        public ?bool $callConsent,
         public ?string $disclosureDate,
         public int $programVersionId,
         public int $targetStatusId,
