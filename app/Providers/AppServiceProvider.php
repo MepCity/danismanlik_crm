@@ -11,6 +11,7 @@ use App\Domain\Access\Policies\ContactPolicy;
 use App\Domain\Access\Policies\DealDocumentPolicy;
 use App\Domain\Access\Policies\DealPolicy;
 use App\Domain\Access\Policies\DocTemplatePolicy;
+use App\Domain\Access\Policies\EmailTemplatePolicy;
 use App\Domain\Access\Policies\FilePolicy;
 use App\Domain\Access\Policies\InteractionPolicy;
 use App\Domain\Access\Policies\LeadPolicy;
@@ -27,6 +28,7 @@ use App\Domain\Collaboration\Models\Task;
 use App\Domain\Crm\CrmServiceProvider;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
+use App\Domain\Crm\Models\EmailTemplate;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\DealServiceProvider;
@@ -92,6 +94,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(Company::class, CompanyPolicy::class);
         Gate::policy(Contact::class, ContactPolicy::class);
+        Gate::policy(EmailTemplate::class, EmailTemplatePolicy::class);
         Gate::policy(Lead::class, LeadPolicy::class);
         Gate::policy(Interaction::class, InteractionPolicy::class);
         Gate::policy(Deal::class, DealPolicy::class);

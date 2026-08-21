@@ -4,6 +4,32 @@ declare(strict_types=1);
 
 return [
     'choose' => 'Seçin',
+    'email_templates' => [
+        'navigation' => 'E-posta şablonları',
+        'singular' => 'E-posta şablonu',
+        'plural' => 'E-posta şablonları',
+        'new' => 'Şablon oluştur',
+        'supported' => 'Desteklenen değişkenler',
+        'fields' => [
+            'name' => 'Şablon adı',
+            'subject' => 'Konu',
+            'body' => 'Gövde',
+        ],
+        'placeholders' => [
+            'company' => 'Firma adı / unvanı',
+            'contact' => 'Yetkili adı',
+            'industry' => 'Sektör',
+            'city' => 'İl',
+        ],
+        'validation' => [
+            'unknown' => 'Desteklenmeyen değişkenler: :placeholders',
+        ],
+    ],
+    'unsubscribe' => [
+        'line' => 'Pazarlama e-postalarından çıkmak için: :url',
+        'title' => 'E-posta tercihiniz güncellendi',
+        'message' => 'Pazarlama e-postası izniniz geri çekildi. Bu adrese yeni pazarlama e-postası gönderilmeyecek.',
+    ],
     'company_opportunity' => [
         'action' => 'Fırsat aç / arama planla',
         'heading' => 'Firmadan fırsat aç',

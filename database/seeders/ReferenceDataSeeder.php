@@ -69,6 +69,7 @@ final class ReferenceDataSeeder extends Seeder
         'page.service_workflows',
         'page.programs',
         'page.document_templates',
+        'page.email_templates',
         'page.workflow_settings',
         'page.access_management',
     ];

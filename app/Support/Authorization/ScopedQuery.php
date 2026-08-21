@@ -11,6 +11,7 @@ use App\Domain\Collaboration\Models\Comment;
 use App\Domain\Collaboration\Models\Task;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
+use App\Domain\Crm\Models\EmailTemplate;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
@@ -99,6 +100,7 @@ final readonly class ScopedQuery
             Status::class, Transition::class => 'system.settings',
             User::class => 'system.users',
             Role::class => 'system.roles',
+            EmailTemplate::class => 'system.templates',
             default => null,
         };
     }
