@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.21 — 21.08.2026
+> **Sürüm:** 1.22 — 21.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -282,7 +282,9 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 
 **Karar:** Kullanıcı arayüzündeki “Program” kavramı **Hizmet** olarak adlandırılır. KOSGEB Kapasite Geliştirme veya Yeşil Sanayi gibi hizmetler kurum, çağrı dönemi, başvuru tarihleri ve evrak listesini taşır. **İş Akışı** ise birden fazla hizmette yeniden kullanılabilen, yönetici tarafından sıralanan uygulama rehberidir.
 
-İş akışı aşamaları `Yapılacak işlem`, `Bekleme aşaması` veya `Kontrol / karar` tipindedir; her aşama ad, uygulama açıklaması ve isteğe bağlı dikkat notu taşır. Aşamalar silinmez, listeden çıkarıldığında pasifleştirilir. Hizmet dönemi bir iş akışına bağlanırken etkin aşamalar `program_versions.workflow_snapshot` alanına okunabilir anlık görüntü olarak kopyalanır. Böylece rehber daha sonra düzenlense bile açık veya geçmiş dosyanın hangi talimata göre yürütüldüğü değişmez.
+İş akışı aşamaları `Yapılacak işlem`, `Bekleme aşaması` veya `Kontrol / karar` tipindedir; her aşama ad, uygulama açıklaması ve isteğe bağlı dikkat notu taşır. Aşamalar silinmez, listeden çıkarıldığında pasifleştirilir. Hizmet dönemi bir iş akışına bağlanırken etkin aşamalar `program_versions.workflow_snapshot` alanına, dosya açılırken de bu değer `deals.workflow_snapshot` alanına kopyalanır. Dosya ekranı yalnız kendi kopyasını okur; hizmet dönemi veya rehber daha sonra değişse bile açık ve geçmiş dosyanın talimatı değişmez.
+
+**Sınır:** Hizmet rehberi bilgilendiricidir; dosyanın mevcut statüsünü veya izin verilen geçişlerini belirlemez. Gerçek süreç kontrolü yalnız veritabanındaki `transitions` satırları, guard/condition/effect tanımları ve `StatusMachine` üzerinden yürür. Rehber adımı tamamlandı diye statü otomatik atlanmaz; statü geçişi de rehber anlık görüntüsünü değiştirmez.
 
 **Ayrım:** Bu rehber, K-09’daki statü/geçiş makinesi değildir. Statü makinesi yetki ve koşulları uygulayan sistem kuralıdır; hizmet iş akışı ise proje yöneticisine “hangi sırayla ne yapılmalı, nerede beklenmeli ve neye dikkat edilmeli?” sorusunun cevabını gösteren operasyon bilgisidir.
 
@@ -968,6 +970,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.22 | 21.08.2026 | Hizmet dönemindeki bilgilendirici iş akışı anlık görüntüsü dosya açılışında `deals.workflow_snapshot` alanına kopyalanır; dosya detayı program sürümü yerine bu değişmez kopyayı okur. Rehber ile `transitions`/`StatusMachine` yetkili statü akışının sınırı açıkça ayrıldı |
 | 1.21 | 21.08.2026 | Firma rehberinin kontrollü kaba sektör kodları NACE’den ayrılaştırıldı; PostgreSQL kısıtı, sektör/il/ölçek/aktiflik filtreleri ve kayıtlı görünümler eklendi. Seçili firmalara toplu e-posta, güncel e-posta pazarlama izni, kapsam policy’si, mevcut bildirim kuyruğu ve filtre anlık görüntülü etkinlik kaydı üzerinden sınırlandı |
 | 1.20 | 21.08.2026 | Linear / Attio / Twenty yönünün yerini kullanıcı talimatıyla Zoho paleti ve kabuğu aldı; bütün Filament kaynak listelerine ortak “Tüm kayıtlar” görünümü ve yenileme eylemi eklendi. Filtre, sütun görünümü, yoğun tablo ve sayfalama aynı liste iskeletinde korunur |
 | 1.19 | 21.08.2026 | Zoho CRM tasarım incelemesi uygulama kabuğuna taşındı: 320 px lacivert navigasyon, beyaz üst çubuk, açık mavi-gri çalışma yüzeyi, 36 px kontroller, 6–10 px yarıçap, çizgi ağırlıklı tablo/form/kartlar ve sakin mikro geçişler ortak token sözleşmesi oldu. Yeni oturumlarda açık tema varsayılan; koyu tema aynı yüzey hiyerarşisinin bağımsız karşılığı olarak korunur |
