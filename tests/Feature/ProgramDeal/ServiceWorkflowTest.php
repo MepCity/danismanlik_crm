@@ -128,17 +128,18 @@ it('aşamasız akışı ve yetkisiz yönetimi sunucu tarafında reddeder', funct
         ], $marketer))->toThrow(AuthorizationException::class);
 });
 
-it('hizmet iş akışı olmadan yeni hizmet oluşturmayı reddeder', function (): void {
+it('hizmet iş akışı olmadan taslak hizmet oluşturur', function (): void {
     $actor = User::factory()->create(['email' => 'akissiz-hizmet@example.invalid']);
     $actor->assignRole('Sistem Yöneticisi');
 
-    expect(fn () => app(SaveProgramConfiguration::class)->execute(null, [
+    $program = app(SaveProgramConfiguration::class)->execute(null, [
         'name' => 'Akışsız Kurgusal Hizmet',
         'institution' => 'kosgeb',
         'is_active' => true,
         'call_period' => '2033 dönemi',
         'documents' => [['name' => 'Belge', 'is_required' => true, 'accepted_formats' => ['pdf']]],
-    ], $actor))->toThrow(ValidationException::class);
+    ], $actor);
 
-    expect(ProgramVersion::query()->where('call_period', '2033 dönemi')->exists())->toBeFalse();
+    expect($program->is_active)->toBeFalse()
+        ->and(ProgramVersion::query()->where('call_period', '2033 dönemi')->whereNull('service_workflow_id')->exists())->toBeTrue();
 });

@@ -16,7 +16,6 @@ use App\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
 
@@ -160,25 +159,19 @@ it('program yetkisi olmayan kullanıcının birleşik kaydını reddeder', funct
     expect(Program::query()->count())->toBe($programCount);
 });
 
-it('belgesiz program tanımını açık doğrulama hatasıyla reddeder', function (): void {
+it('belgesiz hizmeti taslak olarak kaydeder ve yayına almaz', function (): void {
     $actor = User::factory()->create(['email' => 'program-belgesiz@example.invalid']);
     $actor->assignRole('Sistem Yöneticisi');
-    $programCount = Program::query()->count();
+    $program = app(SaveProgramConfiguration::class)->execute(null, [
+        'name' => 'Belgesiz Kurgusal Program',
+        'institution' => 'kosgeb',
+        'is_active' => true,
+        'service_workflow_id' => ServiceWorkflow::query()->firstOrFail()->id,
+        'call_period' => '2031 başvuru dönemi',
+        'documents' => [],
+    ], $actor);
 
-    try {
-        app(SaveProgramConfiguration::class)->execute(null, [
-            'name' => 'Belgesiz Kurgusal Program',
-            'institution' => 'kosgeb',
-            'is_active' => true,
-            'service_workflow_id' => ServiceWorkflow::query()->firstOrFail()->id,
-            'call_period' => '2031 başvuru dönemi',
-            'documents' => [],
-        ], $actor);
-
-        throw new RuntimeException('Belgesiz program doğrulaması çalışmadı.');
-    } catch (ValidationException $exception) {
-        expect($exception->errors()['documents'])->toContain('En az bir gerekli belge ekleyin.');
-    }
-
-    expect(Program::query()->count())->toBe($programCount);
+    expect($program->is_active)->toBeFalse()
+        ->and($program->latestVersion->is_active)->toBeFalse()
+        ->and($program->latestVersion->docTemplates)->toBeEmpty();
 });

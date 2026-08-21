@@ -331,7 +331,7 @@ it('compensates object storage when the database transaction fails', function ()
     $before = Storage::disk('s3')->allFiles();
     app()->instance(ActivityRecorder::class, new class implements ActivityRecorder
     {
-        public function record(string $action, array $payload, ?int $actorId = null, ?int $leadId = null, ?int $dealId = null, ?int $dealDocumentId = null, ?Carbon $occurredAt = null, ?string $defaultSource = null, ?int $companyId = null): void
+        public function record(string $action, array $payload, ?int $actorId = null, ?int $leadId = null, ?int $dealId = null, ?int $dealDocumentId = null, ?Carbon $occurredAt = null, ?string $defaultSource = null, ?int $companyId = null, ?int $programId = null): void
         {
             throw new RuntimeException('Kurgusal atomiklik hatası');
         }
