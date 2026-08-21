@@ -137,7 +137,8 @@ final readonly class ScopedQuery
     private function companies(Builder $query, QueryBuilder $userIds): Builder
     {
         return $query->where(function (Builder $query) use ($userIds): void {
-            $query->whereHas('leads', static fn (Builder $lead): Builder => $lead->whereIn('owner_user_id', $userIds))
+            $query->whereIn('companies.owner_user_id', $userIds)
+                ->orWhereHas('leads', static fn (Builder $lead): Builder => $lead->whereIn('owner_user_id', $userIds))
                 ->orWhereHas('deals', static function (Builder $deal) use ($userIds): void {
                     $deal->whereIn('opened_by_user_id', $userIds)->orWhereIn('pm_user_id', $userIds);
                 });

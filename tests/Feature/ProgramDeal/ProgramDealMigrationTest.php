@@ -55,7 +55,7 @@ it('migrates rolls back and remigrates the program deal schema on PostgreSQL', f
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 17,
+            '--step' => 18,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('programs'))->toBeFalse()
             ->and(Schema::connection($connection)->hasTable('deals'))->toBeFalse()
