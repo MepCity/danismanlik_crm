@@ -62,7 +62,7 @@
             <dl class="record-peek__facts">
                 <div><dt>{{ __('marketing.detail.program') }}</dt><dd>{{ $selectedLead->interestedProgramVersion?->program?->name ?? '—' }}</dd></div>
                 <div><dt>{{ __('marketing.transition.owner') }}</dt><dd>{{ $selectedLead->owner->name }}</dd></div>
-                <div><dt>{{ __('marketing.intake.contact.title') }}</dt><dd>{{ $selectedLead->company->contacts->first()?->full_name ?? '—' }}</dd></div>
+                <div><dt>{{ __('marketing.contacts.person') }}</dt><dd>{{ $selectedLead->company->contacts->first()?->full_name ?? '—' }}</dd></div>
                 <div><dt>{{ __('panel.fields.city') }}</dt><dd>{{ $selectedLead->company->city }}</dd></div>
             </dl>
             <section class="record-peek__activity"><span class="operations-label">{{ __('marketing.board.last_interaction') }}</span><p>{{ $selectedLead->interactions->first()?->note ?? __('marketing.board.none') }}</p></section>

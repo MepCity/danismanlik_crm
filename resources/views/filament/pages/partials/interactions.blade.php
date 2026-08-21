@@ -3,7 +3,7 @@
     <form wire:submit="addInteraction" class="interaction-form operations-inline-form">
         @if(isset($contacts))
             <label>{{ __('marketing.interactions.contact') }}
-                <select wire:model="interactionContactId" required><option value="">{{ __('marketing.intake.choose') }}</option>@foreach($contacts as $contact)<option value="{{ $contact->id }}">{{ $contact->full_name }} · {{ $contact->title }}</option>@endforeach</select>
+                <select wire:model="interactionContactId" required><option value="">{{ __('marketing.choose') }}</option>@foreach($contacts as $contact)<option value="{{ $contact->id }}">{{ $contact->full_name }} · {{ $contact->title }}</option>@endforeach</select>
             </label>
         @endif
         <label>{{ __('marketing.interactions.type') }}

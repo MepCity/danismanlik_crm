@@ -47,7 +47,7 @@
         </section>
         @elseif ($activeTab === 'opportunities')
             <section class="checklist-table-wrap">
-                <table class="checklist-table"><thead><tr><th>{{ __('marketing.detail.program') }}</th><th>{{ __('marketing.detail.status') }}</th><th>{{ __('marketing.detail.owner') }}</th><th>{{ __('marketing.intake.contact.title') }}</th><th>{{ __('marketing.board.last_interaction') }}</th></tr></thead><tbody>
+                <table class="checklist-table"><thead><tr><th>{{ __('marketing.detail.program') }}</th><th>{{ __('marketing.detail.status') }}</th><th>{{ __('marketing.detail.owner') }}</th><th>{{ __('marketing.contacts.person') }}</th><th>{{ __('marketing.board.last_interaction') }}</th></tr></thead><tbody>
                 @forelse($company->leads as $lead)<tr><td><a class="operations-link" href="{{ \App\Filament\Pages\LeadDetail::getUrl(['lead' => $lead->id]) }}">{{ $lead->interestedProgramVersion?->program?->name ?? __('marketing.board.no_program') }}</a></td><td>{!! \App\Filament\Support\StatusBadge::make($lead->status->color, $lead->status->label) !!}</td><td>{{ $lead->owner->name }}</td><td>{{ $lead->primaryContact?->full_name ?? __('marketing.consent.not_recorded') }}</td><td class="numeric-data">{{ $lead->updated_at->format('d.m.Y H:i') }}</td></tr>@empty<tr><td colspan="5" class="operations-placeholder">{{ __('marketing.company.no_opportunities') }}</td></tr>@endforelse
                 </tbody></table>
             </section>

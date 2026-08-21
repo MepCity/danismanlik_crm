@@ -7,7 +7,6 @@ use App\Filament\Pages\LeadBoard;
 use App\Filament\Pages\LeadDetail;
 use App\Filament\Pages\OperationsDashboard;
 use App\Filament\Pages\PendingAssignments;
-use App\Filament\Pages\ProspectIntake;
 use App\Filament\Pages\Reports;
 use App\Filament\Pages\TodayCalls;
 use App\Filament\Resources\Companies\CompanyResource;
@@ -27,7 +26,7 @@ return [
         'page.companies' => ['label' => 'management.page_access.companies', 'fallback' => 'company.manage', 'classes' => [CompanyResource::class]],
         'page.customers' => ['label' => 'management.page_access.customers', 'fallback' => 'deal.view', 'classes' => [CustomerResource::class]],
         'page.today_calls' => ['label' => 'management.page_access.today_calls', 'fallback' => 'lead.manage', 'classes' => [TodayCalls::class]],
-        'page.opportunities' => ['label' => 'management.page_access.opportunities', 'fallback' => 'lead.manage', 'classes' => [LeadBoard::class, LeadDetail::class, ProspectIntake::class]],
+        'page.opportunities' => ['label' => 'management.page_access.opportunities', 'fallback' => 'lead.manage', 'classes' => [LeadBoard::class, LeadDetail::class]],
         'page.pending_assignments' => ['label' => 'management.page_access.pending_assignments', 'fallback' => 'deal.assign', 'classes' => [PendingAssignments::class]],
         'page.deals' => ['label' => 'management.page_access.deals', 'fallback' => 'deal.view', 'classes' => [DealBoard::class, DealDetail::class]],
         'page.reports' => ['label' => 'management.page_access.reports', 'fallback' => 'report.view', 'classes' => [Reports::class]],

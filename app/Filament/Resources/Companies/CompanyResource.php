@@ -11,6 +11,7 @@ use App\Filament\Resources\Companies\Pages\EditCompany;
 use App\Filament\Resources\Companies\Pages\ListCompanies;
 use App\Filament\Resources\Companies\Pages\ViewCompany;
 use App\Filament\Resources\ScopedResource;
+use App\Filament\Support\CompanyOpportunityAction;
 use App\Filament\Support\CustomerFlowAction;
 use Filament\Actions\BulkAction;
 use Filament\Forms\Components\Select;
@@ -162,6 +163,7 @@ final class CompanyResource extends ScopedResource
                     ->deselectRecordsAfterCompletion(),
             ])
             ->recordActions([
+                CompanyOpportunityAction::make(),
                 CustomerFlowAction::forRecord(),
             ])
             ->defaultPaginationPageOption(25)
