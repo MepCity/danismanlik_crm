@@ -149,6 +149,7 @@ final readonly class CreateProspectIntake
             phone: $data->phone,
             email: $data->email,
             title: $data->contactTitle,
+            callConsent: $data->callConsent,
             disclosureDate: $data->disclosureDate,
             isPrimary: ! $company->contacts()->where('is_primary', true)->exists(),
             consentEffectiveAt: $data->calledAt,

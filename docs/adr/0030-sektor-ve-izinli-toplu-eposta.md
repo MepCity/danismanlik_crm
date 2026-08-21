@@ -21,6 +21,6 @@ Filtrelenmiş firmalara e-posta gönderimi, kanal ve amaç bazlı güncel izin d
 ## Sonuçlar
 
 - Sektör filtresi yazım farklarından etkilenmez; NACE verisi bilinmediğinde hızlı firma kaydı engellenmez.
-- Pazarlama e-postası yalnız e-posta iznine bakar ve izinsiz alıcıyı sessizce işlemez.
+- Pazarlama e-postası arama iznine bakmaz ve izinsiz alıcıyı sessizce işlemez.
 - Gönderim girişimi firma bazında izlenebilir; aynı kuyruk teslim/hata ve yeniden deneme davranışını korur.
 - Kampanya analitiği, otomatik abonelikten çıkma bağlantısı ve frekans sınırı bu kararın kapsamına alınmamıştır.

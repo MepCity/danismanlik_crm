@@ -138,14 +138,16 @@ final class DemoDataSeeder extends Seeder
                     'data_source' => $index === 1 ? 'referral' : 'form',
                     'is_primary' => true,
                     'is_active' => true,
+                    'consent_call' => $index !== 2,
                     'consent_email' => true,
+                    'do_not_call' => $index === 2,
                 ],
             );
             CommunicationConsent::query()->firstOrCreate(
-                ['contact_id' => $contact->id, 'channel' => 'email', 'purpose' => 'marketing'],
+                ['contact_id' => $contact->id, 'channel' => 'call', 'purpose' => 'marketing'],
                 [
-                    'status' => 'granted',
-                    'legal_basis' => 'explicit_consent',
+                    'status' => $index === 2 ? 'withdrawn' : 'granted',
+                    'legal_basis' => $index === 2 ? 'explicit_withdrawal' : 'explicit_consent',
                     'source' => $index === 1 ? 'referral' : 'form',
                     'disclosure_date' => now()->subDays(20 + $index)->toDateString(),
                     'effective_from' => now()->subDays(10 + $index),

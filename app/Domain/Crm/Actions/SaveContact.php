@@ -18,6 +18,7 @@ final class SaveContact
         ?string $phone = null,
         ?string $email = null,
         ?string $title = null,
+        ?bool $callConsent = null,
         ?bool $emailConsent = null,
         ?string $disclosureDate = null,
         bool $isPrimary = false,
@@ -26,7 +27,7 @@ final class SaveContact
     ): Contact {
         $source = $this->ledgerSource(trim($recordSource));
 
-        return DB::transaction(function () use ($companyId, $actorId, $fullName, $source, $phone, $email, $title, $emailConsent, $disclosureDate, $isPrimary, $consentEffectiveAt): Contact {
+        return DB::transaction(function () use ($companyId, $actorId, $fullName, $source, $phone, $email, $title, $callConsent, $emailConsent, $disclosureDate, $isPrimary, $consentEffectiveAt): Contact {
             $contact = Contact::query()->create([
                 'company_id' => $companyId,
                 'full_name' => trim($fullName),
@@ -36,8 +37,24 @@ final class SaveContact
                 'title' => filled($title) ? trim((string) $title) : null,
                 'is_primary' => $isPrimary,
                 'is_active' => true,
+                'consent_call' => $callConsent,
                 'consent_email' => $emailConsent,
+                'do_not_call' => $callConsent === false,
             ]);
+
+            if ($callConsent !== null) {
+                CommunicationConsent::query()->create([
+                    'contact_id' => $contact->id,
+                    'channel' => 'call',
+                    'purpose' => 'marketing',
+                    'status' => $callConsent ? 'granted' : 'denied',
+                    'legal_basis' => $callConsent ? 'explicit_consent' : 'explicit_rejection',
+                    'source' => $this->ledgerSource($source),
+                    'disclosure_date' => $disclosureDate,
+                    'effective_from' => $consentEffectiveAt ?? now(),
+                    'recorded_by' => $actorId,
+                ]);
+            }
 
             if ($emailConsent !== null) {
                 CommunicationConsent::query()->create([

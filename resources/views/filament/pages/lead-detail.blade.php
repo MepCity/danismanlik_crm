@@ -34,6 +34,7 @@
                     </header>
                     <div class="lead-contact-list">
                         @forelse ($lead->company->contacts as $contact)
+                            @php($rejection = $contact->communicationConsents->first(fn ($item) => in_array($item->status, ['denied', 'withdrawn'], true)))
                             <article class="lead-contact">
                                 <span class="comment-avatar" aria-hidden="true">{{ \App\Filament\Support\CollaborationView::initials($contact->full_name) }}</span>
                                 <div class="lead-contact__identity">
@@ -44,8 +45,19 @@
                                     @if($contact->phone)<a class="operations-link numeric-data" href="tel:{{ $contact->phone }}">{{ $contact->phone }}</a>@else<span>{{ __('marketing.calls.no_phone') }}</span>@endif
                                     @if($contact->email)<a class="operations-link" href="mailto:{{ $contact->email }}">{{ $contact->email }}</a>@endif
                                 </div>
+                                <div class="lead-contact__consent">
+                                    <span class="consent-pill {{ $contact->consent_call === true && ! $contact->do_not_call ? 'consent-pill--allowed' : 'consent-pill--blocked' }}">
+                                        {{ $contact->consent_call === true && ! $contact->do_not_call ? __('marketing.consent.call_allowed') : __('marketing.consent.call_not_allowed') }}
+                                    </span>
+                                    @if($rejection)<small class="numeric-data">{{ __('marketing.consent.rejected_at') }}: {{ $rejection->effective_from->format('d.m.Y H:i') }}</small>@endif
+                                </div>
                                 <div class="lead-contact__actions">
-                                    @if($contact->phone)<a class="operations-button operations-button--primary numeric-data" href="tel:{{ $contact->phone }}">{{ __('marketing.calls.call') }}</a>@endif
+                                    @if($contact->do_not_call)
+                                        <span class="call-blocked">{{ __('marketing.calls.blocked_reason') }}</span>
+                                    @else
+                                        @if($contact->phone)<a class="operations-button operations-button--primary numeric-data" href="tel:{{ $contact->phone }}">{{ __('marketing.calls.call') }}</a>@endif
+                                        <button class="operations-link" type="button" wire:click="doNotCall({{ $contact->id }})">{{ __('marketing.consent.do_not_call') }}</button>
+                                    @endif
                                 </div>
                             </article>
                         @empty

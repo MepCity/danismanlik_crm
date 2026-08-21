@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Domain\Crm\Actions\RecordInteraction;
+use App\Domain\Crm\Actions\WithdrawCallConsent;
+use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use App\Support\Authorization\ScopedQuery;
@@ -85,6 +87,15 @@ final class LeadDetail extends Page
         Notification::make()->title(__('marketing.messages.interaction_saved'))->success()->send();
     }
 
+    public function doNotCall(int $contactId, WithdrawCallConsent $consents): void
+    {
+        $contact = Contact::query()->findOrFail($contactId);
+        abort_unless($contact->company_id === $this->lead()->company_id, 404);
+        Gate::authorize('update', $contact);
+        $consents->handle($contact->id, (int) Auth::id());
+        Notification::make()->title(__('marketing.messages.do_not_call_saved'))->success()->send();
+    }
+
     public function setActivityFilter(string $filter): void
     {
         abort_unless(in_array($filter, ['comments', 'history', 'all'], true), 422);
@@ -96,7 +107,7 @@ final class LeadDetail extends Page
     protected function getViewData(): array
     {
         return ['lead' => $this->lead()->load([
-            'company.contacts',
+            'company.contacts.communicationConsents' => fn ($query) => $query->where('channel', 'call')->where('purpose', 'marketing')->latest('effective_from'),
             'owner', 'status', 'interestedProgramVersion.program', 'primaryContact',
             'interactions' => fn ($query) => $query->with(['user', 'contact'])->latest('occurred_at'),
             'convertedDeal',

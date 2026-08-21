@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     @php($company = $this->record->load([
         'owner',
-        'contacts',
+        'contacts.communicationConsents' => fn ($query) => $query->where('channel', 'call')->where('purpose', 'marketing')->latest('effective_from'),
         'leads' => fn ($query) => $query->with(['status', 'owner', 'interestedProgramVersion.program', 'primaryContact'])->latest(),
         'deals' => fn ($query) => $query->with(['status', 'projectManager', 'programVersion.program'])->latest(),
     ]))
@@ -24,9 +24,21 @@
         @elseif ($activeTab === 'contacts')
         <section class="contact-grid">
             @foreach ($company->contacts as $contact)
+                @php($consent = $contact->communicationConsents->first())
+                @php($rejection = $contact->communicationConsents->first(fn ($item) => in_array($item->status, ['denied', 'withdrawn'], true)))
                 <article class="operations-panel contact-card">
                     <header><strong>{{ $contact->full_name }}</strong><span>{{ $contact->title }}</span></header>
                     <div class="numeric-data">{{ $contact->phone ?? __('marketing.calls.no_phone') }}</div>
+                    <div>{{ __('marketing.consent.disclosure') }}: {{ $consent?->disclosure_date?->format('d.m.Y') ?? __('marketing.consent.not_recorded') }}</div>
+                    <div class="consent-strip {{ $contact->consent_call === true && ! $contact->do_not_call ? 'consent-strip--allowed' : 'consent-strip--blocked' }}">
+                        <strong>{{ $contact->consent_call === true && ! $contact->do_not_call ? __('marketing.consent.call_allowed') : __('marketing.consent.call_not_allowed') }}</strong>
+                        @if ($rejection)<span class="numeric-data">{{ __('marketing.consent.rejected_at') }}: {{ $rejection->effective_from->format('d.m.Y H:i') }}</span>@endif
+                    </div>
+                    @if ($contact->do_not_call)
+                        <div class="call-blocked">{{ __('marketing.calls.blocked_reason') }}</div>
+                    @else
+                        <button class="operations-button" type="button" wire:click="doNotCall({{ $contact->id }})">{{ __('marketing.consent.do_not_call') }}</button>
+                    @endif
                 </article>
             @endforeach
         </section>
@@ -38,6 +50,9 @@
                 <label>{{ __('marketing.contacts.title') }}<input wire:model="contactTitle"></label>
                 <label>{{ __('marketing.contacts.phone') }}<input class="numeric-data" wire:model="contactPhone"></label>
                 <label>{{ __('marketing.contacts.email') }}<input type="email" wire:model="contactEmail"></label>
+                <label>{{ __('marketing.contacts.call_consent') }}
+                    <select wire:model="contactCallConsent">@foreach (__('marketing.contacts.consent_options') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                </label>
                 <label>{{ __('marketing.contacts.email_consent') }}
                     <select wire:model="contactEmailConsent">@foreach (__('marketing.contacts.consent_options') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
                 </label>

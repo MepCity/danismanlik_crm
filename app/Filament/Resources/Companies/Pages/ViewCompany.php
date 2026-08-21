@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Companies\Pages;
 
 use App\Domain\Crm\Actions\SaveContact;
+use App\Domain\Crm\Actions\WithdrawCallConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Filament\Resources\Companies\CompanyResource;
@@ -28,6 +29,8 @@ final class ViewCompany extends ViewRecord
     public string $contactPhone = '';
 
     public string $contactEmail = '';
+
+    public string $contactCallConsent = 'unknown';
 
     public string $contactEmailConsent = 'unknown';
 
@@ -73,10 +76,16 @@ final class ViewCompany extends ViewRecord
             'contactTitle' => ['nullable', 'string', 'max:255'],
             'contactPhone' => ['nullable', 'string', 'max:40'],
             'contactEmail' => ['nullable', 'email', 'max:255'],
+            'contactCallConsent' => ['required', 'in:unknown,granted,denied'],
             'contactEmailConsent' => ['required', 'in:unknown,granted,denied'],
             'contactDisclosureDate' => ['nullable', 'date'],
         ]);
         Gate::authorize('create', Contact::class);
+        $consent = match ($this->contactCallConsent) {
+            'granted' => true,
+            'denied' => false,
+            default => null,
+        };
         $emailConsent = match ($this->contactEmailConsent) {
             'granted' => true,
             'denied' => false,
@@ -89,11 +98,22 @@ final class ViewCompany extends ViewRecord
             phone: $this->contactPhone ?: null,
             email: $this->contactEmail ?: null,
             title: $this->contactTitle ?: null,
+            callConsent: $consent,
             emailConsent: $emailConsent,
             disclosureDate: $this->contactDisclosureDate ?: null,
         );
         $this->reset('contactFullName', 'contactTitle', 'contactPhone', 'contactEmail', 'contactDisclosureDate');
+        $this->contactCallConsent = 'unknown';
         $this->contactEmailConsent = 'unknown';
         Notification::make()->title(__('marketing.messages.contact_saved'))->success()->send();
+    }
+
+    public function doNotCall(int $contactId, WithdrawCallConsent $consents): void
+    {
+        $contact = Contact::query()->findOrFail($contactId);
+        abort_unless($contact->company_id === (int) $this->record->getKey(), 404);
+        Gate::authorize('update', $contact);
+        $consents->handle($contact->id, (int) Auth::id());
+        Notification::make()->title(__('marketing.messages.do_not_call_saved'))->success()->send();
     }
 }

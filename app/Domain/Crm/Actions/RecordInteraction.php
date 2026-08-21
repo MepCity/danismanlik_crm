@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Crm\Actions;
 
 use App\Domain\Collaboration\Services\ActivityRecorder;
+use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Interaction;
+use App\Domain\Crm\Models\Lead;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 final class RecordInteraction
@@ -18,6 +21,10 @@ final class RecordInteraction
     public function forLead(int $leadId, int $actorId, string $type, Carbon $occurredAt, ?string $outcome, ?string $note, ?int $contactId = null): Interaction
     {
         return DB::transaction(function () use ($leadId, $actorId, $type, $occurredAt, $outcome, $note, $contactId): Interaction {
+            if ($type === 'call') {
+                $this->ensureMarketingCallAllowed($leadId, $occurredAt, $contactId);
+            }
+
             return $this->create(['lead_id' => $leadId], $actorId, $type, $occurredAt, $outcome, $note, 'outbound', 'marketing', $contactId);
         });
     }
@@ -67,5 +74,34 @@ final class RecordInteraction
 
             return $interaction;
         });
+    }
+
+    private function ensureMarketingCallAllowed(int $leadId, Carbon $occurredAt, ?int $contactId): void
+    {
+        $companyId = Lead::query()->findOrFail($leadId)->company_id;
+        $contact = Contact::query()
+            ->where('company_id', $companyId)
+            ->when($contactId !== null, fn ($query) => $query->whereKey($contactId))
+            ->when($contactId === null, fn ($query) => $query->where('is_primary', true))
+            ->where('is_active', true)
+            ->lockForUpdate()
+            ->first();
+
+        $status = $contact instanceof Contact
+            ? CommunicationConsent::query()
+                ->where('contact_id', $contact->id)
+                ->where('channel', 'call')
+                ->where('purpose', 'marketing')
+                ->where('effective_from', '<=', $occurredAt)
+                ->orderByDesc('effective_from')
+                ->orderByDesc('id')
+                ->value('status')
+            : null;
+
+        if ($status !== 'granted') {
+            throw ValidationException::withMessages([
+                'interaction' => __('marketing.validation.outbound_marketing_call_blocked'),
+            ]);
+        }
     }
 }

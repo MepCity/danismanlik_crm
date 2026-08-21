@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Domain\Crm\Actions\RecordInteraction;
+use App\Domain\Crm\Actions\WithdrawCallConsent;
+use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use App\Filament\Support\MarketingOperationsView;
@@ -77,6 +79,14 @@ final class TodayCalls extends Page
         $interactions->forLead($lead->id, (int) Auth::id(), 'call', Carbon::now(), $this->quickOutcome, $this->quickNote ?: null, $lead->primary_contact_id);
         $this->reset('activeLeadId', 'quickOutcome', 'quickNote');
         Notification::make()->title(__('marketing.messages.interaction_saved'))->success()->send();
+    }
+
+    public function doNotCall(int $contactId, WithdrawCallConsent $consents): void
+    {
+        $contact = Contact::query()->findOrFail($contactId);
+        Gate::authorize('update', $contact);
+        $consents->handle($contact->id, (int) Auth::id());
+        Notification::make()->title(__('marketing.messages.do_not_call_saved'))->success()->send();
     }
 
     /** @return array<string, mixed> */
