@@ -49,7 +49,9 @@ final class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 NavigationGroup::make()->label(__('panel.navigation.groups.overview')),
                 NavigationGroup::make()->label(__('panel.navigation.groups.marketing')),
-                NavigationGroup::make()->label(__('panel.navigation.groups.crm')),
+                NavigationGroup::make()
+                    ->label(__('panel.navigation.groups.crm'))
+                    ->collapsible(false),
                 NavigationGroup::make()->label(__('panel.navigation.groups.operations')),
                 NavigationGroup::make()->label(__('panel.navigation.groups.work')),
                 NavigationGroup::make()->label(__('panel.navigation.groups.reports')),
