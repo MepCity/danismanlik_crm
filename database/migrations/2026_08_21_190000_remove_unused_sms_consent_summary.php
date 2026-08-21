@@ -8,20 +8,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    // 160000 kaldırdı, 170000 regresyon düzeltmesi olarak geri getirdi; müşteri
-    // kararı sonrası bu migration net şemayı yeniden consent_call/do_not_call olmadan bırakır.
     public function up(): void
     {
         Schema::table('contacts', function (Blueprint $table): void {
-            $table->dropColumn(['consent_call', 'do_not_call']);
+            $table->dropColumn('consent_sms');
         });
     }
 
     public function down(): void
     {
         Schema::table('contacts', function (Blueprint $table): void {
-            $table->boolean('consent_call')->nullable();
-            $table->boolean('do_not_call')->default(false)->index();
+            $table->boolean('consent_sms')->nullable();
         });
     }
 };

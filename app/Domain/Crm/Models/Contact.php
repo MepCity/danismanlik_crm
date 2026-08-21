@@ -20,7 +20,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $data_source
  * @property bool $is_primary
  * @property bool $is_active
- * @property bool|null $consent_sms
  * @property bool|null $consent_email
  * @property-read Company $company
  * @property-read Collection<int, CommunicationConsent> $communicationConsents
@@ -34,7 +33,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'data_source',
     'is_primary',
     'is_active',
-    'consent_sms',
     'consent_email',
 ])]
 final class Contact extends Model
@@ -57,7 +55,6 @@ final class Contact extends Model
         return [
             'is_primary' => 'boolean',
             'is_active' => 'boolean',
-            'consent_sms' => 'boolean',
             'consent_email' => 'boolean',
         ];
     }
