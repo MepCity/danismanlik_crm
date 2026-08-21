@@ -9,6 +9,7 @@ use App\Domain\Crm\Actions\SaveEmailTemplate;
 use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
+use App\Domain\Crm\Models\EmailTemplate;
 use App\Domain\Crm\Services\BulkCompanyEmailService;
 use App\Domain\Crm\Services\EmailTemplateRenderer;
 use App\Domain\Crm\Services\MarketingUnsubscribeUrl;
@@ -25,7 +26,7 @@ beforeEach(function (): void {
     (new ReferenceDataSeeder)->setContainer(app())->run();
 });
 
-/** @return array{User, Company, Contact, App\Domain\Crm\Models\EmailTemplate} */
+/** @return array{User, Company, Contact, EmailTemplate} */
 function emailTemplateFixture(): array
 {
     $actor = User::factory()->create(['email' => 'sablon-pazarlama@example.invalid']);
