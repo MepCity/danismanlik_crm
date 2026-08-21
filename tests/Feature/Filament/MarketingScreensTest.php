@@ -267,3 +267,106 @@ it('veri kaynağını göstermeden yeni kişiyi sistem kaynağıyla kaydeder', f
 
     expect(Contact::query()->where('full_name', 'Kurgusal Yeni Yetkili')->sole()->data_source)->toBe('other');
 });
+
+it('firma detayını jira tarzı tek sayfada sekmeler olmadan iki kolon ve katlanabilir bölümlerle gösterir', function (): void {
+    $owner = User::factory()->create(['name' => 'Kurgusal Pazarlamacı', 'email' => 'ekran-jira-firma@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $fixture = marketingScreenLead($owner, 'Jira Düzeni');
+    Auth::login($owner);
+
+    $view = file_get_contents(resource_path('views/filament/resources/companies/view-company.blade.php'));
+    expect($view)->not->toBeFalse()
+        ->and($view)->not->toContain('deal-tabs')
+        ->and($view)->toContain('company-workspace')
+        ->and($view)->toContain('company-workspace__main')
+        ->and($view)->toContain('company-workspace__rail')
+        ->and($view)->toContain('company-contacts-section')
+        ->and($view)->toContain('company-opportunities-section')
+        ->and($view)->toContain('company-projects-section')
+        ->and($view)->toContain('company-tasks-section')
+        ->and($view)->toContain('company-activity-section');
+
+    Livewire::test(ViewCompany::class, ['record' => $fixture['company']->getRouteKey()])
+        ->assertSee('Kişiler')
+        ->assertSee('Fırsatlar')
+        ->assertSee('Projeler')
+        ->assertSee('Görevler')
+        ->assertSee('Etkinlik')
+        ->assertSee('Ayrıntılar')
+        ->assertSee('Müşteri Oluştur')
+        ->assertSee('Fırsat aç / arama planla')
+        ->assertSee('Firma bilgilerini düzenle')
+        ->assertSee($fixture['company']->legal_name)
+        ->assertSee($fixture['contact']->full_name)
+        ->assertDontSeeHtml('class="deal-tabs"')
+        ->assertSee('Yok')
+        ->call('setActivityFilter', 'history')
+        ->assertSet('activityFilter', 'history')
+        ->call('setActivityFilter', 'all')
+        ->assertSet('activityFilter', 'all')
+        ->call('toggleActivityDirection')
+        ->assertSet('activityDirection', 'asc')
+        ->call('toggleActivityDirection')
+        ->assertSet('activityDirection', 'desc');
+});
+
+it('boş bölümleri gizlemeden sıfır sayısıyla ve sağ raydaki boş alanları Yok olarak gösterir', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-bos-bolum@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $emptyCompany = Company::query()->create([
+        'legal_name' => 'Kurgusal Boş Firma AŞ',
+        'industry' => 'services',
+        'city' => null,
+        'district' => null,
+        'tax_number' => null,
+        'size' => null,
+        'employee_count' => null,
+        'source' => null,
+        'owner_user_id' => $owner->id,
+        'is_active' => true,
+    ]);
+    Auth::login($owner);
+
+    Livewire::test(ViewCompany::class, ['record' => $emptyCompany->getRouteKey()])
+        ->assertSee('Kişiler')
+        ->assertSee('Fırsatlar')
+        ->assertSee('Projeler')
+        ->assertSee('Görevler')
+        ->assertSee('Bu firmada kayıtlı kişi yok.')
+        ->assertSee('Bu firma için henüz fırsat yok.')
+        ->assertSee('Bu firma için henüz proje yok.')
+        ->assertSee('Yok');
+});
+
+it('kapsam dışı firma detayına doğrudan erişimi 403 ile engeller', function (): void {
+    $owner = User::factory()->create(['email' => 'sahip-pazarlama@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $other = User::factory()->create(['email' => 'diger-pazarlama@example.invalid']);
+    $other->assignRole('Pazarlama');
+    $foreignCompany = Company::query()->create([
+        'legal_name' => 'Kurgusal Kapsam Dışı Firma',
+        'industry' => 'services',
+        'owner_user_id' => $other->id,
+        'is_active' => true,
+    ]);
+    Auth::login($owner);
+
+    Livewire::test(ViewCompany::class, ['record' => $foreignCompany->getRouteKey()])
+        ->assertForbidden();
+});
+
+it('firma etkinliğinde geçersiz filtreyi 422 ile reddeder', function (): void {
+    $owner = User::factory()->create(['email' => 'filtre-ret-pazarlama@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $company = Company::query()->create([
+        'legal_name' => 'Kurgusal Filtre Deneme Firması',
+        'industry' => 'services',
+        'owner_user_id' => $owner->id,
+        'is_active' => true,
+    ]);
+    Auth::login($owner);
+
+    Livewire::test(ViewCompany::class, ['record' => $company->getRouteKey()])
+        ->call('setActivityFilter', 'gecersiz-filtre')
+        ->assertStatus(422);
+});

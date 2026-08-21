@@ -98,6 +98,19 @@ return [
         'opened_at' => 'Açılış',
         'no_opportunities' => 'Bu firma için henüz fırsat yok.',
         'no_projects' => 'Bu firma için henüz proje yok.',
+        'activity' => [
+            'title' => 'Etkinlik',
+            'filters' => [
+                'comments' => 'Yorumlar',
+                'history' => 'İşlem geçmişi',
+                'all' => 'Tümü',
+            ],
+            'sort' => [
+                'label' => 'Sıralama yönü',
+                'newest' => 'Yeniden eskiye',
+                'oldest' => 'Eskiden yeniye',
+            ],
+        ],
     ],
     'detail' => [
         'title' => ':company fırsatı',
@@ -133,6 +146,11 @@ return [
                 'comments' => 'Yorumlar',
                 'history' => 'Geçmiş',
                 'all' => 'Tümü',
+            ],
+            'sort' => [
+                'label' => 'Sıralama yönü',
+                'newest' => 'Yeniden eskiye',
+                'oldest' => 'Eskiden yeniye',
             ],
         ],
         'tabs' => ['general' => 'Genel', 'contacts' => 'Kişiler', 'interactions' => 'Görüşmeler', 'comments' => 'Yorumlar', 'history' => 'İşlem geçmişi'],

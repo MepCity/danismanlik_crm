@@ -30,12 +30,15 @@ final readonly class TimelineQuery
         ?string $filter = null,
         int $perPage = 25,
         int $page = 1,
+        string $direction = 'desc',
     ): LengthAwarePaginator {
         Gate::forUser($viewer)->authorize('view', $this->subjects->resolve($subject));
 
         if (! in_array($filter, [null, 'activity', 'status', 'document', 'comment'], true)) {
             throw ValidationException::withMessages(['filter' => trans('collaboration.validation.timeline_filter')]);
         }
+
+        $sortDirection = strtolower($direction) === 'asc' ? 'asc' : 'desc';
 
         $union = $filter === 'comment'
             ? $this->comments($subject)
@@ -45,8 +48,8 @@ final readonly class TimelineQuery
 
         $paginator = DB::query()
             ->fromSub($union, 'timeline')
-            ->orderByDesc('occurred_at')
-            ->orderByDesc('id')
+            ->orderBy('occurred_at', $sortDirection)
+            ->orderBy('id', $sortDirection)
             ->paginate($perPage, ['*'], 'page', $page);
 
         $paginator->setCollection($paginator->getCollection()->map(function (object $row): TimelineItem {

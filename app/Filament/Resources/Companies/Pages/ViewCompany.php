@@ -10,6 +10,7 @@ use App\Domain\Crm\Models\Contact;
 use App\Filament\Resources\Companies\CompanyResource;
 use App\Filament\Support\CompanyOpportunityAction;
 use App\Filament\Support\CustomerFlowAction;
+use App\Support\Authorization\ScopedQuery;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -36,6 +37,10 @@ final class ViewCompany extends ViewRecord
 
     public string $activeTab = 'overview';
 
+    public string $activityFilter = 'comments';
+
+    public string $activityDirection = 'desc';
+
     public function getTitle(): string
     {
         return $this->company()->legal_name;
@@ -55,15 +60,37 @@ final class ViewCompany extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            CompanyOpportunityAction::make(),
             CustomerFlowAction::forRecord(),
+            CompanyOpportunityAction::make(),
             EditAction::make()->label(__('panel.company_directory.edit')),
         ];
     }
 
+    public function setActivityFilter(string $filter): void
+    {
+        abort_unless(in_array($filter, ['comments', 'history', 'all'], true), 422);
+
+        $this->activityFilter = $filter;
+    }
+
+    public function setActivityDirection(string $direction): void
+    {
+        abort_unless(in_array($direction, ['asc', 'desc'], true), 422);
+
+        $this->activityDirection = $direction;
+    }
+
+    public function toggleActivityDirection(): void
+    {
+        $this->activityDirection = $this->activityDirection === 'desc' ? 'asc' : 'desc';
+    }
+
     private function company(): Company
     {
+        $user = Auth::user();
+        abort_unless($user !== null, 403);
         abort_unless($this->record instanceof Company, 404);
+        abort_unless(app(ScopedQuery::class)->contains($user, $this->record, 'view'), 403);
 
         return $this->record;
     }

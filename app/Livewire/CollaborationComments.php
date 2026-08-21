@@ -31,10 +31,13 @@ final class CollaborationComments extends Component
 
     public ?int $mentionUserId = null;
 
-    public function mount(string $subjectType, int $subjectId): void
+    public string $direction = 'asc';
+
+    public function mount(string $subjectType, int $subjectId, string $direction = 'asc'): void
     {
         $this->subjectType = $subjectType;
         $this->subjectId = $subjectId;
+        $this->direction = in_array($direction, ['asc', 'desc'], true) ? $direction : 'asc';
         $this->authorizeSubject();
     }
 
@@ -88,12 +91,18 @@ final class CollaborationComments extends Component
     public function render(): View
     {
         $this->authorizeSubject();
-        $commentRows = Comment::query()
+        $query = Comment::query()
             ->where($this->subject()->type->column(), $this->subjectId)
             ->whereNull('parent_id')
-            ->with(['replies' => fn ($query) => $query->with('user')->oldest(), 'user'])
-            ->oldest()
-            ->get();
+            ->with(['replies' => fn ($query) => $query->with('user')->oldest(), 'user']);
+
+        if ($this->direction === 'desc') {
+            $query->latest();
+        } else {
+            $query->oldest();
+        }
+
+        $commentRows = $query->get();
 
         return view('livewire.collaboration-comments', [
             'comments' => $commentRows,

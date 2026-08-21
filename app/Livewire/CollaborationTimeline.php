@@ -27,12 +27,15 @@ final class CollaborationTimeline extends Component
 
     public bool $embedded = false;
 
-    public function mount(string $subjectType, int $subjectId, string $filter = 'all', bool $embedded = false): void
+    public string $direction = 'desc';
+
+    public function mount(string $subjectType, int $subjectId, string $filter = 'all', bool $embedded = false, string $direction = 'desc'): void
     {
         $this->subjectType = $subjectType;
         $this->subjectId = $subjectId;
         $this->setFilter($filter);
         $this->embedded = $embedded;
+        $this->direction = in_array($direction, ['asc', 'desc'], true) ? $direction : 'desc';
         $this->timeline();
     }
 
@@ -70,6 +73,7 @@ final class CollaborationTimeline extends Component
             $this->filter === 'all' ? null : $this->filter,
             $this->perPage,
             $this->page,
+            $this->direction,
         );
     }
 }

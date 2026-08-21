@@ -59,6 +59,11 @@ return [
         'size' => 'Firma ölçeği',
         'employee_count' => 'Çalışan sayısı',
         'status' => 'Durum',
+        'active' => 'Aktif',
+        'inactive' => 'Pasif',
+        'source' => 'Kaynak',
+        'primary' => 'Birincil',
+        'is_active' => 'Aktif mi',
     ],
     'company_directory' => [
         'description' => 'Müşteri olsun veya olmasın, pazarlama ekibinin temas ettiği bütün firmaları tek rehberde tutun.',
