@@ -49,6 +49,7 @@ return [
             'company_updated' => 'firma bilgilerini güncelledi',
             'company_customer_flow_started' => 'firma için :reference numaralı müşteri akışını başlattı',
             'company_bulk_email_requested' => 'seçili firmalar için toplu e-posta gönderimini başlattı',
+            'program_started' => 'hizmeti yayına aldı ve dosya açmaya hazır hale getirdi',
             'deal_created' => 'müşteri operasyon dosyasını oluşturdu',
             'contact_created' => 'firma kişisi kaydını oluşturdu',
             'lead_created' => 'programa özel fırsatı oluşturdu',

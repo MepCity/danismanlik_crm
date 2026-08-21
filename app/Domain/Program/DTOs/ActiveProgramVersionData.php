@@ -9,13 +9,13 @@ final readonly class ActiveProgramVersionData
     public function __construct(
         public int $id,
         public string $programName,
-        public string $callPeriod,
+        public ?string $callPeriod,
         /** @var array<string, mixed>|null */
         public ?array $workflowSnapshot,
     ) {}
 
     public function label(): string
     {
-        return $this->programName.' · '.$this->callPeriod;
+        return $this->programName.' · '.($this->callPeriod ?? trans('management.messages.not_set'));
     }
 }

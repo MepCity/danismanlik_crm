@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Program\Models;
 
+use App\Domain\Collaboration\Models\Comment;
 use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -32,6 +33,12 @@ final class Program extends Model
     public function latestVersion(): HasOne
     {
         return $this->hasOne(ProgramVersion::class)->latestOfMany();
+    }
+
+    /** @return HasMany<Comment, $this> */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
     }
 
     /** @return array<string, string> */

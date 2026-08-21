@@ -10,6 +10,7 @@ use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Document\Models\DealDocument;
+use App\Domain\Program\Models\Program;
 use Illuminate\Database\Eloquent\Model;
 
 final class SubjectModelResolver
@@ -18,6 +19,7 @@ final class SubjectModelResolver
     {
         return match ($subject->type) {
             CollaborationSubjectType::Company => Company::query()->findOrFail($subject->id),
+            CollaborationSubjectType::Program => Program::query()->findOrFail($subject->id),
             CollaborationSubjectType::Lead => Lead::query()->findOrFail($subject->id),
             CollaborationSubjectType::Deal => Deal::query()->findOrFail($subject->id),
             CollaborationSubjectType::DealDocument => DealDocument::query()->findOrFail($subject->id),

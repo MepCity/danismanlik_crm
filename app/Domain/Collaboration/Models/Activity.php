@@ -28,7 +28,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  */
 #[Fillable([
-    'actor_id', 'company_id', 'lead_id', 'deal_id', 'deal_document_id', 'action', 'payload',
+    'actor_id', 'company_id', 'program_id', 'lead_id', 'deal_id', 'deal_document_id', 'action', 'payload',
     'source', 'ip_address', 'user_agent',
 ])]
 final class Activity extends Model

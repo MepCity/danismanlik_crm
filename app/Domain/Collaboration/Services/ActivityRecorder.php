@@ -20,6 +20,7 @@ interface ActivityRecorder
         ?Carbon $occurredAt = null,
         ?string $defaultSource = null,
         ?int $companyId = null,
+        ?int $programId = null,
     ): void;
 
     /**

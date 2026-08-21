@@ -40,7 +40,7 @@ final readonly class CommentService
                 $parent = Comment::query()->findOrFail($parentId);
                 Gate::forUser($actor)->authorize('view', $parent);
 
-                if (array_filter($parent->only(['company_id', 'lead_id', 'deal_id', 'deal_document_id'])) !== array_filter($subject->columns())) {
+                if (array_filter($parent->only(['company_id', 'program_id', 'lead_id', 'deal_id', 'deal_document_id'])) !== array_filter($subject->columns())) {
                     throw ValidationException::withMessages(['parent_id' => trans('collaboration.validation.parent_subject')]);
                 }
             }

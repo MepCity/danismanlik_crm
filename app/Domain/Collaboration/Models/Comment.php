@@ -8,6 +8,7 @@ use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Document\Models\DealDocument;
+use App\Domain\Program\Models\Program;
 use App\Models\User;
 use App\Support\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,6 +18,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int|null $program_id
  * @property int|null $lead_id
  * @property int|null $deal_id
  * @property int|null $deal_document_id
@@ -28,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $edited_at
  */
 #[Fillable([
-    'company_id', 'lead_id', 'deal_id', 'deal_document_id', 'user_id', 'body', 'mentions',
+    'company_id', 'program_id', 'lead_id', 'deal_id', 'deal_document_id', 'user_id', 'body', 'mentions',
     'visibility', 'parent_id', 'edited_at',
 ])]
 final class Comment extends Model
@@ -37,6 +39,12 @@ final class Comment extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /** @return BelongsTo<Program, $this> */
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class);
     }
 
     /** @return BelongsTo<User, $this> */

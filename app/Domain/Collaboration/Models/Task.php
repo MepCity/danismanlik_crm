@@ -30,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $completed_at
  */
 #[Fillable([
-    'company_id', 'lead_id', 'deal_id', 'deal_document_id', 'assigned_to', 'created_by',
+    'company_id', 'program_id', 'lead_id', 'deal_id', 'deal_document_id', 'assigned_to', 'created_by',
     'title', 'description', 'due_at', 'remind_at', 'reminder_sent_at', 'completed_at',
 ])]
 final class Task extends Model

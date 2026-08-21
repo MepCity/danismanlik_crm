@@ -34,14 +34,13 @@ final class SaveProgramConfiguration
                     'name' => $validated['name'],
                     'institution' => $validated['institution'],
                     'code' => $this->nextCode($validated['name']),
-                    'is_active' => $validated['is_active'],
+                    'is_active' => false,
                 ]);
             } else {
                 Gate::forUser($actor)->authorize('update', $program);
                 $program->update([
                     'name' => $validated['name'],
                     'institution' => $validated['institution'],
-                    'is_active' => $validated['is_active'],
                 ]);
             }
 
@@ -49,11 +48,11 @@ final class SaveProgramConfiguration
                 Gate::forUser($actor)->authorize('create', ProgramVersion::class);
                 $version = ProgramVersion::query()->create([
                     'program_id' => $program->id,
-                    ...$this->versionAttributes($validated),
+                    ...$this->versionAttributes($validated, $program->is_active),
                 ]);
             } else {
                 Gate::forUser($actor)->authorize('update', $version);
-                $version->update($this->versionAttributes($validated));
+                $version->update($this->versionAttributes($validated, $program->is_active));
             }
 
             $this->syncDocuments($version, $validated['documents'], $actor);
@@ -73,9 +72,9 @@ final class SaveProgramConfiguration
             'name' => ['required', 'string', 'max:255'],
             'institution' => ['required', Rule::in(array_keys((array) trans('management.institutions')))],
             'is_active' => ['required', 'boolean'],
-            'service_workflow_id' => [$program === null ? 'required' : 'nullable', 'integer', Rule::exists('service_workflows', 'id')->where('is_active', true)],
+            'service_workflow_id' => ['nullable', 'integer', Rule::exists('service_workflows', 'id')->where('is_active', true)],
             'call_period' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
                 Rule::unique('program_versions', 'call_period')
@@ -85,7 +84,7 @@ final class SaveProgramConfiguration
             'application_opens_at' => ['nullable', 'date'],
             'application_closes_at' => ['nullable', 'date', 'after:application_opens_at'],
             'description' => ['nullable', 'string', 'max:10000'],
-            'documents' => ['required', 'array', 'min:1'],
+            'documents' => ['array'],
             'documents.*.id' => ['nullable', 'integer'],
             'documents.*.name' => ['required', 'string', 'max:255', 'distinct:strict'],
             'documents.*.description' => ['nullable', 'string', 'max:5000'],
@@ -106,9 +105,9 @@ final class SaveProgramConfiguration
     }
 
     /** @param array<string, mixed> $validated
-     * @return array{call_period: mixed, application_opens_at: mixed, application_closes_at: mixed, description: mixed, is_active: bool}
+     * @return array{service_workflow_id: int|null, call_period: mixed, application_opens_at: mixed, application_closes_at: mixed, description: mixed, workflow_snapshot: array<string, mixed>|null, is_active: bool}
      */
-    private function versionAttributes(array $validated): array
+    private function versionAttributes(array $validated, bool $isActive): array
     {
         $workflowId = isset($validated['service_workflow_id']) ? (int) $validated['service_workflow_id'] : null;
 
@@ -119,7 +118,7 @@ final class SaveProgramConfiguration
             'application_closes_at' => $validated['application_closes_at'] ?? null,
             'description' => $validated['description'] ?? null,
             'workflow_snapshot' => $workflowId === null ? null : $this->workflows->capture($workflowId),
-            'is_active' => $validated['is_active'],
+            'is_active' => $isActive,
         ];
     }
 

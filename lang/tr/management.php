@@ -131,6 +131,7 @@ return [
     ],
     'actions' => [
         'create' => 'Oluştur',
+        'view' => 'Görüntüle',
         'edit' => 'Düzenle',
         'copy_previous' => 'Önceki sürümden kopyala',
         'copy_previous_help' => 'Yeni sürümü ve seçilen sürümün evrak şablonlarını ayrı kayıtlar olarak oluşturur.',
@@ -168,6 +169,19 @@ return [
     ],
     'service_setup' => [
         'workflow_help' => 'Bu hizmete ait dosyalarda ekip için gösterilecek sabit uygulama rehberi.',
+        'create_workflow' => 'Yeni iş akışı aç',
+    ],
+    'program_start' => [
+        'action' => 'Hizmeti başlat',
+        'started' => 'Hizmet başlatıldı ve dosya açmaya hazır.',
+        'blocked' => 'Hizmet başlatılamadı',
+        'no_workflow' => 'Bu hizmete bağlı bir iş akışı yok.',
+        'tabs' => ['workflow' => 'İş akışı', 'comments' => 'Yorumlar', 'history' => 'Geçmiş'],
+        'validation' => [
+            'workflow' => 'Etkin bir iş akışı bağlayın.',
+            'period' => 'Bir çağrı dönemi tanımlayın.',
+            'documents' => 'En az bir etkin evrak şablonu ekleyin.',
+        ],
     ],
     'workflow_setup' => [
         'description' => 'Birden fazla hizmette kullanılabilecek sabit operasyon rehberlerini oluşturun.',

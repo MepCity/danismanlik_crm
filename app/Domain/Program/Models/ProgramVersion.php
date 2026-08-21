@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $program_id
  * @property int|null $service_workflow_id
- * @property string $call_period
+ * @property string|null $call_period
  * @property Carbon|null $application_opens_at
  * @property Carbon|null $application_closes_at
  * @property string|null $description

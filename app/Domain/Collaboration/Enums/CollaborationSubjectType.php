@@ -7,6 +7,7 @@ namespace App\Domain\Collaboration\Enums;
 enum CollaborationSubjectType: string
 {
     case Company = 'company';
+    case Program = 'program';
     case Lead = 'lead';
     case Deal = 'deal';
     case DealDocument = 'deal_document';

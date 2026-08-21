@@ -139,6 +139,12 @@ final readonly class TimelineQuery
             return;
         }
 
+        if ($subject->type === CollaborationSubjectType::Program) {
+            $query->where($table.'.program_id', $subject->id);
+
+            return;
+        }
+
         if ($subject->type === CollaborationSubjectType::Deal) {
             $query->where(function (Builder $query) use ($subject, $table, $document): void {
                 $query->where($table.'.deal_id', $subject->id)
