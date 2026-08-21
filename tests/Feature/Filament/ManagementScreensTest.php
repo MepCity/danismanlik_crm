@@ -5,13 +5,11 @@ declare(strict_types=1);
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Domain\Program\Models\ServiceWorkflow;
-use App\Filament\Resources\BreakGlassGrants\BreakGlassGrantResource;
 use App\Filament\Resources\DocTemplates\DocTemplateResource;
 use App\Filament\Resources\DocTemplates\Pages\CreateDocTemplate;
 use App\Filament\Resources\Programs\Pages\CreateProgram;
 use App\Filament\Resources\Programs\ProgramResource;
 use App\Filament\Resources\ProgramVersions\ProgramVersionResource;
-use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\ServiceWorkflows\ServiceWorkflowResource;
 use App\Filament\Resources\Statuses\Pages\CreateStatus;
 use App\Filament\Resources\Statuses\StatusResource;
@@ -79,8 +77,6 @@ it('yönetim kaynaklarının model etiketlerini açık ve tutarlı tanımlar', f
     'statü' => [StatusResource::class, 'Statü', 'Statüler'],
     'geçiş' => [TransitionResource::class, 'Geçiş', 'Geçişler'],
     'kullanıcı' => [UserResource::class, 'Kullanıcı', 'Kullanıcılar'],
-    'rol' => [RoleResource::class, 'Rol', 'Roller'],
-    'acil erişim' => [BreakGlassGrantResource::class, 'Acil erişim', 'Acil erişimler'],
 ]);
 
 it('program yönetiminde teknik alt kaynakları menüden gizler', function (): void {
@@ -201,8 +197,6 @@ it('pazarlama rolünü bütün yönetim ekranlarında 403 ile reddeder', functio
         StatusResource::class,
         TransitionResource::class,
         UserResource::class,
-        RoleResource::class,
-        BreakGlassGrantResource::class,
     ];
 
     foreach ($resources as $resource) {
@@ -212,17 +206,15 @@ it('pazarlama rolünü bütün yönetim ekranlarında 403 ile reddeder', functio
 
 it('yetkili rollerin yönetim listelerini açar', function (): void {
     $admin = wp15User('Sistem Yöneticisi', 'yonetim-admin');
-    $officer = wp15User('Şirket Yetkilisi', 'yonetim-yetkili');
 
     foreach ([ProgramResource::class, ServiceWorkflowResource::class, ProgramVersionResource::class, DocTemplateResource::class] as $resource) {
         wp15Get($admin, $resource::getUrl('index'))->assertOk();
     }
 
-    foreach ([StatusResource::class, TransitionResource::class, UserResource::class, RoleResource::class] as $resource) {
+    foreach ([StatusResource::class, TransitionResource::class, UserResource::class] as $resource) {
         wp15Get($admin, $resource::getUrl('index'))->assertOk();
     }
-
-    wp15Get($officer, BreakGlassGrantResource::getUrl('index'))->assertOk();
+    expect(UserResource::getNavigationLabel())->toBe('Erişim yönetimi');
 });
 
 it('durum rozetini renk tokenı ve ayrı biçim işaretiyle birlikte üretir', function (): void {

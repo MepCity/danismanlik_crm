@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Domain\Access\Models\BreakGlassGrant;
 use App\Domain\Access\Models\RolePermissionHistory;
 use App\Domain\Access\Models\Team;
 use App\Domain\Access\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -50,7 +48,7 @@ it('connects teams and users through typed memberships', function (): void {
         ->and($manager->managedTeams->modelKeys())->toBe([$team->id]);
 });
 
-it('casts access history and break glass dates', function (): void {
+it('casts append only access history values', function (): void {
     $administrator = User::factory()->create(['email' => 'admin@example.invalid']);
     $authorizer = User::factory()->create(['email' => 'authorizer@example.invalid']);
 
@@ -64,17 +62,7 @@ it('casts access history and break glass dates', function (): void {
         'reason' => 'Onaylı kapsam değişikliği',
     ]);
 
-    $grant = BreakGlassGrant::query()->create([
-        'user_id' => $administrator->id,
-        'granted_by' => $authorizer->id,
-        'reason' => 'Acil destek incelemesi',
-        'expires_at' => now()->addHour(),
-    ]);
-
     expect($history->old_value)->toBe(['scope' => 'none'])
         ->and($history->new_value)->toBe(['scope' => 'all'])
-        ->and($history->changedBy->is($authorizer))->toBeTrue()
-        ->and($grant->expires_at)->toBeInstanceOf(Carbon::class)
-        ->and($grant->user->is($administrator))->toBeTrue()
-        ->and($grant->grantedBy->is($authorizer))->toBeTrue();
+        ->and($history->changedBy->is($authorizer))->toBeTrue();
 });

@@ -201,7 +201,7 @@ it('sistem yöneticisine yapılandırma izni verirken iş verisi kapsamını aç
         ->and(Gate::forUser($admin)->allows('viewAny', Deal::class))->toBeFalse();
 });
 
-it('sistem yöneticisinin belge indirmesini break glass olmadan reddeder', function (): void {
+it('sistem yöneticisinin kapsam verilmeden belge indirmesini reddeder', function (): void {
     $admin = scopedUser('Sistem Yöneticisi', 'belge-admin');
     $graph = scopedWorkGraph(scopedUser('Pazarlama', 'belge-sahibi'), 'FILE-DENY');
 

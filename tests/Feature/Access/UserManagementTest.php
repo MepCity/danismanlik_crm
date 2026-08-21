@@ -5,7 +5,8 @@ declare(strict_types=1);
 use App\Domain\Access\Actions\SaveUser;
 use App\Domain\Access\Actions\UpdateRolePermissions;
 use App\Domain\Access\Models\RolePermissionHistory;
-use App\Filament\Resources\BreakGlassGrants\Pages\ListBreakGlassGrants;
+use App\Domain\Access\Services\PageAccess;
+use App\Filament\Resources\Companies\CompanyResource;
 use App\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
 use Filament\Auth\Pages\Login;
@@ -14,6 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -90,18 +92,75 @@ it('rol izin değişikliğini gerekçesiyle salt ekleme geçmişine yazar', func
         ->exists())->toBeTrue();
 });
 
-it('acil erişim ekranında altmış dakikanın üstünü doğrulamada reddeder', function (): void {
-    $officer = User::factory()->create(['email' => 'acil-ekran-yetkili@example.invalid']);
-    $officer->assignRole('Şirket Yetkilisi');
-    $admin = User::factory()->create(['email' => 'acil-ekran-admin@example.invalid']);
-    $admin->assignRole('Sistem Yöneticisi');
-    Auth::login($officer);
+it('matristen alınan sayfa izninden sonra kullanıcıyı 403 ile reddeder', function (): void {
+    /** @var TestCase $this */
+    $actor = User::factory()->create(['email' => 'matris-yoneticisi@example.invalid']);
+    $actor->assignRole('Sistem Yöneticisi');
+    $user = User::factory()->create(['email' => 'matris-kullanicisi@example.invalid']);
+    $role = Role::query()->where('name', 'Pazarlama')->firstOrFail();
+    $user->assignRole($role);
+    $opportunityPage = Permission::findByName('page.opportunities');
 
-    Livewire::test(ListBreakGlassGrants::class)
-        ->callTableAction('grant', null, [
-            'user_id' => $admin->id,
-            'reason' => 'Kurgusal acil bakım',
-            'duration_minutes' => 61,
-        ])
-        ->assertHasTableActionErrors(['duration_minutes']);
+    app(SaveUser::class)->execute($user, [
+        'name' => $user->name,
+        'email' => $user->email,
+        'is_active' => true,
+        'data_scope' => 'own',
+        'role_ids' => [$role->id],
+        'team_ids' => [],
+        'page_permission_ids' => [$opportunityPage->id],
+        'change_reason' => 'Firma sayfası erişimini kaldırma',
+    ], $actor);
+
+    $this->actingAs($user)->get(CompanyResource::getUrl('index'))->assertForbidden();
+});
+
+it('sayfa izni verme ve alma işlemlerini gerekçeli geçmişe yazar', function (): void {
+    $actor = User::factory()->create(['email' => 'izin-gecmis-yoneticisi@example.invalid']);
+    $actor->assignRole('Sistem Yöneticisi');
+    $user = User::factory()->create(['email' => 'izin-gecmis-kullanicisi@example.invalid']);
+    $role = Role::query()->where('name', 'Pazarlama')->firstOrFail();
+    $companyPage = Permission::findByName('page.companies');
+
+    foreach ([[$companyPage->id], []] as $index => $permissions) {
+        app(SaveUser::class)->execute($user, [
+            'name' => $user->name,
+            'email' => $user->email,
+            'is_active' => true,
+            'data_scope' => 'own',
+            'role_ids' => [$role->id],
+            'team_ids' => [],
+            'page_permission_ids' => $permissions,
+            'change_reason' => $index === 0 ? 'Firma sayfasını görevi için verme' : 'Görev değişikliği nedeniyle geri alma',
+        ], $actor);
+    }
+
+    expect(RolePermissionHistory::query()->where('subject_type', 'user')->where('subject_id', $user->id)->count())->toBe(2)
+        ->and(RolePermissionHistory::query()->where('reason', 'Firma sayfasını görevi için verme')->exists())->toBeTrue()
+        ->and(RolePermissionHistory::query()->where('reason', 'Görev değişikliği nedeniyle geri alma')->exists())->toBeTrue()
+        ->and($user->fresh()->hasDirectPermission('page.companies'))->toBeFalse();
+});
+
+it('rolü hızlı önayar olarak kullanır ve sistem yöneticisi kendi erişimini verebilir', function (): void {
+    /** @var TestCase $this */
+    $admin = User::factory()->create(['email' => 'kendi-erisim-admin@example.invalid']);
+    $role = Role::query()->where('name', 'Sistem Yöneticisi')->firstOrFail();
+    $admin->assignRole($role);
+    $preset = app(PageAccess::class)->presetForRoles([$role->id]);
+    $companyPage = Permission::findByName('page.companies');
+
+    expect($preset)->toContain($companyPage->id);
+
+    app(SaveUser::class)->execute($admin, [
+        'name' => $admin->name,
+        'email' => $admin->email,
+        'is_active' => true,
+        'data_scope' => 'all',
+        'role_ids' => [$role->id],
+        'team_ids' => [],
+        'page_permission_ids' => $preset,
+        'change_reason' => 'Sistem yöneticisi görev kapsamı kararı',
+    ], $admin);
+
+    $this->actingAs($admin)->get(CompanyResource::getUrl('index'))->assertOk();
 });
