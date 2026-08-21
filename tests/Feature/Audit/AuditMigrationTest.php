@@ -29,10 +29,14 @@ it('migrates rolls back and remigrates the audit collaboration schema', function
             ->and(Schema::connection($connection)->hasTable('notifications'))->toBeTrue()
             ->and(Schema::connection($connection)->hasTable('outbox'))->toBeTrue();
 
+        $rollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_11_210000_create_audit_collaboration_tables')
+            ->count();
+
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 23,
+            '--step' => $rollbackSteps,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('activities'))->toBeFalse()
             ->and(Schema::connection($connection)->hasTable('audit_log'))->toBeFalse()

@@ -297,7 +297,7 @@ it('rapor sorgu sayısını satır sayısından bağımsız ve boş veri setini 
         ->and($empty->total)->toBe(0)
         ->and($filled->rows)->toHaveCount(12)
         ->and($filledQueries)->toBe($emptyQueries)
-        ->and($filledQueries)->toBe(5);
+        ->and($filledQueries)->toBe(3);
 });
 
 it('statü süre toplama indeksini ve salt ekleme dışa aktarım tablosunu kurar', function (): void {

@@ -52,10 +52,14 @@ it('migrates rolls back and remigrates the program deal schema on PostgreSQL', f
                 SELECT obj_description('{$schema}.program_versions'::regclass)
                 SQL))->toContain('sözleşmesel anlık görüntü');
 
+        $rollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_11_170000_create_program_deal_document_tables')
+            ->count();
+
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 25,
+            '--step' => $rollbackSteps,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('programs'))->toBeFalse()
             ->and(Schema::connection($connection)->hasTable('deals'))->toBeFalse()

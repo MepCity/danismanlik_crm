@@ -41,10 +41,14 @@ it('işbirliği güçlendirmelerini PostgreSQL üzerinde geri alıp yeniden kura
                   AND NOT tgisinternal
                 SQL))->toBe(1);
 
+        $optionalDueRollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_20_100000_make_task_due_at_optional')
+            ->count();
+
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 10,
+            '--step' => $optionalDueRollbackSteps,
         ]))->toBe(0)
             ->and(DB::connection($connection)->scalar(<<<SQL
                 SELECT is_nullable
@@ -63,10 +67,14 @@ it('işbirliği güçlendirmelerini PostgreSQL üzerinde geri alıp yeniden kura
                   AND column_name = 'due_at'
                 SQL))->toBe('YES');
 
+        $hardeningRollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_12_090000_harden_collaboration_tables')
+            ->count();
+
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 20,
+            '--step' => $hardeningRollbackSteps,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('tasks', 'reminder_sent_at'))->toBeFalse();
 

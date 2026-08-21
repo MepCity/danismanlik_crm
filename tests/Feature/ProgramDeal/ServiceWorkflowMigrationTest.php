@@ -28,7 +28,11 @@ it('hizmet iş akışı şemasını PostgreSQL üzerinde geri alıp yeniden kura
             ->and(Schema::connection($connection)->hasColumn('program_versions', 'workflow_snapshot'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('deals', 'workflow_snapshot'))->toBeTrue();
 
-        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 6]))->toBe(0)
+        $rollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_21_140000_create_service_workflows')
+            ->count();
+
+        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => $rollbackSteps]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('service_workflows'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('program_versions', 'workflow_snapshot'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('deals', 'workflow_snapshot'))->toBeFalse();

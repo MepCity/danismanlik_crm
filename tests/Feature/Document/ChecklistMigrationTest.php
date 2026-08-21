@@ -25,10 +25,14 @@ it('migrates rolls back and remigrates the checklist suggestion schema', functio
             ->and(Schema::connection($connection)->hasTable('document_requirement_suggestions'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('deal_documents', 'condition_matches'))->toBeTrue();
 
+        $rollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_11_235000_add_document_requirement_suggestions')
+            ->count();
+
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 21,
+            '--step' => $rollbackSteps,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('document_requirement_suggestions'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('deal_documents', 'condition_matches'))->toBeFalse();

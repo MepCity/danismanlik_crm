@@ -41,10 +41,14 @@ it('migrates rolls back and remigrates the workflow schema on PostgreSQL', funct
                 WHERE table_schema = '{$schema}' AND table_name = 'deals' AND column_name = 'status_changed_at'
                 SQL))->toContain('denormalize önbellek');
 
+        $rollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_11_190000_create_workflow_tables')
+            ->count();
+
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 24,
+            '--step' => $rollbackSteps,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('statuses'))->toBeFalse()
             ->and(Schema::connection($connection)->hasTable('status_history'))->toBeFalse()

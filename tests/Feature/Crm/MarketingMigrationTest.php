@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 uses(RefreshDatabase::class);
@@ -25,10 +26,14 @@ it('pazarlama operasyon şemasını PostgreSQL üzerinde geri alıp yeniden kura
             ->and(Schema::connection($connection)->hasColumn('interactions', 'direction'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('interactions', 'purpose'))->toBeTrue();
 
+        $rollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_16_090000_add_marketing_operations_fields')
+            ->count();
+
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 16,
+            '--step' => $rollbackSteps,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('contacts', 'data_source'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('statuses', 'required_fields'))->toBeFalse()
