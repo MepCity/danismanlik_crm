@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Domain\Access\Services\PageAccess;
 use App\Domain\Deal\Actions\AssignDeal;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Transition;
@@ -28,7 +29,9 @@ final class PendingAssignments extends Page
 
     public static function canAccess(): bool
     {
-        return Auth::user()?->can('deal.assign') === true;
+        $user = Auth::user();
+
+        return $user instanceof User && app(PageAccess::class)->allows($user, self::class) && $user->can('deal.assign');
     }
 
     public static function getNavigationLabel(): string

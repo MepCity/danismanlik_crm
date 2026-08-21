@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Domain\Access\Models\BreakGlassGrant;
 use App\Domain\Access\Models\RolePermissionHistory;
 use App\Domain\Access\Models\Team;
 use App\Domain\Access\Models\TeamMember;
@@ -43,8 +42,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read Collection<int, Team> $teams
  * @property-read Collection<int, Team> $managedTeams
  * @property-read Collection<int, TeamMember> $teamMemberships
- * @property-read Collection<int, BreakGlassGrant> $breakGlassGrants
- * @property-read Collection<int, BreakGlassGrant> $grantedBreakGlassGrants
  * @property-read Collection<int, RolePermissionHistory> $permissionChanges
  * @property-read Collection<int, Lead> $ownedLeads
  * @property-read Collection<int, Interaction> $interactions
@@ -80,18 +77,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public function teamMemberships(): HasMany
     {
         return $this->hasMany(TeamMember::class);
-    }
-
-    /** @return HasMany<BreakGlassGrant, $this> */
-    public function breakGlassGrants(): HasMany
-    {
-        return $this->hasMany(BreakGlassGrant::class);
-    }
-
-    /** @return HasMany<BreakGlassGrant, $this> */
-    public function grantedBreakGlassGrants(): HasMany
-    {
-        return $this->hasMany(BreakGlassGrant::class, 'granted_by');
     }
 
     /** @return HasMany<RolePermissionHistory, $this> */

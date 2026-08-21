@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Domain\Access\Services\PageAccess;
 use App\Domain\Crm\Actions\RecordInteraction;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use App\Filament\Support\MarketingOperationsView;
+use App\Models\User;
 use App\Support\Authorization\ScopedQuery;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -38,7 +40,9 @@ final class TodayCalls extends Page
 
     public static function canAccess(): bool
     {
-        return Gate::allows('viewAny', Lead::class);
+        $user = Auth::user();
+
+        return $user instanceof User && app(PageAccess::class)->allows($user, self::class) && Gate::allows('viewAny', Lead::class);
     }
 
     public static function getNavigationLabel(): string

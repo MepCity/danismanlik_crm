@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Domain\Access\Actions\SaveUser;
+use App\Domain\Access\Services\PageAccess;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use Filament\Resources\Pages\EditRecord;
@@ -20,6 +21,10 @@ final class EditUser extends EditRecord
         abort_unless($record instanceof User, 404);
         $data['role_ids'] = $record->roles()->pluck('roles.id')->all();
         $data['team_ids'] = $record->teams()->pluck('teams.id')->all();
+        $data['page_permission_ids'] = $record->getDirectPermissions()
+            ->whereIn('name', app(PageAccess::class)->permissionNames())
+            ->pluck('id')
+            ->all();
         $data['password'] = null;
 
         return $data;

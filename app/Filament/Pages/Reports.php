@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Domain\Access\Services\PageAccess;
 use App\Domain\Reporting\DTOs\ReportColumn;
 use App\Domain\Reporting\Enums\ReportType;
 use App\Domain\Reporting\Services\ReportQuery;
+use App\Models\User;
 use App\Support\Authorization\ScopedQuery;
 use BackedEnum;
 use Filament\Pages\Page;
@@ -31,7 +33,8 @@ final class Reports extends Page
     {
         $user = Auth::user();
 
-        return $user !== null
+        return $user instanceof User
+            && app(PageAccess::class)->allows($user, self::class)
             && $user->can('report.view')
             && app(ScopedQuery::class)->allowsAny($user, 'report.view');
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Domain\Access\Services\PageAccess;
 use App\Domain\Collaboration\DTOs\SubjectReference;
 use App\Domain\Collaboration\Enums\CollaborationSubjectType;
 use App\Domain\Collaboration\Services\EmailNotificationService;
@@ -62,6 +63,13 @@ final class DealDetail extends Page
     public ?int $decisionDocumentId = null;
 
     public string $decisionTarget = '';
+
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+
+        return $user instanceof User && app(PageAccess::class)->allows($user, self::class) && Gate::allows('viewAny', Deal::class);
+    }
 
     public string $decisionReason = '';
 

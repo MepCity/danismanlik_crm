@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Support\Authorization;
 
 use App\Domain\Access\Enums\DataScope;
-use App\Domain\Access\Models\BreakGlassGrant;
-use App\Domain\Access\Services\ActiveBreakGlass;
 use App\Domain\Access\Services\EffectiveScopeResolver;
 use App\Domain\Collaboration\Models\Activity;
 use App\Domain\Collaboration\Models\Comment;
@@ -37,7 +35,6 @@ final readonly class ScopedQuery
 {
     public function __construct(
         private EffectiveScopeResolver $scopes,
-        private ActiveBreakGlass $breakGlass,
     ) {}
 
     /** @template TModel of Model
@@ -53,10 +50,6 @@ final readonly class ScopedQuery
             return $user->is_active && $user->can($configurationPermission)
                 ? $query
                 : $query->whereRaw('1 = 0');
-        }
-
-        if ($this->breakGlass->use($user, $ability, $model::class) !== null) {
-            return $query;
         }
 
         $scope = $this->scopes->resolve($user);
@@ -95,10 +88,6 @@ final readonly class ScopedQuery
 
     public function allowsAny(User $user, string $ability): bool
     {
-        if ($this->breakGlass->use($user, $ability) !== null) {
-            return true;
-        }
-
         return $this->scopes->resolve($user) !== DataScope::None;
     }
 
@@ -110,7 +99,6 @@ final readonly class ScopedQuery
             Status::class, Transition::class => 'system.settings',
             User::class => 'system.users',
             Role::class => 'system.roles',
-            BreakGlassGrant::class => 'access.break_glass.grant',
             default => null,
         };
     }

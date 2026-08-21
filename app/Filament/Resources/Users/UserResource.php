@@ -5,16 +5,19 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Users;
 
 use App\Domain\Access\Models\Team;
+use App\Domain\Access\Services\PageAccess;
 use App\Filament\Resources\ScopedResource;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Models\User;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -40,7 +43,7 @@ final class UserResource extends ScopedResource
 
     public static function getNavigationLabel(): string
     {
-        return __('management.navigation.users');
+        return __('management.navigation.access_management');
     }
 
     public static function getModelLabel(): string
@@ -61,11 +64,18 @@ final class UserResource extends ScopedResource
             TextInput::make('password')->label(__('management.fields.password'))->password()->revealable(false)
                 ->required(fn (string $operation): bool => $operation === 'create')->minLength(12)->dehydrated(fn (?string $state): bool => filled($state)),
             Select::make('role_ids')->label(__('management.fields.roles'))
-                ->options(Role::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->multiple()->required(),
+                ->options(Role::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->multiple()->required()->live()
+                ->afterStateUpdated(fn (Set $set, array $state): mixed => $set('page_permission_ids', app(PageAccess::class)->presetForRoles($state))),
             Select::make('team_ids')->label(__('management.fields.teams'))
                 ->options(Team::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->multiple(),
             Select::make('data_scope')->label(__('management.fields.data_scope'))->options(__('management.scopes'))->placeholder(__('management.messages.not_set')),
             Toggle::make('is_active')->label(__('management.fields.active'))->default(true),
+            CheckboxList::make('page_permission_ids')
+                ->label(__('management.page_access.title'))
+                ->helperText(__('management.page_access.help'))
+                ->options(fn (): array => app(PageAccess::class)->options())
+                ->columns(2)
+                ->searchable(),
             Textarea::make('change_reason')->label(__('management.fields.change_reason'))->required()->columnSpanFull(),
         ]);
     }

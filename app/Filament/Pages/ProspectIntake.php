@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Domain\Access\Services\PageAccess;
 use App\Domain\Crm\Actions\CreateProspectIntake;
 use App\Domain\Crm\DTOs\ProspectIntakeData;
 use App\Domain\Crm\Models\Company;
@@ -12,6 +13,7 @@ use App\Domain\Crm\Services\CompanyDuplicateFinder;
 use App\Domain\Deal\Models\Status;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Filament\Resources\Companies\CompanyResource;
+use App\Models\User;
 use App\Support\Authorization\ScopedQuery;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -89,7 +91,9 @@ final class ProspectIntake extends Page
 
     public static function canAccess(): bool
     {
-        return Gate::allows('create', Lead::class);
+        $user = Auth::user();
+
+        return $user instanceof User && app(PageAccess::class)->allows($user, self::class) && Gate::allows('create', Lead::class);
     }
 
     public static function getNavigationLabel(): string

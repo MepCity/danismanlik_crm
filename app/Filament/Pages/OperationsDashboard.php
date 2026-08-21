@@ -4,14 +4,23 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Domain\Access\Services\PageAccess;
 use App\Domain\Reporting\Enums\ReportType;
 use App\Domain\Reporting\Services\DashboardQuery;
+use App\Models\User;
 use Filament\Pages\Dashboard;
 use Illuminate\Support\Facades\Auth;
 
 final class OperationsDashboard extends Dashboard
 {
     protected string $view = 'filament.pages.operations-dashboard';
+
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+
+        return $user instanceof User && app(PageAccess::class)->allows($user, self::class);
+    }
 
     public static function getNavigationLabel(): string
     {

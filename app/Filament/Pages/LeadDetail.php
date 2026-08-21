@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
+use App\Domain\Access\Services\PageAccess;
 use App\Domain\Crm\Actions\RecordInteraction;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
+use App\Models\User;
 use App\Support\Authorization\ScopedQuery;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -35,6 +37,13 @@ final class LeadDetail extends Page
     public ?int $interactionContactId = null;
 
     public string $activityFilter = 'comments';
+
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+
+        return $user instanceof User && app(PageAccess::class)->allows($user, self::class) && Gate::allows('viewAny', Lead::class);
+    }
 
     public function mount(int $lead): void
     {

@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Access\AccessServiceProvider;
-use App\Domain\Access\Models\BreakGlassGrant;
-use App\Domain\Access\Policies\BreakGlassGrantPolicy;
 use App\Domain\Access\Policies\CommentPolicy;
 use App\Domain\Access\Policies\CompanyPolicy;
 use App\Domain\Access\Policies\ContactPolicy;
@@ -110,6 +108,5 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Transition::class, TransitionPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
-        Gate::policy(BreakGlassGrant::class, BreakGlassGrantPolicy::class);
     }
 }

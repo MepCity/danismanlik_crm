@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
+use App\Domain\Access\Services\PageAccess;
 use App\Models\User;
 use App\Support\Authorization\ScopedQuery;
 use Closure;
@@ -22,8 +23,12 @@ abstract class ScopedResource extends Resource
     {
         $user = Filament::auth()->user();
 
+        if (! $user instanceof User || ! app(PageAccess::class)->allows($user, static::class)) {
+            return false;
+        }
+
         if (static::$configurationPermission !== null
-            && (! $user instanceof User || ! $user->can(static::$configurationPermission))) {
+            && ! $user->can(static::$configurationPermission)) {
             return false;
         }
 
