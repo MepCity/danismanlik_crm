@@ -23,6 +23,8 @@ use App\Domain\Document\Models\File;
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\Program;
 use App\Domain\Program\Models\ProgramVersion;
+use App\Domain\Program\Models\ServiceWorkflow;
+use App\Domain\Program\Models\ServiceWorkflowStep;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -103,7 +105,8 @@ final readonly class ScopedQuery
     private function configurationPermission(Model $model): ?string
     {
         return match ($model::class) {
-            Program::class, ProgramVersion::class, DocTemplate::class => 'program.view',
+            Program::class, ProgramVersion::class, DocTemplate::class,
+            ServiceWorkflow::class, ServiceWorkflowStep::class => 'program.view',
             Status::class, Transition::class => 'system.settings',
             User::class => 'system.users',
             Role::class => 'system.roles',

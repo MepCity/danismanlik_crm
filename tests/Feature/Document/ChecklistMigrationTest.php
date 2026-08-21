@@ -28,7 +28,7 @@ it('migrates rolls back and remigrates the checklist suggestion schema', functio
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 14,
+            '--step' => 15,
         ]))->toBe(0)
             ->and(Schema::connection($connection)->hasTable('document_requirement_suggestions'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('deal_documents', 'condition_matches'))->toBeFalse();

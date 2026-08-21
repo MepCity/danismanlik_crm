@@ -11,6 +11,7 @@ use App\Domain\Program\Actions\SaveProgramConfiguration;
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\Program;
 use App\Domain\Program\Models\ProgramVersion;
+use App\Domain\Program\Models\ServiceWorkflow;
 use App\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -75,6 +76,7 @@ it('programı dönemi ve belge listesiyle tek işlemde oluşturur', function ():
         'name' => 'Kurgusal Verimlilik Programı',
         'institution' => 'kosgeb',
         'is_active' => true,
+        'service_workflow_id' => ServiceWorkflow::query()->firstOrFail()->id,
         'call_period' => '2028 başvuru dönemi',
         'application_opens_at' => '2028-01-15',
         'application_closes_at' => '2028-03-31',
@@ -146,6 +148,7 @@ it('program yetkisi olmayan kullanıcının birleşik kaydını reddeder', funct
         'name' => 'Yetkisiz Kurgusal Program',
         'institution' => 'kosgeb',
         'is_active' => true,
+        'service_workflow_id' => ServiceWorkflow::query()->firstOrFail()->id,
         'call_period' => '2029 başvuru dönemi',
         'documents' => [[
             'name' => 'Yetkisiz Kurgusal Belge',
@@ -167,6 +170,7 @@ it('belgesiz program tanımını açık doğrulama hatasıyla reddeder', functio
             'name' => 'Belgesiz Kurgusal Program',
             'institution' => 'kosgeb',
             'is_active' => true,
+            'service_workflow_id' => ServiceWorkflow::query()->firstOrFail()->id,
             'call_period' => '2031 başvuru dönemi',
             'documents' => [],
         ], $actor);

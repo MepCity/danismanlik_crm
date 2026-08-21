@@ -21,7 +21,7 @@ it('firma rehberi alanlarını PostgreSQL üzerinde geri alıp yeniden kurar', f
             ->and(Schema::connection($connection)->hasColumn('companies', 'owner_user_id'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('companies', 'industry'))->toBeTrue();
 
-        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 1]))->toBe(0)
+        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 2]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('companies', 'owner_user_id'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('companies', 'industry'))->toBeFalse();
 

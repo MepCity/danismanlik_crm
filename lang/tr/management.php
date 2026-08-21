@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 return [
     'navigation' => [
-        'programs' => 'Programlar',
+        'programs' => 'Hizmetler',
+        'service_workflows' => 'İş Akışları',
         'program_versions' => 'Program sürümleri',
         'document_templates' => 'Evrak şablonları',
         'statuses' => 'Statüler',
@@ -14,7 +15,8 @@ return [
         'break_glass' => 'Acil erişim',
     ],
     'models' => [
-        'program' => ['singular' => 'Program', 'plural' => 'Programlar'],
+        'program' => ['singular' => 'Hizmet', 'plural' => 'Hizmetler'],
+        'service_workflow' => ['singular' => 'İş akışı', 'plural' => 'İş Akışları'],
         'program_version' => ['singular' => 'Program sürümü', 'plural' => 'Program sürümleri'],
         'document_template' => ['singular' => 'Evrak şablonu', 'plural' => 'Evrak şablonları'],
         'status' => ['singular' => 'Statü', 'plural' => 'Statüler'],
@@ -68,6 +70,13 @@ return [
         'document_description' => 'Belge açıklaması',
         'application_period' => 'Başvuru süresi',
         'status' => 'Durum',
+        'service_workflow' => 'Bağlı iş akışı',
+        'step_type' => 'Aşama tipi',
+        'step_title' => 'Aşama adı',
+        'step_guidance' => 'Nasıl uygulanır?',
+        'attention_note' => 'Dikkat edilecekler',
+        'step_count' => 'Aşama',
+        'linked_services' => 'Bağlı hizmet dönemi',
     ],
     'institutions' => [
         'kosgeb' => 'KOSGEB',
@@ -87,6 +96,11 @@ return [
     ],
     'scopes' => ['own' => 'Kendi', 'team' => 'Takım', 'all' => 'Tümü', 'none' => 'İş verisi yok'],
     'formats' => ['pdf' => 'PDF', 'docx' => 'DOCX', 'xlsx' => 'XLSX', 'jpg' => 'JPG', 'png' => 'PNG'],
+    'workflow_step_types' => [
+        'action' => 'Yapılacak işlem',
+        'waiting' => 'Bekleme aşaması',
+        'decision' => 'Kontrol / karar',
+    ],
     'conditions' => [
         'add_rule' => 'Koşul ekle',
         'fields' => [
@@ -128,12 +142,12 @@ return [
     'program_setup' => [
         'sections' => [
             'program' => [
-                'title' => 'Program bilgileri',
-                'description' => 'Programın adını, bağlı olduğu kurumu ve kullanım durumunu belirleyin.',
+                'title' => 'Hizmet bilgileri',
+                'description' => 'Desteğin adını, bağlı olduğu kurumu, izlenecek iş akışını ve kullanım durumunu belirleyin.',
             ],
             'period' => [
                 'title' => 'Dönem ve başvuru süresi',
-                'description' => 'Programın geçerli çağrı dönemini ve varsa başvuru tarihlerini girin.',
+                'description' => 'Hizmetin geçerli çağrı dönemini ve varsa başvuru tarihlerini girin.',
             ],
             'documents' => [
                 'title' => 'Gerekli belgeler',
@@ -141,16 +155,39 @@ return [
             ],
         ],
         'actions' => [
-            'new' => 'Yeni program',
-            'create' => 'Programı oluştur',
+            'new' => 'Yeni hizmet',
+            'create' => 'Hizmeti oluştur',
         ],
         'messages' => [
-            'created' => 'Program ve belge listesi oluşturuldu.',
-            'updated' => 'Program ve belge listesi güncellendi.',
+            'created' => 'Hizmet, iş akışı ve belge listesi oluşturuldu.',
+            'updated' => 'Hizmet, iş akışı ve belge listesi güncellendi.',
         ],
         'add_document' => 'Belge ekle',
         'new_document' => 'Yeni belge',
         'period_range' => ':start – :end',
+    ],
+    'service_setup' => [
+        'workflow_help' => 'Bu hizmete ait dosyalarda ekip için gösterilecek sabit uygulama rehberi.',
+    ],
+    'workflow_setup' => [
+        'description' => 'Birden fazla hizmette kullanılabilecek sabit operasyon rehberlerini oluşturun.',
+        'sections' => [
+            'identity' => [
+                'title' => 'İş akışı bilgileri',
+                'description' => 'Ekibin kolay tanıyacağı bir ad ve kapsam açıklaması girin.',
+            ],
+            'steps' => [
+                'title' => 'Uygulama aşamaları',
+                'description' => 'Belgelerin toplanmasından kurum kararına kadar izlenecek sırayı yazın. Sürükleyerek sıralayabilirsiniz.',
+            ],
+        ],
+        'actions' => ['new' => 'Yeni iş akışı'],
+        'add_step' => 'Aşama ekle',
+        'new_step' => 'Yeni aşama',
+        'messages' => [
+            'created' => 'İş akışı oluşturuldu.',
+            'updated' => 'İş akışı güncellendi.',
+        ],
     ],
     'messages' => [
         'not_set' => '—',
@@ -171,6 +208,9 @@ return [
         'documents_required' => 'En az bir gerekli belge ekleyin.',
         'document_names_unique' => 'Aynı belge adı yalnız bir kez eklenebilir.',
         'document_not_in_program' => 'Seçilen belge bu program dönemine ait değil.',
+        'workflow_steps_required' => 'İş akışında en az bir aşama bulunmalıdır.',
+        'workflow_step_not_owned' => 'Seçilen aşama bu iş akışına ait değildir.',
+        'workflow_active_required' => 'En az bir aktif aşaması bulunan etkin bir iş akışı seçmelisiniz.',
         'invalid_condition' => 'Koşul yalnız desteklenen alan ve operatörlerle kurulabilir.',
         'reason_required' => 'Değişiklik gerekçesi zorunludur.',
         'migration_target_inactive' => 'Toplu geçiş hedefi aktif olmalıdır.',
