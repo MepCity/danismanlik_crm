@@ -12,7 +12,6 @@ use App\Domain\Deal\Models\WorkflowRevision;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Filament\Pages\LeadBoard;
 use App\Filament\Pages\LeadDetail;
-use App\Filament\Pages\ProspectIntake;
 use App\Filament\Pages\TodayCalls;
 use App\Filament\Resources\Companies\Pages\ViewCompany;
 use App\Models\User;
@@ -267,49 +266,4 @@ it('veri kaynağını göstermeden yeni kişiyi sistem kaynağıyla kaydeder', f
         ->assertHasNoErrors();
 
     expect(Contact::query()->where('full_name', 'Kurgusal Yeni Yetkili')->sole()->data_source)->toBe('other');
-});
-
-it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', function (): void {
-    $owner = User::factory()->create(['email' => 'ekran-intake@example.invalid']);
-    $owner->assignRole('Pazarlama');
-    $version = ProgramVersion::query()->firstOrFail();
-    $interested = Status::query()->where('type', 'lead')->where('code', 'interested')->sole();
-    Auth::login($owner);
-
-    Livewire::test(ProspectIntake::class)
-        ->assertSee('Potansiyel müşteri kaydı')
-        ->assertDontSee('Veri kaynağı')
-        ->assertDontSee('Arama izni')
-        ->set('companyName', 'Kurgusal Tek Ekran AŞ')
-        ->set('companyIndustry', 'food')
-        ->set('city', 'İstanbul')
-        ->set('contactName', 'Kurgusal Karar Verici')
-        ->set('contactTitle', 'Genel Müdür')
-        ->set('phone', '+90 000 000 00 00')
-        ->set('email', 'karar-verici@firma.invalid')
-        ->set('programVersionId', $version->id)
-        ->set('targetStatusId', $interested->id)
-        ->set('callNote', 'İhtiyaç, program kapsamı ve sonraki adım görüşüldü.')
-        ->set('companyComment', 'Firma geneli kurgusal not.')
-        ->call('save')
-        ->assertHasNoErrors();
-
-    $lead = Lead::query()->whereHas('company', fn ($query) => $query->where('legal_name', 'Kurgusal Tek Ekran AŞ'))->sole();
-    expect($lead->primaryContact?->full_name)->toBe('Kurgusal Karar Verici')
-        ->and($lead->status_id)->toBe($interested->id)
-        ->and($lead->interactions()->whereNotNull('contact_id')->exists())->toBeTrue();
-});
-
-it('takip görevinde son tarihi isteğe bağlı gösterir', function (): void {
-    $owner = User::factory()->create(['email' => 'ekran-intake-tarihsiz@example.invalid']);
-    $owner->assignRole('Pazarlama');
-    Auth::login($owner);
-
-    Livewire::test(ProspectIntake::class)
-        ->set('taskTitle', 'Müşteriyi tekrar ara')
-        ->set('taskDueAt', '')
-        ->call('save')
-        ->assertHasNoErrors(['taskDueAt'])
-        ->assertSee('son tarih vermek zorunda değilsiniz')
-        ->assertDontSee('Görev son tarihi *');
 });

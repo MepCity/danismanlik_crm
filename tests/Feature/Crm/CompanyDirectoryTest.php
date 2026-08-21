@@ -10,6 +10,7 @@ use App\Domain\Crm\Actions\StartCustomerFlow;
 use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
+use App\Domain\Crm\Models\Lead;
 use App\Domain\Crm\Services\BulkCompanyEmailService;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Status;
@@ -280,6 +281,8 @@ it('mevcut firmadan müşteri akışı başlatıp evrak listesini üretir', func
     ], $actor);
     $version = ProgramVersion::query()->firstOrFail();
     $versionWorkflow = $version->workflow_snapshot;
+
+    expect(Lead::query()->where('company_id', $company->id)->exists())->toBeFalse();
 
     $dealId = app(StartCustomerFlow::class)->execute($company->id, $version->id, $actor);
     $deal = Deal::query()->findOrFail($dealId);

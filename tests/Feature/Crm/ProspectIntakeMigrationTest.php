@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
-it('potansiyel müşteri genişletmesini PostgreSQL üzerinde geri alıp yeniden kurar', function (): void {
+it('firma fırsat genişletmesini PostgreSQL üzerinde geri alıp yeniden kurar', function (): void {
     $schema = 'prospect_contract_'.Str::lower(Str::random(12));
     $connection = 'prospect_contract';
     $configuration = config('database.connections.testing');
@@ -22,7 +22,10 @@ it('potansiyel müşteri genişletmesini PostgreSQL üzerinde geri alıp yeniden
             ->and(Schema::connection($connection)->hasColumn('interactions', 'contact_id'))->toBeTrue()
             ->and(Schema::connection($connection)->hasColumn('comments', 'company_id'))->toBeTrue();
 
-        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => 12]))->toBe(0)
+        $rollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_19_090000_expand_crm_intake_and_company_timeline')
+            ->count();
+        expect(Artisan::call('migrate:rollback', ['--database' => $connection, '--force' => true, '--step' => $rollbackSteps]))->toBe(0)
             ->and(Schema::connection($connection)->hasColumn('leads', 'primary_contact_id'))->toBeFalse()
             ->and(Schema::connection($connection)->hasColumn('comments', 'company_id'))->toBeFalse();
 
