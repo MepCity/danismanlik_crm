@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.19 — 21.08.2026
+> **Sürüm:** 1.20 — 21.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -248,6 +248,8 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 **Gerekçe:** Saf Filament en hızlısı ama günlük kullanılan ekranlar jenerik CRUD gibi durur. Ayrı bir React ön yüzü ise ikinci bir oturum, ikinci bir tasarım sistemi ve haftalarca ek iş demek. Hibrit, tek çatı altında kalırken ekibin yaşadığı 5 ekrana özel tasarım imkânı verir.
 
 **Tasarım referansı — Zoho CRM, ERPNext DEĞİL.** 21.08.2026 kararıyla birincil referans Zoho CRM'in çalışma ve tasarım dili oldu: tutarlı liste araçları, yoğun tablolar, koyu lacivert uygulama kabuğu, açık/nötr içerik yüzeyi, mavi birincil eylemler, kayıt detayında güçlü bağlam ve modüller arası ortak etkileşim kalıpları. Birebir marka veya ekran kopyası yapılmaz; Bizlife'ın dar kapsamına uyarlanır. ERPNext'in görsel dili referans değildir.
+
+**Değiştirilen önceki yön:** Linear / Attio / Twenty, ilk görsel turlarda daha sakin ve çağdaş bir estetik referans olarak kullanılmıştı. Kullanıcı geri bildirimiyle bu yön 21.08.2026'da değiştirildi: Zoho yalnız mekanik ve yoğunluk referansı değil, palet ve kabuk referansı da oldu. Önceki ürünlerden yalnız düşük görsel gürültü ve tek vurgu rengi ilkesi korunur; lacivert navigasyon, açık mavi-gri çalışma yüzeyi, mavi eylemler, küçük yarıçaplar ve çizgi ağırlıklı katman ayrımı Zoho yönüne geçti.
 
 **Bağlayıcı tasarım kuralları** (WP-14'te token olarak kodlanır, sonraki tüm paketler bunlara uyar):
 
@@ -966,6 +968,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.20 | 21.08.2026 | Linear / Attio / Twenty yönünün yerini kullanıcı talimatıyla Zoho paleti ve kabuğu aldı; bütün Filament kaynak listelerine ortak “Tüm kayıtlar” görünümü ve yenileme eylemi eklendi. Filtre, sütun görünümü, yoğun tablo ve sayfalama aynı liste iskeletinde korunur |
 | 1.19 | 21.08.2026 | Zoho CRM tasarım incelemesi uygulama kabuğuna taşındı: 320 px lacivert navigasyon, beyaz üst çubuk, açık mavi-gri çalışma yüzeyi, 36 px kontroller, 6–10 px yarıçap, çizgi ağırlıklı tablo/form/kartlar ve sakin mikro geçişler ortak token sözleşmesi oldu. Yeni oturumlarda açık tema varsayılan; koyu tema aynı yüzey hiyerarşisinin bağımsız karşılığı olarak korunur |
 | 1.18 | 21.08.2026 | Programlar kullanıcı dilinde Hizmetler olarak konumlandırıldı. Yeniden kullanılabilir İş Akışları ve sıralı işlem/bekleme/karar aşamaları eklendi; hizmet dönemi seçilen rehberin anlık görüntüsünü saklar ve dosya detayında ekibe gösterir |
 | 1.16 | 16.08.2026 | İlk görsel pilotun fazla muhafazakâr kalması üzerine dosya detayı gerçek bir tek sayfalık çalışma alanına dönüştürüldü. Sekmeler kaldırıldı; şirket/satış bağlamı ve evrak listesi ana akışa, süreç geçişleri–ayrıntılar–ekip sabit sağ panele, yorum–görev–görüşme–geçmiş filtreli Etkinlik alanına taşındı. Dosya panosuna açık dosya, eksik evrak ve atanmamış iş özetleri ile aktör avatarları eklendi |
