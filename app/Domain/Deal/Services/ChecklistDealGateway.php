@@ -13,13 +13,15 @@ use Illuminate\Support\Carbon;
 
 final class ChecklistDealGateway
 {
-    public function createAwaitingAssignment(int $companyId, int $programVersionId, int $actorId, string $reference, string $reason): ChecklistDeal
+    /** @param array<string, mixed>|null $workflowSnapshot */
+    public function createAwaitingAssignment(int $companyId, int $programVersionId, ?array $workflowSnapshot, int $actorId, string $reference, string $reason): ChecklistDeal
     {
         $initial = Status::query()->where('type', 'deal')->where('is_initial', true)->where('is_active', true)->sole();
         $revision = WorkflowRevision::query()->where('effective_from', '<=', now())->latest('effective_from')->firstOrFail();
         $deal = Deal::query()->create([
             'company_id' => $companyId,
             'program_version_id' => $programVersionId,
+            'workflow_snapshot' => $workflowSnapshot,
             'reference_no' => $reference,
             'status_id' => $initial->id,
             'status_changed_at' => now(),

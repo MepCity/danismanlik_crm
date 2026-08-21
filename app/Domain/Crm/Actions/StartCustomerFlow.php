@@ -50,6 +50,7 @@ final readonly class StartCustomerFlow
             $deal = $this->deals->createAwaitingAssignment(
                 $company->id,
                 $programVersion->id,
+                $programVersion->workflowSnapshot,
                 $actor->id,
                 $reference,
                 trans('panel.customers.started'),

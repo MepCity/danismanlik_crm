@@ -43,6 +43,7 @@ final class ActiveProgramVersionReader
             $version->id,
             $version->program->name,
             $version->call_period,
+            $version->workflow_snapshot,
         );
     }
 }

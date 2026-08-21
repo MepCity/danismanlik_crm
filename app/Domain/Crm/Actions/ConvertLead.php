@@ -12,6 +12,7 @@ use App\Domain\Crm\Services\LeadWorkflowSubjectGateway;
 use App\Domain\Deal\Services\ChecklistDealGateway;
 use App\Domain\Deal\Services\StatusMachineContract;
 use App\Domain\Document\Services\ChecklistGeneratorContract;
+use App\Domain\Program\Services\ActiveProgramVersionReader;
 use App\Models\User;
 use App\Support\Workflow\StatusTransition;
 use App\Support\Workflow\SubjectType;
@@ -27,6 +28,7 @@ final readonly class ConvertLead
         private NotificationWriter $notifications,
         private LeadWorkflowSubjectGateway $leads,
         private ChecklistDealGateway $deals,
+        private ActiveProgramVersionReader $programVersions,
     ) {}
 
     public function handle(int $leadId, int $wonStatusId, int $programVersionId, int $actorId): int
@@ -40,12 +42,17 @@ final readonly class ConvertLead
 
             $won = $this->leads->target($wonStatusId);
             abort_unless($won->convertsToDeal, 422);
+            $programVersion = $this->programVersions->find($programVersionId);
+            if ($programVersion === null) {
+                throw ValidationException::withMessages(['program_version_id' => trans('panel.customers.validation.program')]);
+            }
 
             $this->statuses->transition(new StatusTransition(SubjectType::Lead, $lead->id, $won->id, $actorId));
 
             $deal = $this->deals->createAwaitingAssignment(
                 $lead->company_id,
                 $programVersionId,
+                $programVersion->workflowSnapshot,
                 $actorId,
                 'BLF-L'.$lead->id,
                 trans('marketing.conversion.history_reason'),

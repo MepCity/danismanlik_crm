@@ -53,9 +53,11 @@ function operationsFixture(string $suffix = 'ana'): array
     $pm->assignRole('Proje Yöneticisi');
     $company = Company::query()->create(['legal_name' => "Kurgusal Atlas {$suffix}", 'city' => 'Ankara']);
     $status = Status::query()->where('type', 'deal')->where('code', 'collecting_documents')->sole();
+    $programVersion = ProgramVersion::query()->firstOrFail();
     $deal = Deal::query()->create([
         'company_id' => $company->id,
-        'program_version_id' => ProgramVersion::query()->firstOrFail()->id,
+        'program_version_id' => $programVersion->id,
+        'workflow_snapshot' => $programVersion->workflow_snapshot,
         'reference_no' => 'KRG-'.mb_strtoupper($suffix),
         'status_id' => $status->id,
         'status_changed_at' => now()->subDays(8),

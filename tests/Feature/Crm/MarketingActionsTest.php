@@ -210,6 +210,7 @@ it('iş alındı dönüşüm zincirinin tüm çıktılarını tek tek üretir', 
     $deal = Deal::query()->findOrFail($dealId);
 
     expect($deal->program_version_id)->toBe($fixture['version']->id)
+        ->and($deal->workflow_snapshot)->toBe($fixture['version']->workflow_snapshot)
         ->and($deal->status_id)->toBe($initial->id)
         ->and($fixture['lead']->refresh()->status_id)->toBe($won->id)
         ->and($fixture['lead']->converted_deal_id)->toBe($deal->id)

@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $company_id
  * @property int $program_version_id
+ * @property array<string, mixed>|null $workflow_snapshot
  * @property string $reference_no
  * @property int $status_id
  * @property Carbon $status_changed_at
@@ -55,7 +56,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, Notification> $notifications
  */
 #[Fillable([
-    'company_id', 'program_version_id', 'reference_no', 'status_id', 'status_changed_at',
+    'company_id', 'program_version_id', 'workflow_snapshot', 'reference_no', 'status_id', 'status_changed_at',
     'pm_user_id', 'opened_by_user_id', 'requested_amount', 'application_no',
     'applied_at', 'decided_at', 'result_outcome', 'priority', 'document_requested_at',
     'first_document_received_at', 'all_required_accepted_at',
@@ -145,6 +146,7 @@ final class Deal extends Model
     {
         return [
             'status_changed_at' => 'datetime',
+            'workflow_snapshot' => 'array',
             'requested_amount' => 'decimal:2',
             'applied_at' => 'datetime',
             'decided_at' => 'datetime',

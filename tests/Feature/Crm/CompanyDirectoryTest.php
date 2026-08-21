@@ -268,15 +268,26 @@ it('mevcut firmadan müşteri akışı başlatıp evrak listesini üretir', func
         'is_active' => true,
     ], $actor);
     $version = ProgramVersion::query()->firstOrFail();
+    $versionWorkflow = $version->workflow_snapshot;
 
     $dealId = app(StartCustomerFlow::class)->execute($company->id, $version->id, $actor);
     $deal = Deal::query()->findOrFail($dealId);
+    $capturedWorkflow = $deal->workflow_snapshot;
+    $version->update(['workflow_snapshot' => [
+        'name' => 'Sonradan değiştirilen rehber',
+        'description' => null,
+        'steps' => [['type' => 'decision', 'title' => 'Sonradan eklenen adım', 'guidance' => 'Geçmiş dosyaya yansımamalı.', 'attention_note' => null]],
+    ]]);
 
     expect($deal->company_id)->toBe($company->id)
         ->and($deal->program_version_id)->toBe($version->id)
         ->and($deal->pm_user_id)->toBeNull()
         ->and(DealDocument::query()->where('deal_id', $deal->id)->exists())->toBeTrue()
         ->and(Company::query()->whereKey($company->id)->count())->toBe(1)
+        ->and($capturedWorkflow)->toBe($versionWorkflow)
+        ->and(data_get($capturedWorkflow, 'steps'))->not->toBeEmpty()
+        ->and($deal->refresh()->workflow_snapshot)->toBe($capturedWorkflow)
+        ->and($deal->workflow_snapshot)->not->toBe($version->refresh()->workflow_snapshot)
         ->and(Activity::query()->where('company_id', $company->id)->where('action', 'company.customer_flow_started')->exists())->toBeTrue();
 
     Auth::login($actor);

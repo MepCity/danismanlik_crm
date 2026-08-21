@@ -6,7 +6,7 @@
     @php($wonHistory = $deal->originatingLead?->statusHistory?->first(fn ($history) => $history->status->converts_to_deal))
     @php($saleInteraction = $deal->originatingLead?->interactions?->first())
     @php($teamMembers = $deal->projectManager?->teams->flatMap->members->unique('id') ?? collect())
-    @php($serviceWorkflow = $deal->programVersion->workflow_snapshot)
+    @php($serviceWorkflow = $deal->workflow_snapshot)
 
     <div class="deal-workspace" data-testid="deal-detail">
         <header class="deal-hero">

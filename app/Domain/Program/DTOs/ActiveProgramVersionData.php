@@ -10,6 +10,8 @@ final readonly class ActiveProgramVersionData
         public int $id,
         public string $programName,
         public string $callPeriod,
+        /** @var array<string, mixed>|null */
+        public ?array $workflowSnapshot,
     ) {}
 
     public function label(): string
