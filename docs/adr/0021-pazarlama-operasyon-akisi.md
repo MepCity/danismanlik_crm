@@ -8,6 +8,8 @@ Pazarlama operasyon akışının geri kalanı geçerlidir. Arama izni koruması,
 `consent_call` / `do_not_call` alanları ve “Bir daha aranmasın” eylemi müşteri
 talebiyle ürün kapsamından çıkarılmıştır. Bu değişiklik bir regresyon değildir.
 
+Firma artık ayrı potansiyel müşteri girişinden değil doğrudan firma rehberinden açılır. Fırsat aynı firma ekranından isteğe bağlı başlatılır; anlaşma varsa fırsat olmadan da mevcut dosya/checklist zinciri tüketilir. Bu ek karar [ADR-0032](0032-operasyon-girisleri-erisim-ve-ileti-onayi.md) içindedir.
+
 ## Bağlam
 
 Pazarlama ekibi sahada dizüstü açmadan günlük takip aramalarını tamamlamalı ve

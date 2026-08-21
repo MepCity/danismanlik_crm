@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.23 — 21.08.2026
+> **Sürüm:** 1.24 — 21.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -288,6 +288,16 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 
 **Ayrım:** Bu rehber, K-09’daki statü/geçiş makinesi değildir. Statü makinesi yetki ve koşulları uygulayan sistem kuralıdır; hizmet iş akışı ise proje yöneticisine “hangi sırayla ne yapılmalı, nerede beklenmeli ve neye dikkat edilmeli?” sorusunun cevabını gösteren operasyon bilgisidir.
 
+Hizmet önce taslak oluşturulur. Yayına alma, ayrı **Hizmeti başlat** işlemiyle yapılır ve ancak çağrı dönemi, bağlı iş akışı ve en az bir etkin evrak şablonu varsa gerçekleşir. Eksikler kullanıcıya birlikte gösterilir. Başlatma okunabilir aktivite ve tetikleyici tabanlı denetim kaydı üretir. Hizmet yorumları çağrı döneminden bağımsız iş bağlamını korumak için `program` öznesine bağlanır; detay ekranı bağlı akışın sıralı aşamalarını ve mevcut yorum bileşenini birlikte gösterir.
+
+### K-14 · Operasyon girişleri ve erişim yönetimi sadeleştirilir
+
+**Karar — müşteri kararı, 21.08.2026:** Potansiyel müşteri için ayrı bir giriş ekranı yoktur. Firma unvan ve sektörle hızlıca kaydedilir; fırsat, firma ekranından isteğe bağlı açılır. Anlaşma varsa fırsat olmadan da aynı mevcut müşteri akışı tüketilerek dosya, evrak listesi, ilk statü ve atama bildirimi oluşturulur.
+
+Kullanıcı ve rol yönetimi tek **Erişim yönetimi** ekranıdır. Roller hızlı önayardır; sayfa erişimleri mevcut Spatie izinlerine doğrudan kullanıcı izni olarak yazılır ve `ScopedQuery` ile policy katmanı değişmez. Her rol, sayfa ve veri kapsamı verme/alma işlemi zorunlu gerekçeyle `role_permission_history` kaydı üretir. Sistem Yöneticisi kendine de sayfa izni ve veri kapsamı verebilir. Bu nedenle önceki break-glass modeli kaldırılmıştır; kontrol önleyici bir kendine-yetki engeline değil, eksiksiz denetim izine dayanır. Bu, en az yetki varsayılanını kaldırmaz: iş verisi izinleri yine açıkça verilmelidir.
+
+Filtreli toplu pazarlama e-postası serbest metin yerine etkin bir şablon seçer. Şablon değişkenleri sınırlı katalogdan doğrulanır ve gerçek seçili alıcı üzerinde önizlenir. Her iletide kişiye özel, imzalı ve süreli abonelikten çıkma bağlantısı bulunur; bağlantı giriş gerektirmez ve `communication_consents` defterine yeni `withdrawn` satırı ekler. Eski izin satırı değiştirilmez ve kişi sonraki gönderimlerden otomatik çıkarılır.
+
 ---
 
 ## 4. Kapsam
@@ -300,18 +310,21 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 - Yapılandırılabilir statüler ve geçiş kuralları (izin / koşul / yan etki)
 - PM ataması ve iş yükü görünümü
 - Program bazlı dinamik evrak listesi + koşullu evraklar
+- Yeniden kullanılabilir hizmet iş akışı, taslak/başlatma kapısı ve hizmet yorumları
 - PM'in dosyaya özel ek belge talebi açabilmesi
 - Evrak yükleme, 9 durumlu belge akışı, sürümleme, geçerlilik tarihi
 - Aktivite geçmişi (kim, ne, ne zaman) + değiştirilemez denetim kaydı
-- Dosya altında yorum akışı + @bahsetme + iç/dışa açık ayrımı
+- Firma, fırsat, hizmet, dosya ve belge altında iç yorum akışı + @bahsetme
 - Hatırlatma, görev, son tarih uyarısı
 - E-posta + şifre girişi, 4 rol + `own/team/all` kapsam
+- Tek ekranda gerekçeli rol önayarı, sayfa erişimi ve veri kapsamı yönetimi
+- İzinli toplu e-posta şablonları ve kişisel abonelikten çıkma bağlantısı
 - Gösterge paneli, 6 sabit rapor görünümü, Excel dışa aktarım
 - İç domain olayları / outbox altyapısı
 
 ### 4.2 Kapsam dışı (bilinçli)
 
-Muhasebe · fatura / e-fatura · stok · İK / bordro · üretim · satın alma · pazarlama otomasyonu / e-posta kampanyası · çok kiracılı (multi-tenant) mimari · çok dilli arayüz · karmaşık BI / küp raporlama · kurum sistemlerine otomatik başvuru gönderimi · mikroservis mimarisi · native mobil uygulama · müşteri portalı · gelişmiş OCR/AI
+Muhasebe · fatura / e-fatura · stok · İK / bordro · üretim · satın alma · otomatik pazarlama kampanyası / kampanya analitiği · çok kiracılı (multi-tenant) mimari · çok dilli arayüz · karmaşık BI / küp raporlama · kurum sistemlerine otomatik başvuru gönderimi · mikroservis mimarisi · native mobil uygulama · müşteri portalı · gelişmiş OCR/AI
 
 ### 4.3 Kapsam filtresi — yalnızca iş özellikleri için
 
@@ -503,7 +516,7 @@ Denetçi, finans, salt-okuma rolleri gerçek ihtiyaç doğduğunda eklenir. Rol�
 | Denetim kaydını gör | ✓ | ✓ | kendi dosyası | kendi kaydı |
 | **Görünürlük kapsamı** | Sistem ayarları | Tüm iş verisi | Atanan + ekip | Kendi açtıkları |
 
-### 7.2.1 Sistem yöneticisi ≠ tüm müşteri verisine erişim
+### 7.2.1 Sistem yöneticisi ve denetlenebilir açık yetki
 
 **Teknik yönetim ile iş verisi erişimi ayrı izinlerdir.** Sistem yöneticisi kullanıcı açar, rol tanımlar, program şablonu düzenler, ayarları değiştirir — ama **varsayılan olarak müşteri belgelerini okuyamaz**. Bu sistemde firmaların Findeks raporları, mali tabloları ve fizibiliteleri duruyor; en az yetki ilkesi gereği bir BT yöneticisinin bunları görmesi için ayrı bir sebep gerekir.
 
@@ -511,7 +524,8 @@ Uygulama:
 
 - İzinler ikiye ayrılır: `system.*` (kullanıcı, rol, ayar, şablon) ve `deal.view_all` / `document.download` (iş verisi).
 - Bir kişi her ikisine de sahip olabilir — ama bu **bilinçli bir atama** olur, rolün otomatik sonucu değil.
-- **Break-glass:** acil durumda sistem yöneticisi geçici erişim alabilir; bu erişim gerekçe ister, süre sınırlıdır ve şirket yetkilisine bildirim gider. Her kullanım denetim kaydında ayrı bir olay tipidir.
+- **Müşteri kararı — 21.08.2026:** Sistem Yöneticisi birleşik Erişim yönetimi ekranında kendine de sayfa izni ve veri kapsamı verebilir. Break-glass ekranı, servisi ve tablosu kaldırılmıştır.
+- Bu model önleyici bir kendine-yetki engeli sunmaz. Kontrol; zorunlu gerekçe, `role_permission_history`, uygulama aktivitesi ve tetikleyici tabanlı denetim izine dayanır. Verilen erişim açık ve sonradan incelenebilir olmalıdır.
 
 ### 7.3 Güvenlik temel çizgisi
 
@@ -579,7 +593,7 @@ Kurallar:
 
 ### 8.5 Yorumlar
 
-- Her dosyanın altında; ayrıca fırsat ve belge satırı seviyesinde
+- Firma, fırsat, hizmet, dosya ve belge satırı seviyesinde; hizmet yorumu çağrı dönemine değil kalıcı `program` kaydına bağlanır
 - **@bahsetme** → bildirim
 - Yorumların tamamı yalnız sistem kullanıcılarına açık **iç not** niteliğindedir; müşteri görünürlüğü ve müşteri portalı yoktur
 - Düzenlenebilir ama "düzenlendi" işareti + önceki sürüm denetim kaydında kalır
@@ -620,6 +634,7 @@ companies ──< contacts ──< communication_consents      (append-only izin
            └──< (polymorphic subject) comments · tasks · activities
 
 programs ──< program_versions ──< doc_templates
+    └──< comments
                     └──> deals
 
 statuses ──< transitions          workflow_revisions (değişmez akış anlık görüntüsü)
@@ -628,21 +643,20 @@ users >──< roles >──< permissions ──< role_permission_history
 notifications · outbox · audit_log
 
 companies / leads / deals / deal_documents ──< comments · tasks · activities
+programs ──< comments
 ```
 
 ### 10.0 Polymorphic subject kuralı
 
-`comments`, `tasks` ve `activities` dört farklı nesneye bağlanabilmeli: **company**, **lead**, **deal**, **deal_document**. Firma geneli notlar şirket öznesinde; programa veya projeye ait notlar kendi öznesinde kalır.
+`comments` beş farklı nesneye bağlanabilir: **company**, **program**, **lead**, **deal**, **deal_document**. `tasks` ve `activities` için mevcut dört iş öznesi korunur. Firma geneli notlar şirket öznesinde, hizmet notları çağrı dönemlerinden bağımsız `program` öznesinde, fırsat veya dosyaya ait notlar kendi öznesinde kalır.
 
-Kullanılacak desen — **kontrollü polymorphic**, serbest string değil:
+Kullanılan desen, her hedef için ayrı nullable FK ve `CHECK` ile **tam olarak bir özne** zorunluluğudur. `comments.program_id` gerçek yabancı anahtardır; yeni hizmet öznesi mevcut deseni değiştirmez.
 
 ```
-subject_type  ENUM('company','lead','deal','deal_document')   -- CHECK ile sınırlı
-subject_id    BIGINT
-INDEX (subject_type, subject_id)
+num_nonnulls(company_id, program_id, lead_id, deal_id, deal_document_id) = 1
 ```
 
-Alternatif (daha katı, daha çok kolon): her hedef için ayrı nullable FK + `CHECK` ile "tam olarak biri dolu". Veri bütünlüğü gerçek FK ile korunacaksa bu tercih edilir. **Faz 0'da karara bağlanacak** — ikisi de savunulabilir, ama şema yazılmadan seçilmeli.
+Serbest `subject_type / subject_id` çifti gerçek yabancı anahtar bütünlüğü vermediği için seçilmemiştir.
 
 ### 10.1 Tablolar
 
@@ -686,13 +700,14 @@ Alternatif (daha katı, daha çok kolon): her hedef için ayrı nullable FK + `C
 | 5 | **Dosya detayı** | Sekmeler: Genel · Süreç · Belge listesi · Görevler · Yorumlar · Görüşmeler · Ekip · İşlem geçmişi |
 | 6 | **Dosya panosu** | Kanban, statü sütunları, rozetler |
 | 7 | **Atama ekranı** | Bekleyen dosyalar + PM iş yükü yan yana |
-| 8 | **Program yönetimi** | Program · sürüm · evrak şablonu · koşullu kurallar · pasife alma |
+| 8 | **Hizmet yönetimi** | Hizmet · çağrı dönemi · bağlı iş akışı ve aşamaları · evrak şablonu · yorum · taslak/başlatma |
 | 9 | **Belge inceleme** | Yüklenen sürümler, kabul/ret + gerekçe |
 | 10 | **Görevler / takvim** | Son tarihler, hatırlatmalar |
 | 11 | **Raporlar** | §11.1 |
-| 12 | **Kullanıcı & rol yönetimi** | |
+| 12 | **Erişim yönetimi** | Kullanıcı · rol önayarı · sayfa erişim matrisi · veri kapsamı · zorunlu değişiklik gerekçesi |
 | 13 | **Ayarlar — statü ve geçişler** | |
 | 14 | **Bildirim merkezi** | |
+| 15 | **E-posta şablonları** | Ad · konu · gövde · etkinlik · desteklenen değişkenler |
 
 ### 11.1 Raporlar — 6 sabit görünüm + Excel
 
@@ -729,7 +744,7 @@ Ticari elektronik ileti ve pazarlama süreçlerinin hukuki yükümlülükleri de
 
 > **Karar değişikliği — 21.08.2026:** Pazarlama aramalarındaki `consent_call` / `do_not_call` kontrolü ve kullanıcı arayüzü müşteri talebiyle kaldırıldı. Arama uygunluğu yazılım tarafından tutulmaz veya engellenmez; KVKK/İYS uyumu bu kanalda süreç ve manuel sorumluluk olarak yürütülür.
 
-**E-posta izni kontrolü devam eder.** Seçili firmalara toplu pazarlama e-postası gönderilirken `communication_consents` defterindeki en son `email / marketing` kaydı doğrulanır; `contacts.consent_email` yalnız hızlı sorgu özetidir. Defter append-only kalır, geçmiş satırlar güncellenmez veya silinmez. SMS Faz 3 kapsamındadır ve v1'de `contacts` üzerinde SMS izin özeti tutulmaz.
+**E-posta izni kontrolü devam eder.** Seçili firmalara toplu pazarlama e-postası gönderilirken `communication_consents` defterindeki en son `email / marketing` kaydı doğrulanır; `contacts.consent_email` yalnız hızlı sorgu özetidir. Defter append-only kalır, geçmiş satırlar güncellenmez veya silinmez. Her pazarlama e-postası giriş gerektirmeyen, kişiye özel, imzalı ve süreli bir çıkış bağlantısı taşır. Tıklama yeni `withdrawn` satırı ekler ve hızlı sorgu özetini kapatır; sonraki gönderim mevcut izin kontrolünde reddedilir. SMS Faz 3 kapsamındadır ve v1'de `contacts` üzerinde SMS izin özeti tutulmaz.
 
 KVKK Kurumu, üçüncü kişilerden (liste, referans, tavsiye) elde edilen iletişim bilgilerinin aydınlatma ve işleme şartları sağlanmadan pazarlamada kullanılmasına dair açık uyarı yayımladı — soğuk arama yapan ekip için doğrudan risk. **Canlıya çıkmadan şirketin KVKK danışmanı pazarlama senaryolarını doğrulamalı.**
 
@@ -969,6 +984,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.24 | 21.08.2026 | K-14 ve ADR-0032 ile müşteri kararı kaydedildi: firma doğrudan açılır, fırsat isteğe bağlıdır ve müşteri akışı firmadan başlatılabilir; hizmet taslak/başlatma kapısı, bağlı rehber görünümü ve program yorumları eklendi; kullanıcı/rol/acil erişim ekranları tek gerekçeli Erişim yönetiminde birleşti ve break-glass kaldırıldı; toplu e-posta şablon, gerçek alıcı önizlemesi ve append-only abonelikten çıkma ile tamamlandı |
 | 1.23 | 21.08.2026 | Müşteri talebiyle pazarlama araması izin kontrolü, `consent_call` / `do_not_call` ve kullanılmayan SMS izin özeti ürün kapsamından çıkarıldı. Arama uygunluğu manuel süreç sorumluluğunda kaldı; toplu pazarlama e-postası append-only defterdeki güncel e-posta iznini doğrulamaya devam eder. Gelen/giden ve pazarlama/hizmet görüşme metadatası raporlama için korundu |
 | 1.22 | 21.08.2026 | Hizmet dönemindeki bilgilendirici iş akışı anlık görüntüsü dosya açılışında `deals.workflow_snapshot` alanına kopyalanır; dosya detayı program sürümü yerine bu değişmez kopyayı okur. Rehber ile `transitions`/`StatusMachine` yetkili statü akışının sınırı açıkça ayrıldı |
 | 1.21 | 21.08.2026 | Firma rehberinin kontrollü kaba sektör kodları NACE’den ayrılaştırıldı; PostgreSQL kısıtı, sektör/il/ölçek/aktiflik filtreleri ve kayıtlı görünümler eklendi. Seçili firmalara toplu e-posta, güncel e-posta pazarlama izni, kapsam policy’si, mevcut bildirim kuyruğu ve filtre anlık görüntülü etkinlik kaydı üzerinden sınırlandı |

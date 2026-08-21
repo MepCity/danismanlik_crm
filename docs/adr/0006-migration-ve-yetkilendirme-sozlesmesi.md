@@ -1,6 +1,6 @@
 # ADR-0006: Migration ve yetkilendirme sözleşmesi
 
-- Durum: Kabul edildi
+- Durum: Kısmen değiştirildi — [ADR-0032](0032-operasyon-girisleri-erisim-ve-ileti-onayi.md)
 - Tarih: 2026-08-11
 
 ## Bağlam
@@ -55,6 +55,8 @@ WP-12'de yapılacaktır.
 `none` kapsamı sistem yöneticisinin varsayılanıdır. Teknik yönetim izinleri iş
 verisini okuma yetkisi vermez. Geçici acil erişim ayrı `break_glass_grants`
 kaydıyla, zorunlu gerekçe ve son kullanma tarihiyle temsil edilir.
+
+> **Değişiklik (21.08.2026):** `none` varsayılanı ve teknik/iş verisi ayrımı korunur. Break-glass temsili ADR-0032 ile kaldırılmış; gerekçeli doğrudan sayfa izni ve veri kapsamı yönetimine geçilmiştir.
 
 `User`, Laravel kimlik doğrulama sağlayıcısı ve paket varsayımlarıyla uyumu
 korumak için `App\Models` altında kalır. Access modülü modelleri ona ilişki

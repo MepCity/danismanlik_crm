@@ -1,6 +1,6 @@
 # ADR-0015: Yetkilendirme kapsamı ve acil erişim
 
-- **Durum:** Kabul edildi
+- **Durum:** Kısmen değiştirildi — [ADR-0032](0032-operasyon-girisleri-erisim-ve-ileti-onayi.md)
 - **Tarih:** 2026-08-11
 - **İş paketi:** WP-12
 
@@ -57,6 +57,8 @@ kapsamını açar. İptal veya süre aşımı sorgu anında erişimi kapatır. V
 kullanım, iptal ve süre aşımı ayrı `access.break_glass_*` olayları olarak
 salt-ekleme yetki geçmişine yazılır; verilme anında bütün etkin Şirket
 Yetkililerine uygulama içi bildirim oluşturulur.
+
+> **Değişiklik (21.08.2026):** Bu break-glass kararı müşteri kararıyla kaldırıldı. `ScopedQuery`, policy ve veri kapsamı sözleşmesi geçerlidir; yeni gerekçeli erişim modeli ADR-0032’dedir.
 
 ## Sonuçlar ve kapsam dışı
 

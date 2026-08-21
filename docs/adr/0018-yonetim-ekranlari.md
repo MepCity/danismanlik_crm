@@ -38,3 +38,4 @@ Program sürümlerinde silme eylemi yoktur. Kullanım dışı sürüm `is_active
 - Toplu geçiş normal `StatusMachine` guard/condition akışı değildir; yöneticinin gerekçeli yapılandırma göçüdür ve ayrı tek olayla görünür olur.
 - Yeni program çağrısı eski çağrı ve açık dosyalar için geriye dönük değişiklik yaratmaz.
 - Kullanıcı ve rol değişiklikleri Resource içinde ilişki senkronlamaz; gerekçeli domain action'ları `role_permission_history` kaydıyla birlikte transaction yürütür.
+- Kullanıcı ve rol kaynaklarının tek Erişim yönetimi ekranında birleşmesi ve rollerin önayara dönüşmesi [ADR-0032](0032-operasyon-girisleri-erisim-ve-ileti-onayi.md) ile kararlaştırılmıştır; gerekçeli domain action sözleşmesi değişmez.

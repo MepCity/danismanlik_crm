@@ -1,6 +1,6 @@
 # ADR-0030: Kontrollü sektör ve izinli toplu e-posta
 
-- Durum: Kabul edildi
+- Durum: Kısmen değiştirildi — [ADR-0032](0032-operasyon-girisleri-erisim-ve-ileti-onayi.md)
 - Tarih: 21.08.2026
 
 ## Bağlam
@@ -16,11 +16,11 @@ Filtrelenmiş firmalara e-posta gönderimi, kanal ve amaç bazlı güncel izin d
 3. Toplu e-posta yalnız seçilmiş ve kullanıcının kapsamında bulunan firmalarda çalışır. Her aktif kişinin e-posta adresi, `contacts.consent_email` özeti ve defterdeki yürürlükte olan son `email + marketing` kaydı birlikte doğrulanır.
 4. İzni olmayan, adresi eksik ve mükerrer alıcılar kuyruğa alınmaz. Sonuç sayıları kullanıcıya açıkça gösterilir.
 5. Gönderimler yeni bir kampanya veya posta altyapısı kurmaz; mevcut `notifications` tablosu ve `SendNotificationEmail` işi kullanılır. Aktör, etkin filtreler ve alıcı sayıları okunabilir firma etkinliğine yazılır; veritabanı tetikleyicili denetim katmanı ayrıca çalışmaya devam eder.
-6. Kişiselleştirme yalnız `{{firma_adi}}` ve `{{yetkili_adi}}` alanlarıyla sınırlandırılır.
+6. İlk kişiselleştirme `{{firma_adi}}` ve `{{yetkili_adi}}` alanlarıyla sınırlandırılmıştır. ADR-0032 kontrollü kataloğu sektör, il ve firma unvanıyla genişletir.
 
 ## Sonuçlar
 
 - Sektör filtresi yazım farklarından etkilenmez; NACE verisi bilinmediğinde hızlı firma kaydı engellenmez.
 - Pazarlama e-postası yalnız e-posta iznine bakar ve izinsiz alıcıyı sessizce işlemez.
 - Gönderim girişimi firma bazında izlenebilir; aynı kuyruk teslim/hata ve yeniden deneme davranışını korur.
-- Kampanya analitiği, otomatik abonelikten çıkma bağlantısı ve frekans sınırı bu kararın kapsamına alınmamıştır.
+- Kampanya analitiği ve frekans sınırı kapsam dışıdır. Abonelikten çıkma bağlantısı ADR-0032 ile zorunlu hale gelmiştir.
