@@ -58,6 +58,7 @@ function intakeData(string $suffix, int $programVersionId, int $targetStatusId, 
         taskTitle: 'Tekrar iletişim kur',
         taskDueAt: $withTaskDueAt ? Carbon::now()->addDay() : null,
         taskRemindAt: $withTaskDueAt ? Carbon::now()->addHours(20) : null,
+        companyIndustry: $companyId === null ? 'food' : null,
     );
 }
 
@@ -70,6 +71,8 @@ it('tek işlemde firma kişi fırsat görüşme yorum görev ve aktör izini olu
     $result = app(CreateProspectIntake::class)->handle($actor, intakeData('tek', $version->id, $interested->id));
 
     expect($result->company->legal_name)->toBe('Kurgusal Akış tek AŞ')
+        ->and($result->company->industry)->toBe('food')
+        ->and($result->company->owner_user_id)->toBe($actor->id)
         ->and($result->contact->title)->toBe('Genel Müdür')
         ->and($result->lead->primary_contact_id)->toBe($result->contact->id)
         ->and($result->lead->status_id)->toBe($interested->id)
