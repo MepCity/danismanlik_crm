@@ -14,7 +14,7 @@ return [
         'groups' => [
             'overview' => 'Genel Bakış',
             'marketing' => 'Pazarlama',
-            'crm' => 'Firmalar',
+            'crm' => 'Firma Yönetimi',
             'operations' => 'Dosya Operasyonları',
             'work' => 'İş Takibi',
             'reports' => 'Raporlama',
@@ -31,7 +31,7 @@ return [
     ],
     'resources' => [
         'companies' => [
-            'navigation' => 'Firma rehberi',
+            'navigation' => 'Firmalar',
             'singular' => 'Firma',
             'plural' => 'Firma rehberi',
         ],
@@ -91,7 +91,7 @@ return [
     'customers' => [
         'description' => 'Anlaşmaya varılan firmalar ve başlatılan müşteri işleri.',
         'start' => 'Müşteri akışı başlat',
-        'start_from_company' => 'Bu firmayla anlaştık → müşteri akışını başlat',
+        'start_from_company' => 'Müşteri Oluştur',
         'start_help' => 'Firma rehberindeki bir firmayı ve alınan hizmeti seçin. Operasyon dosyası atama bekleyen işler arasına düşer.',
         'submit' => 'Akışı başlat',
         'company' => 'Firma seçin',
