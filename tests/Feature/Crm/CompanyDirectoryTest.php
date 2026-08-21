@@ -23,6 +23,7 @@ use App\Filament\Resources\Customers\Pages\ListCustomers;
 use App\Models\User;
 use App\Support\Authorization\ScopedQuery;
 use Database\Seeders\ReferenceDataSeeder;
+use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -110,7 +111,11 @@ it('firma rehberi ekranında sektör alanını zorunlu tutar ve sektörle filtre
         ->assertSee($food->legal_name)
         ->assertDontSee('Kurgusal Yazılım AŞ');
 
-    expect(CompanyResource::getNavigationLabel())->toBe('Firma rehberi');
+    $navigationItem = CompanyResource::getNavigationItems()[0];
+
+    expect(CompanyResource::getNavigationLabel())->toBe('Firmalar')
+        ->and($navigationItem->getLabel())->toBe('Firmalar')
+        ->and($navigationItem->getUrl())->toBe(CompanyResource::getUrl());
 });
 
 it('firma rehberinde unvan ve sektör dışındaki alanları isteğe bağlı tutar', function (): void {
@@ -296,11 +301,18 @@ it('mevcut firmadan müşteri akışı başlatıp evrak listesini üretir', func
         ->assertSee('İmalat');
 
     Livewire::test(ListCompanies::class)
-        ->assertTableActionExists('start_customer_flow', record: $company)
+        ->assertTableActionExists(
+            'start_customer_flow',
+            fn (Action $action): bool => $action->getLabel() === 'Müşteri Oluştur',
+            record: $company,
+        )
         ->callTableAction('start_customer_flow', $company, ['program_version_id' => $version->id])
         ->assertRedirect();
     Livewire::test(ViewCompany::class, ['record' => $company->getRouteKey()])
-        ->assertActionExists('start_customer_flow');
+        ->assertActionExists(
+            'start_customer_flow',
+            fn (Action $action): bool => $action->getLabel() === 'Müşteri Oluştur',
+        );
 
     expect(Deal::query()->where('company_id', $company->id)->count())->toBe(2);
 });

@@ -94,7 +94,7 @@ it('giriş ekranı panel markası ve tarayıcı başlığında ürün adını g�
     $this->assertSame('Bizlife CRM', (string) Filament::getPanel('operations')->getBrandName());
 });
 
-it('firma menüsünü daraltılamaz ve sürekli görünür tutar', function (): void {
+it('firma yönetimi menüsünü daraltılamaz ve sürekli görünür tutar', function (): void {
     $companyGroup = collect(Filament::getPanel('operations')->getNavigationGroups())
         ->first(fn ($group): bool => $group->getLabel() === __('panel.navigation.groups.crm'));
 
