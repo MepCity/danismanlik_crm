@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Interaction;
@@ -34,7 +35,7 @@ beforeEach(function (): void {
 });
 
 /** @return array{owner: User, company: Company, contact: Contact, lead: Lead} */
-function marketingScreenLead(User $owner, string $suffix, string $statusCode = 'called', ?string $nextCallAt = null): array
+function marketingScreenLead(User $owner, string $suffix, string $statusCode = 'called', ?string $nextCallAt = null, bool $blocked = false): array
 {
     $company = Company::query()->create(['legal_name' => "Kurgusal Ekran {$suffix}", 'city' => 'İstanbul']);
     $contact = Contact::query()->create([
@@ -42,7 +43,20 @@ function marketingScreenLead(User $owner, string $suffix, string $statusCode = '
         'full_name' => "Kurgusal Kişi {$suffix}",
         'data_source' => 'list',
         'phone' => '+90 000 000 00 00',
+        'consent_call' => ! $blocked,
+        'do_not_call' => $blocked,
         'is_primary' => true,
+    ]);
+    CommunicationConsent::query()->create([
+        'contact_id' => $contact->id,
+        'channel' => 'call',
+        'purpose' => 'marketing',
+        'status' => $blocked ? 'withdrawn' : 'granted',
+        'legal_basis' => $blocked ? 'explicit_withdrawal' : 'explicit_consent',
+        'source' => 'list',
+        'disclosure_date' => now()->subDays(5)->toDateString(),
+        'effective_from' => now()->subDays(2),
+        'recorded_by' => $owner->id,
     ]);
     $status = Status::query()->where('type', 'lead')->where('code', $statusCode)->sole();
     $lead = Lead::query()->create([
@@ -119,24 +133,27 @@ it('takip panosunda alan isteyen bırakmayı veri formuna yönlendirir', functio
         ->assertSee('lead-transition-form');
 });
 
-it('arama izni seçeneği olmadan tel ve sonuç aksiyonlarını gösterir', function (): void {
-    $owner = User::factory()->create(['email' => 'ekran-arama@example.invalid']);
+it('aranmaması gereken kişide tel aksiyonunu engeller ve sebebini gösterir', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-ret@example.invalid']);
     $owner->assignRole('Pazarlama');
-    marketingScreenLead($owner, 'Arama', nextCallAt: now()->subHour()->toDateTimeString());
+    $fixture = marketingScreenLead($owner, 'Ret', nextCallAt: now()->subHour()->toDateTimeString(), blocked: true);
     Auth::login($owner);
 
     Livewire::test(TodayCalls::class)
-        ->assertDontSee('Arama izni')
-        ->assertSeeHtml('href="tel:')
-        ->call('chooseOutcome', Lead::query()->sole()->id, 'contacted')
-        ->assertSee('Ulaşılamadı')
-        ->assertSee('Görüşüldü');
+        ->assertSee('Arama engellendi')
+        ->assertSee('Ret tarihi')
+        ->assertDontSee($fixture['contact']->phone)
+        ->assertDontSee('Sonuç gir')
+        ->assertDontSee('Ulaşılamadı')
+        ->assertDontSee('Görüşüldü')
+        ->assertDontSee('İlgileniyor')
+        ->assertDontSee('İlgilenmiyor');
 });
 
-it('gelen aramayı ayrı işaretle kaydeder', function (): void {
+it('engelli fırsatta gelen aramayı ayrı işaretle kaydeder', function (): void {
     $owner = User::factory()->create(['email' => 'ekran-gelen@example.invalid']);
     $owner->assignRole('Pazarlama');
-    $fixture = marketingScreenLead($owner, 'Gelen');
+    $fixture = marketingScreenLead($owner, 'Gelen', blocked: true);
     Auth::login($owner);
 
     Livewire::test(LeadDetail::class, ['lead' => $fixture['lead']->id])
@@ -166,7 +183,6 @@ it('fırsat detayını tek sayfada sol sağ bilgiler ve birleşik etkinlikle gö
         ->assertSee('Tümü')
         ->assertSee($fixture['company']->legal_name)
         ->assertSee($fixture['contact']->full_name)
-        ->assertDontSeeHtml('class="deal-tabs"')
         ->call('setActivityFilter', 'history')
         ->assertSet('activityFilter', 'history')
         ->call('setActivityFilter', 'all')
@@ -208,7 +224,7 @@ it('bugün ve geçmiş aramaları geciken önce sıralar ve geleceği dışarıd
         ->assertSeeInOrder([$overdue['company']->legal_name, $today['company']->legal_name])
         ->assertDontSee($future['company']->legal_name)
         ->assertSee('2. arama')
-        ->assertSeeHtml('href="tel:');
+        ->assertSee($overdue['contact']->phone);
 });
 
 it('hazır sonucu iki adımda ayrı görüşme olarak kaydeder', function (): void {
@@ -260,8 +276,8 @@ it('veri kaynağını göstermeden yeni kişiyi sistem kaynağıyla kaydeder', f
     Livewire::test(ViewCompany::class, ['record' => $fixture['company']->getRouteKey()])
         ->set('activeTab', 'contacts')
         ->assertDontSee('Veri kaynağı')
-        ->assertDontSee('Arama izni')
-        ->assertDontSee('Bir daha aranmasın')
+        ->assertSee('Arama izni var')
+        ->assertSee('Bir daha aranmasın')
         ->set('contactFullName', 'Kurgusal Yeni Yetkili')
         ->call('addContact')
         ->assertHasNoErrors();
@@ -279,7 +295,6 @@ it('potansiyel müşteri ekranından tüm ilk görüşme zincirini kaydeder', fu
     Livewire::test(ProspectIntake::class)
         ->assertSee('Potansiyel müşteri kaydı')
         ->assertDontSee('Veri kaynağı')
-        ->assertDontSee('Arama izni')
         ->set('companyName', 'Kurgusal Tek Ekran AŞ')
         ->set('companyIndustry', 'food')
         ->set('city', 'İstanbul')

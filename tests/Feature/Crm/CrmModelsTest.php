@@ -25,6 +25,7 @@ it('connects a company to contacts and a lead to interactions', function (): voi
         'data_source' => 'other',
         'phone' => '+900000000000',
         'email' => 'contact@example.invalid',
+        'consent_call' => true,
     ]);
     $program = Program::query()->create([
         'name' => 'Kurgusal Dönüşüm Desteği',
@@ -66,5 +67,6 @@ it('connects a company to contacts and a lead to interactions', function (): voi
         ->and($interaction->lead_id)->toBe($lead->id)
         ->and($interaction->deal_id)->toBeNull()
         ->and($interaction->lead->is($lead))->toBeTrue()
-        ->and($interaction->user->is($owner))->toBeTrue();
+        ->and($interaction->user->is($owner))->toBeTrue()
+        ->and($contact->consent_call)->toBeTrue();
 });

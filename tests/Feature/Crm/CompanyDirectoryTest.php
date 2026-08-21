@@ -142,6 +142,37 @@ it('firma rehberinde unvan ve sektör dışındaki alanları isteğe bağlı tut
     expect(Company::query()->where('legal_name', 'Kurgusal Hızlı Kayıt AŞ')->sole()->city)->toBeNull();
 });
 
+it('firma rehberinde birincil kişinin arama izni durumunu gösterir', function (): void {
+    $actor = User::factory()->create(['email' => 'rehber-arama-izni@example.invalid']);
+    $actor->assignRole('Pazarlama');
+    Auth::login($actor);
+
+    foreach ([
+        ['Kurgusal Aranabilir Firma AŞ', true, false],
+        ['Kurgusal Aranmayacak Firma AŞ', false, true],
+    ] as [$name, $consentCall, $doNotCall]) {
+        $company = app(SaveCompanyDirectoryEntry::class)->execute(null, [
+            'legal_name' => $name,
+            'industry' => 'food',
+            'is_active' => true,
+        ], $actor);
+        Contact::query()->create([
+            'company_id' => $company->id,
+            'full_name' => "{$name} Yetkilisi",
+            'data_source' => 'other',
+            'is_primary' => true,
+            'consent_call' => $consentCall,
+            'do_not_call' => $doNotCall,
+        ]);
+    }
+
+    Livewire::test(ListCompanies::class)
+        ->assertSee('Kurgusal Aranabilir Firma AŞ')
+        ->assertSee('Arama izni var')
+        ->assertSee('Kurgusal Aranmayacak Firma AŞ')
+        ->assertSee('Arama izni yok');
+});
+
 it('toplu e-postada yalnız güncel izni olan kişileri kuyruğa alır ve filtreyi denetler', function (): void {
     Queue::fake();
     $actor = User::factory()->create(['email' => 'toplu-posta@example.invalid']);
