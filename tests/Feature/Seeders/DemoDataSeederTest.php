@@ -8,6 +8,7 @@ use App\Domain\Deal\Models\Deal;
 use App\Domain\Document\Models\DealDocument;
 use App\Domain\Document\Models\File;
 use App\Filament\Pages\DealDetail;
+use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use Database\Seeders\DemoDataSeeder;
 use Filament\Facades\Filament;
@@ -37,11 +38,13 @@ it('production ortamında yazmadan önce demo seederı reddeder', function (): v
 });
 
 it('tamamen kurgusal demo grafiğini ve sabit hesapları kurar', function (): void {
+    /** @var TestCase $this */
     Storage::fake('s3');
     Queue::fake();
     (new DemoDataSeeder)->setContainer(app())->run();
 
     $marketing = User::query()->where('email', 'pazarlama@bizlife')->firstOrFail();
+    $admin = User::query()->where('email', 'admin@bizlife')->firstOrFail();
     $deals = Deal::query()->withCount('documents')->orderBy('reference_no')->get();
     $documentCounts = $deals->pluck('documents_count', 'reference_no')->all();
     $snapshots = $deals->pluck('workflow_snapshot', 'reference_no');
@@ -52,6 +55,9 @@ it('tamamen kurgusal demo grafiğini ve sabit hesapları kurar', function (): vo
 
     expect(User::query()->whereIn('email', ['pazarlama@bizlife', 'proje@bizlife', 'admin@bizlife'])->count())->toBe(3)
         ->and($marketing->hasRole('Pazarlama'))->toBeTrue()
+        ->and($admin->hasAllRoles(['Şirket Yetkilisi', 'Sistem Yöneticisi']))->toBeTrue()
+        ->and($admin->data_scope)->toBe('all')
+        ->and($admin->can('system.users'))->toBeTrue()
         ->and(Hash::check(DemoDataSeeder::PASSWORD, $marketing->password))->toBeTrue()
         ->and(Team::query()->count())->toBe(2)
         ->and(Company::query()->count())->toBe(30)
@@ -73,6 +79,9 @@ it('tamamen kurgusal demo grafiğini ve sabit hesapları kurar', function (): vo
         ->toBeTrue()
         ->and(collect($firstSnapshot['steps'])->pluck('is_completed')->all())->toBe([true, false, false, false])
         ->and(collect($newSnapshot['steps'])->pluck('is_completed')->all())->toBe([false, false, false, false]);
+
+    Filament::setCurrentPanel(Filament::getPanel('operations'));
+    $this->actingAs($admin)->get(UserResource::getUrl())->assertOk();
 });
 
 it('demo evraklarını gerçek yükleme akışıyla sürümlendirir ve panelde gösterir', function (): void {

@@ -61,18 +61,19 @@ final class DemoDataSeeder extends Seeder
     private function seedUsers(): array
     {
         $definitions = [
-            'marketing' => ['Pazarlama', 'pazarlama@bizlife', 'Pazarlama'],
-            'project_manager' => ['Proje Yöneticisi', 'proje@bizlife', 'Proje Yöneticisi'],
-            'company_authority' => ['Yönetici', 'admin@bizlife', 'Şirket Yetkilisi'],
+            'marketing' => ['Pazarlama', 'pazarlama@bizlife', ['Pazarlama'], 'own'],
+            'project_manager' => ['Proje Yöneticisi', 'proje@bizlife', ['Proje Yöneticisi'], 'team'],
+            'company_authority' => ['Yönetici', 'admin@bizlife', ['Şirket Yetkilisi', 'Sistem Yöneticisi'], 'all'],
         ];
         $users = [];
 
-        foreach ($definitions as $key => [$name, $email, $role]) {
+        foreach ($definitions as $key => [$name, $email, $roles, $dataScope]) {
             $user = User::query()->firstOrCreate(
                 ['email' => $email],
-                ['name' => $name, 'password' => self::PASSWORD, 'is_active' => true],
+                ['name' => $name, 'password' => self::PASSWORD, 'is_active' => true, 'data_scope' => $dataScope],
             );
-            $user->syncRoles([$role]);
+            $user->forceFill(['data_scope' => $dataScope])->save();
+            $user->syncRoles($roles);
             $users[$key] = $user;
         }
 
