@@ -115,7 +115,8 @@ it('firma rehberi ekranında sektör alanını zorunlu tutar ve sektörle filtre
         ])
         ->assertSet('tableSort', 'legal_name:desc')
         ->filterTable('industry', 'food')
-        ->assertTableBulkActionExists('send_bulk_email')
+        ->assertActionExists('send_filtered_email')
+        ->assertTableBulkActionDoesNotExist('send_bulk_email')
         ->assertSee($food->legal_name)
         ->assertDontSee('Kurgusal Yazılım AŞ');
 
@@ -241,7 +242,7 @@ it('toplu e-postayı yetkisiz rol için sunucu tarafında reddeder', function ()
     expect(CollaborationNotification::query()->where('type', 'company.bulk_email')->exists())->toBeFalse();
 });
 
-it('firma listesindeki seçimden toplu e-posta eylemini çalıştırır', function (): void {
+it('filtre sonucunu e-posta kapsamına alır ve firmaların eklenip çıkarılmasına izin verir', function (): void {
     Queue::fake();
     $actor = User::factory()->create(['email' => 'toplu-posta-ekran@example.invalid']);
     $actor->assignRole('Pazarlama');
@@ -251,39 +252,88 @@ it('firma listesindeki seçimden toplu e-posta eylemini çalıştırır', functi
         'city' => null,
         'is_active' => true,
     ], $actor);
-    $contact = Contact::query()->create([
-        'company_id' => $company->id,
-        'full_name' => 'Kurgusal Ekran Yetkilisi',
-        'email' => 'ekran-yetkilisi@example.invalid',
-        'data_source' => 'other',
-        'consent_email' => true,
-    ]);
-    CommunicationConsent::query()->create([
-        'contact_id' => $contact->id,
-        'channel' => 'email',
-        'purpose' => 'marketing',
-        'status' => 'granted',
-        'legal_basis' => 'explicit_consent',
-        'source' => 'form',
-        'effective_from' => now()->subMinute(),
-        'recorded_by' => $actor->id,
-    ]);
-    $template = EmailTemplate::query()->create([
-        'name' => 'Kurgusal ekran şablonu',
-        'subject' => '{{firma_adi}} duyurusu',
-        'body' => 'Merhaba {{yetkili_adi}}',
+    $removed = app(SaveCompanyDirectoryEntry::class)->execute(null, [
+        'legal_name' => 'Kurgusal Çıkarılan Ambalaj AŞ',
+        'industry' => 'packaging',
+        'city' => null,
         'is_active' => true,
-    ]);
+    ], $actor);
+    $added = app(SaveCompanyDirectoryEntry::class)->execute(null, [
+        'legal_name' => 'Kurgusal Eklenen Yazılım AŞ',
+        'industry' => 'software',
+        'city' => null,
+        'is_active' => true,
+    ], $actor);
+    foreach ([
+        [$company, 'ekran-yetkilisi@example.invalid'],
+        [$removed, 'cikarilan-yetkili@example.invalid'],
+        [$added, 'eklenen-yetkili@example.invalid'],
+    ] as [$target, $email]) {
+        $contact = Contact::query()->create([
+            'company_id' => $target->id,
+            'full_name' => 'Kurgusal E-posta Yetkilisi',
+            'email' => $email,
+            'data_source' => 'other',
+            'consent_email' => true,
+        ]);
+        CommunicationConsent::query()->create([
+            'contact_id' => $contact->id,
+            'channel' => 'email',
+            'purpose' => 'marketing',
+            'status' => 'granted',
+            'legal_basis' => 'explicit_consent',
+            'source' => 'form',
+            'effective_from' => now()->subMinute(),
+            'recorded_by' => $actor->id,
+        ]);
+    }
     Auth::login($actor);
 
-    Livewire::test(ListCompanies::class)
+    $screen = Livewire::test(ListCompanies::class)
         ->filterTable('industry', 'packaging')
-        ->callTableBulkAction('send_bulk_email', [$company], [
-            'template_id' => $template->id,
+        ->mountAction('send_filtered_email')
+        ->assertActionDataSet(function (array $data) use ($company, $removed): bool {
+            $selected = array_map(static fn (mixed $id): int => (int) $id, (array) ($data['company_ids'] ?? []));
+            $expected = [$company->id, $removed->id];
+            sort($selected);
+            sort($expected);
+
+            return $selected === $expected;
+        })
+        ->setActionData([
+            'company_ids' => [$company->id, $added->id],
+            'subject' => '{{firma_adi}} duyurusu',
+            'body' => 'Merhaba {{yetkili_adi}}',
         ])
+        ->callMountedAction()
         ->assertHasNoActionErrors();
 
-    expect(CollaborationNotification::query()->where('recipient_email', 'ekran-yetkilisi@example.invalid')->exists())->toBeTrue();
+    expect(CollaborationNotification::query()->where('recipient_email', 'ekran-yetkilisi@example.invalid')->exists())->toBeTrue()
+        ->and(CollaborationNotification::query()->where('recipient_email', 'eklenen-yetkili@example.invalid')->exists())->toBeTrue()
+        ->and(CollaborationNotification::query()->where('recipient_email', 'cikarilan-yetkili@example.invalid')->exists())->toBeFalse()
+        ->and(Activity::query()->where('company_id', $added->id)->where('payload->filters->industry->value', 'packaging')->exists())->toBeTrue();
+});
+
+it('serbest oluşturulan toplu e-postada bilinmeyen değişkeni reddeder', function (): void {
+    Queue::fake();
+    $actor = User::factory()->create(['email' => 'toplu-posta-degisken@example.invalid']);
+    $actor->assignRole('Pazarlama');
+    $company = app(SaveCompanyDirectoryEntry::class)->execute(null, [
+        'legal_name' => 'Kurgusal Değişken Kontrollü Firma',
+        'industry' => 'services',
+        'is_active' => true,
+    ], $actor);
+
+    expect(fn () => app(BulkCompanyEmailService::class)->sendComposed(
+        Company::query()->whereKey($company->id)->get(),
+        'Kurgusal duyuru',
+        'Merhaba {{bilinmeyen_degisken}}',
+        [],
+        $actor,
+    ))->toThrow(ValidationException::class);
+
+    expect(CollaborationNotification::query()->where('type', 'company.bulk_email')->exists())->toBeFalse();
+    Queue::assertNothingPushed();
 });
 
 it('mevcut firmadan müşteri akışı başlatıp evrak listesini üretir', function (): void {

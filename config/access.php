@@ -12,7 +12,6 @@ use App\Filament\Pages\TodayCalls;
 use App\Filament\Resources\Companies\CompanyResource;
 use App\Filament\Resources\Customers\CustomerResource;
 use App\Filament\Resources\DocTemplates\DocTemplateResource;
-use App\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Filament\Resources\Programs\ProgramResource;
 use App\Filament\Resources\ProgramVersions\ProgramVersionResource;
 use App\Filament\Resources\ServiceWorkflows\ServiceWorkflowResource;
@@ -34,7 +33,6 @@ return [
         'page.service_workflows' => ['label' => 'management.page_access.service_workflows', 'fallback' => 'program.manage', 'classes' => [ServiceWorkflowResource::class]],
         'page.programs' => ['label' => 'management.page_access.programs', 'fallback' => 'program.manage', 'classes' => [ProgramResource::class, ProgramVersionResource::class]],
         'page.document_templates' => ['label' => 'management.page_access.document_templates', 'fallback' => 'program.manage', 'classes' => [DocTemplateResource::class]],
-        'page.email_templates' => ['label' => 'management.page_access.email_templates', 'fallback' => 'system.templates', 'classes' => [EmailTemplateResource::class]],
         'page.workflow_settings' => ['label' => 'management.page_access.workflow_settings', 'fallback' => 'system.settings', 'classes' => [StatusResource::class, TransitionResource::class]],
         'page.access_management' => ['label' => 'management.page_access.access_management', 'fallback' => 'system.users', 'classes' => [UserResource::class]],
     ],

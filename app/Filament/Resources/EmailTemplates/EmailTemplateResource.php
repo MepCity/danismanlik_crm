@@ -32,6 +32,11 @@ final class EmailTemplateResource extends ScopedResource
 
     protected static ?int $navigationSort = 32;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function getNavigationGroup(): string
     {
         return __('panel.navigation.groups.configuration');

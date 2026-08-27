@@ -40,9 +40,48 @@ final readonly class BulkCompanyEmailService
         ])->validate();
         $template = EmailTemplate::query()->whereKey($validated['templateId'])->where('is_active', true)->firstOrFail();
 
+        return $this->sendContent(
+            $companies,
+            $template->subject,
+            $template->body,
+            $filterSnapshot,
+            $actor,
+            ['id' => $template->id, 'name' => $template->name, 'subject' => $template->subject],
+        );
+    }
+
+    /**
+     * @param  Collection<int, Company>  $companies
+     * @param  array<string, mixed>  $filterSnapshot
+     */
+    public function sendComposed(Collection $companies, string $subject, string $body, array $filterSnapshot, User $actor): BulkEmailResult
+    {
+        $validated = Validator::make(compact('subject', 'body'), [
+            'subject' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string', 'max:10000'],
+        ])->validate();
+        $this->renderer->validate($validated['subject'], $validated['body']);
+
+        return $this->sendContent(
+            $companies,
+            $validated['subject'],
+            $validated['body'],
+            $filterSnapshot,
+            $actor,
+            ['id' => null, 'name' => trans('panel.company_directory.bulk_email.composed_source'), 'subject' => $validated['subject']],
+        );
+    }
+
+    /**
+     * @param  Collection<int, Company>  $companies
+     * @param  array<string, mixed>  $filterSnapshot
+     * @param  array{id: int|null, name: string, subject: string}  $contentSnapshot
+     */
+    private function sendContent(Collection $companies, string $subject, string $body, array $filterSnapshot, User $actor, array $contentSnapshot): BulkEmailResult
+    {
         $companies->each(fn (Company $company) => Gate::forUser($actor)->authorize('bulkEmail', $company));
 
-        return $this->transactions->run(ActorSource::User, $actor->id, function () use ($companies, $template, $filterSnapshot, $actor): BulkEmailResult {
+        return $this->transactions->run(ActorSource::User, $actor->id, function () use ($companies, $subject, $body, $filterSnapshot, $actor, $contentSnapshot): BulkEmailResult {
             $companyIds = $companies->modelKeys();
             $contacts = Contact::query()
                 ->whereIn('company_id', $companyIds)
@@ -86,8 +125,8 @@ final readonly class BulkCompanyEmailService
                 }
                 $seenEmails[$normalizedEmail] = true;
 
-                $rendered = $this->renderer->render($template, $contact);
-                $body = $rendered['body']."\n\n".trans('marketing.unsubscribe.line', [
+                $rendered = $this->renderer->renderContent($subject, $body, $contact);
+                $renderedBody = $rendered['body']."\n\n".trans('marketing.unsubscribe.line', [
                     'url' => $this->unsubscribeUrl->for($contact),
                 ]);
 
@@ -96,7 +135,7 @@ final readonly class BulkCompanyEmailService
                     $contact->full_name,
                     'company.bulk_email',
                     $rendered['subject'],
-                    $body,
+                    $renderedBody,
                     new SubjectReference(CollaborationSubjectType::Company, $contact->company_id),
                 );
                 $queued++;
@@ -109,11 +148,7 @@ final readonly class BulkCompanyEmailService
                 'missing_email_count' => $missing,
                 'duplicate_count' => $duplicates,
                 'filters' => $filterSnapshot,
-                'template' => [
-                    'id' => $template->id,
-                    'name' => $template->name,
-                    'subject' => $template->subject,
-                ],
+                'template' => $contentSnapshot,
             ];
 
             $companies->each(fn (Company $company) => $this->activities->record(

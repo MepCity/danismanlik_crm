@@ -84,7 +84,8 @@ it('yönetim kaynaklarının model etiketlerini açık ve tutarlı tanımlar', f
 it('program yönetiminde teknik alt kaynakları menüden gizler', function (): void {
     expect(ProgramResource::shouldRegisterNavigation())->toBeTrue()
         ->and(ProgramVersionResource::shouldRegisterNavigation())->toBeFalse()
-        ->and(DocTemplateResource::shouldRegisterNavigation())->toBeFalse();
+        ->and(DocTemplateResource::shouldRegisterNavigation())->toBeFalse()
+        ->and(EmailTemplateResource::shouldRegisterNavigation())->toBeFalse();
 });
 
 it('programı dönem ve belge listesiyle tek formdan oluşturur', function (): void {
@@ -210,9 +211,11 @@ it('pazarlama rolünü bütün yönetim ekranlarında 403 ile reddeder', functio
 it('yetkili rollerin yönetim listelerini açar', function (): void {
     $admin = wp15User('Sistem Yöneticisi', 'yonetim-admin');
 
-    foreach ([ProgramResource::class, ServiceWorkflowResource::class, ProgramVersionResource::class, DocTemplateResource::class, EmailTemplateResource::class] as $resource) {
+    foreach ([ProgramResource::class, ServiceWorkflowResource::class, ProgramVersionResource::class, DocTemplateResource::class] as $resource) {
         wp15Get($admin, $resource::getUrl('index'))->assertOk();
     }
+
+    wp15Get($admin, EmailTemplateResource::getUrl('index'))->assertForbidden();
 
     foreach ([StatusResource::class, TransitionResource::class, UserResource::class] as $resource) {
         wp15Get($admin, $resource::getUrl('index'))->assertOk();

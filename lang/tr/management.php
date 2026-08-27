@@ -8,7 +8,6 @@ return [
         'service_workflows' => 'İş Akışları',
         'program_versions' => 'Program sürümleri',
         'document_templates' => 'Evrak şablonları',
-        'email_templates' => 'E-posta şablonları',
         'statuses' => 'Statüler',
         'transitions' => 'Geçişler',
         'users' => 'Kullanıcılar',

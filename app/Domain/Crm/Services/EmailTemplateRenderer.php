@@ -25,7 +25,13 @@ final class EmailTemplateRenderer
     /** @return array{subject: string, body: string} */
     public function render(EmailTemplate $template, Contact $contact): array
     {
-        $this->validate($template->subject, $template->body);
+        return $this->renderContent($template->subject, $template->body, $contact);
+    }
+
+    /** @return array{subject: string, body: string} */
+    public function renderContent(string $subject, string $body, Contact $contact): array
+    {
+        $this->validate($subject, $body);
         $company = $contact->company;
         $replacements = [
             '{{firma_adi}}' => $company->legal_name,
@@ -36,8 +42,8 @@ final class EmailTemplateRenderer
         ];
 
         return [
-            'subject' => strtr($template->subject, $replacements),
-            'body' => strtr($template->body, $replacements),
+            'subject' => strtr($subject, $replacements),
+            'body' => strtr($body, $replacements),
         ];
     }
 

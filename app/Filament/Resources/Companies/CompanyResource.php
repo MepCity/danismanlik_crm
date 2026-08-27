@@ -5,10 +5,6 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Companies;
 
 use App\Domain\Crm\Models\Company;
-use App\Domain\Crm\Models\Contact;
-use App\Domain\Crm\Models\EmailTemplate;
-use App\Domain\Crm\Services\BulkCompanyEmailService;
-use App\Domain\Crm\Services\EmailTemplateRenderer;
 use App\Filament\Resources\Companies\Pages\CreateCompany;
 use App\Filament\Resources\Companies\Pages\EditCompany;
 use App\Filament\Resources\Companies\Pages\ListCompanies;
@@ -16,14 +12,10 @@ use App\Filament\Resources\Companies\Pages\ViewCompany;
 use App\Filament\Resources\ScopedResource;
 use App\Filament\Support\CompanyOpportunityAction;
 use App\Filament\Support\CustomerFlowAction;
-use Filament\Actions\BulkAction;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -32,8 +24,6 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Auth;
 
 /** @extends ScopedResource<Company> */
 final class CompanyResource extends ScopedResource
@@ -121,76 +111,6 @@ final class CompanyResource extends ScopedResource
                         true: fn (Builder $query): Builder => $query->whereHas('deals'),
                         false: fn (Builder $query): Builder => $query->whereDoesntHave('deals'),
                     ),
-            ])
-            ->toolbarActions([
-                BulkAction::make('send_bulk_email')
-                    ->label(__('panel.company_directory.bulk_email.action'))
-                    ->icon(Heroicon::OutlinedEnvelope)
-                    ->modalHeading(__('panel.company_directory.bulk_email.heading'))
-                    ->modalDescription(__('panel.company_directory.bulk_email.description'))
-                    ->form(function (Collection $records): array {
-                        $contact = Contact::query()
-                            ->whereIn('company_id', $records->modelKeys())
-                            ->where('is_active', true)
-                            ->whereNotNull('email')
-                            ->with('company')
-                            ->first();
-
-                        return [
-                            Select::make('template_id')
-                                ->label(__('panel.company_directory.bulk_email.template'))
-                                ->options(EmailTemplate::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id'))
-                                ->required()
-                                ->live(),
-                            Placeholder::make('supported_placeholders')
-                                ->label(__('marketing.email_templates.supported'))
-                                ->content(collect(app(EmailTemplateRenderer::class)->supportedPlaceholders())->keys()->implode(', ')),
-                            Placeholder::make('preview')
-                                ->label(__('panel.company_directory.bulk_email.preview'))
-                                ->content(function (Get $get) use ($contact): string {
-                                    if (! $contact instanceof Contact) {
-                                        return __('panel.company_directory.bulk_email.preview_missing');
-                                    }
-
-                                    $template = EmailTemplate::query()->find($get('template_id'));
-                                    if (! $template instanceof EmailTemplate) {
-                                        return __('panel.company_directory.bulk_email.preview_choose');
-                                    }
-
-                                    $rendered = app(EmailTemplateRenderer::class)->render($template, $contact);
-
-                                    return __('panel.company_directory.bulk_email.preview_text', [
-                                        'recipient' => $contact->full_name,
-                                        'subject' => $rendered['subject'],
-                                        'body' => $rendered['body'],
-                                    ]);
-                                }),
-                        ];
-                    })
-                    ->modalSubmitActionLabel(__('panel.company_directory.bulk_email.send'))
-                    ->authorizeIndividualRecords('bulkEmail')
-                    ->action(function (Collection $records, array $data, ListCompanies $livewire, BulkCompanyEmailService $emails): void {
-                        $actor = Auth::user();
-                        abort_unless($actor !== null, 401);
-
-                        /** @var Collection<int, Company> $records */
-                        $result = $emails->send(
-                            $records,
-                            (int) $data['template_id'],
-                            $livewire->filterSnapshot(),
-                            $actor,
-                        );
-
-                        Notification::make()
-                            ->title(__('panel.company_directory.bulk_email.result', [
-                                'queued' => $result->queuedCount,
-                                'rejected' => $result->consentRejectedCount,
-                                'missing' => $result->missingEmailCount,
-                            ]))
-                            ->success()
-                            ->send();
-                    })
-                    ->deselectRecordsAfterCompletion(),
             ])
             ->recordActions([
                 CompanyOpportunityAction::make(),
