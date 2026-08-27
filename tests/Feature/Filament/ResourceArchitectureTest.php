@@ -113,6 +113,18 @@ it('zoho esintili operasyon kabuğunu tokenlarla uygular', function (): void {
         ->and($provider)->toContain("->sidebarWidth('22.875rem')");
 });
 
+it('giriş kontrollerini kart yüzeyinden belirgin biçimde ayırır', function (): void {
+    $theme = file_get_contents(resource_path('css/filament/operations/theme.css'));
+
+    expect($theme)->not->toBeFalse()
+        ->and($theme)->toContain('.fi-simple-main .fi-input-wrp {')
+        ->and($theme)->toContain('background: var(--crm-surface-muted);')
+        ->and($theme)->toContain('border: 1px solid var(--crm-border-strong);')
+        ->and($theme)->toContain('.fi-simple-main .fi-input-wrp:focus-within {')
+        ->and($theme)->toContain('box-shadow: 0 0 0 3px var(--crm-focus-ring);')
+        ->and($theme)->toContain(".fi-simple-main input[type='checkbox'].fi-checkbox-input {");
+});
+
 it('bütün kaynak listelerinde ortak zoho liste kabuğunu kullanır', function (): void {
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(app_path('Filament/Resources')));
     $violations = [];

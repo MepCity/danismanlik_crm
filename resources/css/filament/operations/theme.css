@@ -4357,6 +4357,47 @@ body {
     font-weight: 720;
 }
 
+.fi-simple-main .fi-input-wrp {
+    background: var(--crm-surface-muted);
+    border: 1px solid var(--crm-border-strong);
+    box-shadow: none;
+}
+
+.fi-simple-main .fi-input-wrp:hover {
+    background: var(--crm-surface-raised);
+    border-color: var(--crm-border-hover);
+}
+
+.fi-simple-main .fi-input-wrp:focus-within {
+    background: var(--crm-surface-raised);
+    border-color: var(--crm-border-focus);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--crm-focus-ring);
+}
+
+.fi-simple-main .fi-input,
+.fi-simple-main .fi-input-wrp .fi-icon-btn {
+    color: var(--crm-text-strong);
+}
+
+.fi-simple-main .fi-input::placeholder {
+    color: var(--crm-text-subtle);
+}
+
+.fi-simple-main input[type='checkbox'].fi-checkbox-input {
+    background: var(--crm-surface-muted);
+    border: 1px solid var(--crm-border-strong);
+}
+
+.fi-simple-main input[type='checkbox'].fi-checkbox-input:hover {
+    border-color: var(--crm-border-hover);
+}
+
+.fi-simple-main input[type='checkbox'].fi-checkbox-input:focus-visible {
+    outline: 2px solid var(--crm-focus-ring);
+    outline-offset: 2px;
+}
+
 .workspace-hero {
     align-items: center;
     min-height: auto;
