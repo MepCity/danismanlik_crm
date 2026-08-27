@@ -3,6 +3,7 @@
 - Durum: Kabul edildi
 - Tarih: 21.08.2026
 - Kaynak: Müşteri kararı
+- Kısmen değiştirildi: Toplu e-posta girişi için [ADR-0033](0033-firma-listesinden-filtreli-eposta.md)
 
 ## Bağlam
 

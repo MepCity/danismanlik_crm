@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.24 — 21.08.2026
+> **Sürüm:** 1.25 — 27.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -707,7 +707,7 @@ Serbest `subject_type / subject_id` çifti gerçek yabancı anahtar bütünlüğ
 | 12 | **Erişim yönetimi** | Kullanıcı · rol önayarı · sayfa erişim matrisi · veri kapsamı · zorunlu değişiklik gerekçesi |
 | 13 | **Ayarlar — statü ve geçişler** | |
 | 14 | **Bildirim merkezi** | |
-| 15 | **E-posta şablonları** | Ad · konu · gövde · etkinlik · desteklenen değişkenler |
+| 15 | **Firma listesinden toplu e-posta** | Mevcut filtreyi hedef kitleye dönüştürme · firma ekleme/çıkarma · konu/gövde · gerçek alıcı önizlemesi |
 
 ### 11.1 Raporlar — 6 sabit görünüm + Excel
 
@@ -744,7 +744,7 @@ Ticari elektronik ileti ve pazarlama süreçlerinin hukuki yükümlülükleri de
 
 > **Karar değişikliği — 21.08.2026:** Pazarlama aramalarındaki `consent_call` / `do_not_call` kontrolü ve kullanıcı arayüzü müşteri talebiyle kaldırıldı. Arama uygunluğu yazılım tarafından tutulmaz veya engellenmez; KVKK/İYS uyumu bu kanalda süreç ve manuel sorumluluk olarak yürütülür.
 
-**E-posta izni kontrolü devam eder.** Seçili firmalara toplu pazarlama e-postası gönderilirken `communication_consents` defterindeki en son `email / marketing` kaydı doğrulanır; `contacts.consent_email` yalnız hızlı sorgu özetidir. Defter append-only kalır, geçmiş satırlar güncellenmez veya silinmez. Her pazarlama e-postası giriş gerektirmeyen, kişiye özel, imzalı ve süreli bir çıkış bağlantısı taşır. Tıklama yeni `withdrawn` satırı ekler ve hızlı sorgu özetini kapatır; sonraki gönderim mevcut izin kontrolünde reddedilir. SMS Faz 3 kapsamındadır ve v1'de `contacts` üzerinde SMS izin özeti tutulmaz.
+**E-posta izni kontrolü devam eder.** Firma listesindeki etkin filtre gönderim kapsamını otomatik doldurur; kullanıcı göndermeden önce firmaları tek tek ekleyebilir veya çıkarabilir ve iletiyi aynı pencerede yazar. Toplu pazarlama e-postası gönderilirken `communication_consents` defterindeki en son `email / marketing` kaydı doğrulanır; `contacts.consent_email` yalnız hızlı sorgu özetidir. Defter append-only kalır, geçmiş satırlar güncellenmez veya silinmez. Her pazarlama e-postası giriş gerektirmeyen, kişiye özel, imzalı ve süreli bir çıkış bağlantısı taşır. Tıklama yeni `withdrawn` satırı ekler ve hızlı sorgu özetini kapatır; sonraki gönderim mevcut izin kontrolünde reddedilir. SMS Faz 3 kapsamındadır ve v1'de `contacts` üzerinde SMS izin özeti tutulmaz.
 
 KVKK Kurumu, üçüncü kişilerden (liste, referans, tavsiye) elde edilen iletişim bilgilerinin aydınlatma ve işleme şartları sağlanmadan pazarlamada kullanılmasına dair açık uyarı yayımladı — soğuk arama yapan ekip için doğrudan risk. **Canlıya çıkmadan şirketin KVKK danışmanı pazarlama senaryolarını doğrulamalı.**
 
@@ -984,6 +984,7 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.25 | 27.08.2026 | Firma aksiyonu kullanıcı dilinde yalnız “Arama planla” olarak sadeleştirildi. Ayrı e-posta şablonları menüsü kaldırıldı; toplu gönderim firma listesindeki etkin filtreyi başlangıç hedef kitlesi yapar, kullanıcı kapsamdan firma çıkarabilir veya filtre dışından firma ekleyebilir ve konu/gövdeyi gerçek alıcı önizlemesiyle aynı pencerede yazar. İzin defteri, abonelikten çıkma, policy ve denetim davranışları korunur (ADR-0033) |
 | 1.24 | 21.08.2026 | K-14 ve ADR-0032 ile müşteri kararı kaydedildi: firma doğrudan açılır, fırsat isteğe bağlıdır ve müşteri akışı firmadan başlatılabilir; hizmet taslak/başlatma kapısı, bağlı rehber görünümü ve program yorumları eklendi; kullanıcı/rol/acil erişim ekranları tek gerekçeli Erişim yönetiminde birleşti ve break-glass kaldırıldı; toplu e-posta şablon, gerçek alıcı önizlemesi ve append-only abonelikten çıkma ile tamamlandı |
 | 1.23 | 21.08.2026 | Müşteri talebiyle pazarlama araması izin kontrolü, `consent_call` / `do_not_call` ve kullanılmayan SMS izin özeti ürün kapsamından çıkarıldı. Arama uygunluğu manuel süreç sorumluluğunda kaldı; toplu pazarlama e-postası append-only defterdeki güncel e-posta iznini doğrulamaya devam eder. Gelen/giden ve pazarlama/hizmet görüşme metadatası raporlama için korundu |
 | 1.22 | 21.08.2026 | Hizmet dönemindeki bilgilendirici iş akışı anlık görüntüsü dosya açılışında `deals.workflow_snapshot` alanına kopyalanır; dosya detayı program sürümü yerine bu değişmez kopyayı okur. Rehber ile `transitions`/`StatusMachine` yetkili statü akışının sınırı açıkça ayrıldı |

@@ -8,4 +8,4 @@ ADR olarak eklenir. Yeni kayıt için `0000-sablon.md` kopyalanır. Kabul edilmi
 bir karar sessizce değiştirilmez; yerine geçen ADR eskisini “Değiştirildi”
 durumuna getirir ve iki kayıt birbirine bağlantı verir.
 
-Son kayıt: [ADR-0032 — Operasyon girişleri, erişim ve ileti onayı](0032-operasyon-girisleri-erisim-ve-ileti-onayi.md).
+Son kayıt: [ADR-0033 — Firma listesinden filtreli e-posta](0033-firma-listesinden-filtreli-eposta.md).
