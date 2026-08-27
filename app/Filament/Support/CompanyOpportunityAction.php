@@ -19,7 +19,7 @@ final class CompanyOpportunityAction
 {
     public static function make(): Action
     {
-        return Action::make('create_opportunity')
+        return Action::make('schedule_call')
             ->label(__('marketing.company_opportunity.action'))
             ->icon('heroicon-o-phone-arrow-up-right')
             ->visible(fn (Company $record): bool => $record->is_active && auth()->user()?->can('lead.manage') === true)
@@ -46,7 +46,8 @@ final class CompanyOpportunityAction
                 DateTimePicker::make('next_call_at')
                     ->label(__('marketing.company_opportunity.next_call_at'))
                     ->native(false)
-                    ->minDate(now()),
+                    ->minDate(now())
+                    ->required(),
             ])
             ->action(function (Company $record, array $data, Component $livewire): void {
                 $actor = auth()->user();

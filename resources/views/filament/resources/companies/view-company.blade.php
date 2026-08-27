@@ -394,8 +394,8 @@
                     @endif
 
                     <div class="company-rail__secondary-actions">
-                        @if ($this->getAction('create_opportunity')?->isVisible())
-                            {{ $this->getAction('create_opportunity') }}
+                        @if ($this->getAction('schedule_call')?->isVisible())
+                            {{ $this->getAction('schedule_call') }}
                         @endif
                         @if ($this->getAction('edit')?->isVisible())
                             {{ $this->getAction('edit') }}

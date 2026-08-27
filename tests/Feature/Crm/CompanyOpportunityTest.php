@@ -61,19 +61,37 @@ it('başka firmaya ait kişiyi fırsata bağlamayı reddeder', function (): void
         ->and(Lead::query()->where('company_id', $company->id)->exists())->toBeFalse();
 });
 
-it('firma listesi ve detayında aynı fırsat aksiyonunu gösterir', function (): void {
+it('firma listesi ve detayında yalnız arama planlama aksiyonunu gösterir', function (): void {
     $actor = User::factory()->create(['email' => 'firma-firsat-ekran@example.invalid']);
     $actor->assignRole('Pazarlama');
     $company = Company::query()->create(['legal_name' => 'Kurgusal Ekran Firması', 'industry' => 'services', 'city' => 'Bursa', 'owner_user_id' => $actor->id]);
     Auth::login($actor);
 
     Livewire::test(ListCompanies::class)->assertTableActionExists(
-        'create_opportunity',
-        fn (Action $action): bool => $action->getLabel() === 'Fırsat aç / arama planla',
+        'schedule_call',
+        fn (Action $action): bool => $action->getLabel() === 'Arama planla',
         record: $company,
     );
     Livewire::test(ViewCompany::class, ['record' => $company->getRouteKey()])->assertActionExists(
-        'create_opportunity',
-        fn (Action $action): bool => $action->getLabel() === 'Fırsat aç / arama planla',
+        'schedule_call',
+        fn (Action $action): bool => $action->getLabel() === 'Arama planla',
     );
+});
+
+it('arama planlamada tarih verilmeden kayıt oluşturmaz', function (): void {
+    $actor = User::factory()->create(['email' => 'arama-tarihi-zorunlu@example.invalid']);
+    $actor->assignRole('Pazarlama');
+    $company = Company::query()->create(['legal_name' => 'Kurgusal Tarih Kontrollü Firma', 'industry' => 'services', 'owner_user_id' => $actor->id]);
+    $version = ProgramVersion::query()->where('is_active', true)->firstOrFail();
+    Auth::login($actor);
+
+    Livewire::test(ListCompanies::class)
+        ->callTableAction('schedule_call', $company, [
+            'program_version_id' => $version->id,
+            'contact_id' => null,
+            'next_call_at' => null,
+        ])
+        ->assertHasActionErrors(['next_call_at' => 'required']);
+
+    expect(Lead::query()->where('company_id', $company->id)->exists())->toBeFalse();
 });

@@ -294,7 +294,7 @@ it('firma detayını jira tarzı tek sayfada sekmeler olmadan iki kolon ve katla
         ->assertSee('Etkinlik')
         ->assertSee('Ayrıntılar')
         ->assertSee('Müşteri Oluştur')
-        ->assertSee('Fırsat aç / arama planla')
+        ->assertSee('Arama planla')
         ->assertSee('Firma bilgilerini düzenle')
         ->assertDontSeeHtml('fi-header-actions-ctn')
         ->assertSee($fixture['company']->legal_name)
@@ -312,7 +312,7 @@ it('firma detayını jira tarzı tek sayfada sekmeler olmadan iki kolon ve katla
 
     $html = $test->html();
     expect(substr_count($html, 'Müşteri Oluştur'))->toBe(1)
-        ->and(substr_count($html, 'Fırsat aç / arama planla'))->toBe(1)
+        ->and(substr_count($html, 'Arama planla'))->toBe(1)
         ->and(substr_count($html, 'Firma bilgilerini düzenle'))->toBe(1);
 });
 
