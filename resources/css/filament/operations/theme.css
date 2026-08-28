@@ -2125,8 +2125,6 @@ body {
 }
 
 .fi-input-wrp,
-.fi-select-input,
-.fi-fo-textarea,
 .intake-field input,
 .intake-field select,
 .intake-field textarea,
@@ -4298,8 +4296,29 @@ body {
 .quick-note textarea,
 .comment-composer textarea,
 .mention-picker select {
-    background: var(--crm-surface-panel);
+    background: var(--crm-surface-muted);
+    border: 1px solid var(--crm-border-strong);
     border-radius: var(--crm-radius-md);
+    box-shadow: none;
+}
+
+.fi-select-input {
+    background: transparent;
+}
+
+.fi-input-wrp:hover,
+.intake-field input:hover,
+.intake-field select:hover,
+.intake-field textarea:hover,
+.operations-inline-form input:hover,
+.operations-inline-form select:hover,
+.operations-inline-form textarea:hover,
+.assignment-action select:hover,
+.quick-note textarea:hover,
+.comment-composer textarea:hover,
+.mention-picker select:hover {
+    background: var(--crm-surface-raised);
+    border-color: var(--crm-border-hover);
 }
 
 .fi-input-wrp:focus-within,
@@ -4311,7 +4330,55 @@ body {
 .operations-inline-form textarea:focus,
 .comment-composer textarea:focus,
 .mention-picker select:focus {
-    outline-width: 2px;
+    background: var(--crm-surface-raised);
+    border-color: var(--crm-border-focus);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--crm-focus-ring);
+}
+
+.fi-input-wrp.fi-disabled {
+    background: var(--crm-surface-disabled);
+    border-color: var(--crm-border);
+}
+
+.fi-input-wrp.fi-invalid {
+    border-color: var(--crm-status-danger-fg);
+}
+
+input[type='checkbox'].fi-checkbox-input,
+input[type='radio'].fi-radio-input {
+    background-color: var(--crm-surface-muted);
+    border: 1px solid var(--crm-border-strong);
+    box-shadow: none;
+}
+
+input[type='checkbox'].fi-checkbox-input:hover,
+input[type='radio'].fi-radio-input:hover {
+    border-color: var(--crm-border-hover);
+}
+
+input[type='checkbox'].fi-checkbox-input:checked,
+input[type='checkbox'].fi-checkbox-input:indeterminate,
+input[type='radio'].fi-radio-input:checked {
+    background-color: var(--crm-accent-600);
+    border-color: var(--crm-accent-600);
+}
+
+input[type='checkbox'].fi-checkbox-input:focus-visible,
+input[type='radio'].fi-radio-input:focus-visible,
+.fi-toggle:focus-visible {
+    outline: 2px solid var(--crm-focus-ring);
+    outline-offset: 2px;
+}
+
+.fi-toggle {
+    background: var(--crm-surface-disabled);
+    border: 1px solid var(--crm-border-strong);
+}
+
+.fi-toggle.fi-toggle-on {
+    background: var(--crm-accent-600);
+    border-color: var(--crm-accent-600);
 }
 
 .fi-dropdown-panel,
@@ -4357,24 +4424,6 @@ body {
     font-weight: 720;
 }
 
-.fi-simple-main .fi-input-wrp {
-    background: var(--crm-surface-muted);
-    border: 1px solid var(--crm-border-strong);
-    box-shadow: none;
-}
-
-.fi-simple-main .fi-input-wrp:hover {
-    background: var(--crm-surface-raised);
-    border-color: var(--crm-border-hover);
-}
-
-.fi-simple-main .fi-input-wrp:focus-within {
-    background: var(--crm-surface-raised);
-    border-color: var(--crm-border-focus);
-    outline: none;
-    box-shadow: 0 0 0 3px var(--crm-focus-ring);
-}
-
 .fi-simple-main .fi-input,
 .fi-simple-main .fi-input-wrp .fi-icon-btn {
     color: var(--crm-text-strong);
@@ -4382,20 +4431,6 @@ body {
 
 .fi-simple-main .fi-input::placeholder {
     color: var(--crm-text-subtle);
-}
-
-.fi-simple-main input[type='checkbox'].fi-checkbox-input {
-    background: var(--crm-surface-muted);
-    border: 1px solid var(--crm-border-strong);
-}
-
-.fi-simple-main input[type='checkbox'].fi-checkbox-input:hover {
-    border-color: var(--crm-border-hover);
-}
-
-.fi-simple-main input[type='checkbox'].fi-checkbox-input:focus-visible {
-    outline: 2px solid var(--crm-focus-ring);
-    outline-offset: 2px;
 }
 
 .workspace-hero {
