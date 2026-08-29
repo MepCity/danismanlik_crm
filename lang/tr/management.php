@@ -182,6 +182,24 @@ return [
     ],
     'workflow_setup' => [
         'description' => 'Birden fazla hizmette kullanılabilecek sabit operasyon rehberlerini oluşturun.',
+        'intro' => [
+            'title' => 'İş Akışı Nedir?',
+            'help_action' => 'Nasıl Kullanılır?',
+            'permissions_action' => 'Kullanıcı İzinleri',
+            'permission_badge' => 'Yönetici erişimi',
+            'summary' => 'İş akışları, ekibin bir hizmet dosyasında sırayla uygulayacağı işlem, bekleme ve kontrol aşamalarını tanımlar.',
+            'scope' => 'Bu sayfada kurumunuzun iş akışlarını görüntüleyebilir, yeni bir akış oluşturabilir ve mevcut rehberleri düzenleyebilirsiniz.',
+            'help_title' => 'Üç adımda kullanın',
+            'help_steps' => [
+                'İş akışını oluşturun ve ekibin tanıyacağı kısa bir ad verin.',
+                'İşlem, bekleme ve kontrol aşamalarını uygulama sırasına göre ekleyin.',
+                'Hazırladığınız akışı ilgili hizmet dönemine bağlayın.',
+            ],
+        ],
+        'empty' => [
+            'heading' => 'Tanımlı iş akışı bulunmuyor',
+            'description' => 'Hizmetlerde kullanılmak üzere yeni bir iş akışı ve uygulama aşamalarını oluşturun.',
+        ],
         'sections' => [
             'identity' => [
                 'title' => 'İş akışı bilgileri',
@@ -198,6 +216,31 @@ return [
         'messages' => [
             'created' => 'İş akışı oluşturuldu.',
             'updated' => 'İş akışı güncellendi.',
+        ],
+        'inline' => [
+            'placeholder' => 'Yeni akış adı',
+            'label' => 'Yeni iş akışı adı',
+            'submit' => 'Ekle',
+            'hint' => 'Ad verdikten sonra aşamaları oluşturma ekranında eklersiniz; akış ancak en az bir aşamayla kaydedilir.',
+        ],
+        'search' => [
+            'label' => 'İş akışlarında ara',
+            'placeholder' => 'Akış adında ara',
+            'empty' => 'Aramanızla eşleşen iş akışı bulunamadı.',
+        ],
+        'card' => [
+            'edit' => 'Düzenle',
+            'add_step' => 'Yeni Aşama',
+            'active' => 'Etkin',
+            'inactive' => 'Pasif',
+            'step_count' => ':count aşama',
+            'linked_services' => ':count hizmet dönemi',
+            'no_steps' => 'Bu akışta etkin aşama yok.',
+            'steps_label' => ':name akışının aşamaları',
+        ],
+        'validation' => [
+            'name_required' => 'Akış adı boş bırakılamaz.',
+            'name_max' => 'Akış adı en fazla 255 karakter olabilir.',
         ],
     ],
     'messages' => [

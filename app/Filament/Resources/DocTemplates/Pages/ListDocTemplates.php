@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\DocTemplates\Pages;
 
-use App\Filament\Concerns\HasZohoListChrome;
+use App\Filament\Concerns\HasConsistentListChrome;
 use App\Filament\Resources\DocTemplates\DocTemplateResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 final class ListDocTemplates extends ListRecords
 {
-    use HasZohoListChrome;
+    use HasConsistentListChrome;
 
     protected static string $resource = DocTemplateResource::class;
 

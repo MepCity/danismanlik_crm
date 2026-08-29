@@ -7,7 +7,7 @@ namespace App\Filament\Concerns;
 use Filament\Actions\Action;
 use Filament\Schemas\Components\Tabs\Tab;
 
-trait HasZohoListChrome
+trait HasConsistentListChrome
 {
     /** @return array<string, Tab> */
     public function getTabs(): array
@@ -27,7 +27,9 @@ trait HasZohoListChrome
                 ->label(__('panel.list.refresh'))
                 ->icon('heroicon-o-arrow-path')
                 ->color('gray')
-                ->action(static fn (): null => null),
+                ->action(function (): void {
+                    $this->flushCachedTableRecords();
+                }),
             ...$actions,
         ];
     }

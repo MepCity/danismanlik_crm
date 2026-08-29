@@ -8,7 +8,7 @@ use App\Domain\Crm\Models\Company;
 use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Services\BulkCompanyEmailService;
 use App\Domain\Crm\Services\EmailTemplateRenderer;
-use App\Filament\Concerns\HasZohoListChrome;
+use App\Filament\Concerns\HasConsistentListChrome;
 use App\Filament\Resources\Companies\CompanyResource;
 use App\Models\User;
 use Filament\Actions\Action;
@@ -28,7 +28,7 @@ use Illuminate\Validation\ValidationException;
 
 final class ListCompanies extends ListRecords
 {
-    use HasZohoListChrome;
+    use HasConsistentListChrome;
 
     protected static string $resource = CompanyResource::class;
 

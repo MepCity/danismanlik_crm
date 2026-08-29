@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\EmailTemplates\Pages;
 
-use App\Filament\Concerns\HasZohoListChrome;
+use App\Filament\Concerns\HasConsistentListChrome;
 use App\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 final class ListEmailTemplates extends ListRecords
 {
-    use HasZohoListChrome;
+    use HasConsistentListChrome;
 
     protected static string $resource = EmailTemplateResource::class;
 

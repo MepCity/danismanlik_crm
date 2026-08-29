@@ -20,6 +20,12 @@ return [
             'reports' => 'Raporlama',
             'configuration' => 'Yapılandırma',
         ],
+        'rail' => [
+            'marketing' => 'Pazarlama',
+            'companies' => 'Firmalar',
+            'files' => 'Dosyalar',
+            'other' => 'Diğer',
+        ],
     ],
     'list' => [
         'all_records' => 'Tüm kayıtlar',

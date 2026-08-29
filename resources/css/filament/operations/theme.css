@@ -1,5 +1,8 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 @import './tokens.css';
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
@@ -4131,9 +4134,10 @@ body {
     }
 }
 
-/* Zoho-inspired operations language ------------------------------------
- * The reference informs density, hierarchy and navigation. Product data,
- * branding and interaction flows remain native to Bizlife CRM.
+/* Cubicl-referenced app shell ------------------------------------------
+ * 100px icon rail, 60px topbar and a common content inset. Geometry and
+ * interaction rhythm are matched closely; branding, copy and domain
+ * behaviour stay native to Bizlife CRM.
  */
 
 .fi-sidebar,
@@ -4142,84 +4146,275 @@ body {
     border-color: var(--crm-nav-border);
 }
 
+.fi-sidebar {
+    position: fixed;
+    inset-block: 0;
+    z-index: 30;
+    width: var(--crm-shell-rail-width);
+    height: 100dvh;
+    border-inline-end: 1px solid var(--crm-nav-border);
+}
+
+.fi-topbar-ctn,
+.fi-main-ctn {
+    margin-inline-start: var(--crm-shell-rail-width);
+}
+
+.fi-body-has-topbar .fi-sidebar-header,
 .fi-sidebar-header {
-    min-height: 3.5rem;
-    padding-inline: var(--crm-space-4);
+    display: flex;
+    min-height: var(--crm-shell-rail-brand-height);
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0;
+    background: var(--crm-nav-bg);
+    box-shadow: none;
 }
 
-.fi-sidebar-nav {
-    padding: var(--crm-space-3) var(--crm-space-2);
+.fi-sidebar-header-logo-ctn {
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: center;
 }
 
-.fi-sidebar-nav-groups {
-    gap: var(--crm-space-4);
-}
-
-.fi-sidebar .crm-brand {
+.fi-sidebar-header .crm-brand {
+    justify-content: center;
+    width: 100%;
     color: var(--crm-nav-text);
+}
+
+.fi-sidebar-header .crm-brand__copy {
+    display: none;
 }
 
 .fi-sidebar .crm-brand__mark {
-    width: 2rem;
-    height: 2rem;
-    border-color: var(--crm-accent-400);
-    border-radius: var(--crm-radius-md);
+    width: var(--crm-shell-rail-brand-mark);
+    height: var(--crm-shell-rail-brand-mark);
+    grid-template-columns: repeat(3, 0.42rem);
+    gap: 0.26rem;
+    padding-block: 0.75rem;
+    border-color: var(--crm-nav-mark-border);
+    border-radius: var(--crm-radius-lg);
 }
 
-.fi-sidebar .crm-brand__copy small,
-.fi-sidebar .fi-sidebar-group-label {
-    color: var(--crm-nav-text-subtle);
+.fi-sidebar-nav {
+    overflow: visible;
+    padding-block: 0;
+    padding-inline: 0;
 }
 
-.fi-sidebar .fi-sidebar-item-button,
-.fi-sidebar .fi-sidebar-item-btn {
-    min-height: 2.125rem;
-    border-radius: var(--crm-radius-md);
+.crm-rail__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.crm-rail__item {
+    position: relative;
+}
+
+.crm-rail__control {
+    display: flex;
+    width: var(--crm-shell-rail-selected-size);
+    height: var(--crm-shell-rail-item-height);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--crm-space-1);
+    margin-inline: auto;
+    padding-block: var(--crm-shell-rail-item-padding-block);
+    background: transparent;
+    border: 0;
+    border-radius: var(--crm-shell-rail-selected-radius);
     color: var(--crm-nav-text-muted);
-    transition: background-color var(--crm-duration-base) var(--crm-ease), color var(--crm-duration-base) var(--crm-ease);
+    font-family: inherit;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--crm-shell-transition), color var(--crm-shell-transition);
 }
 
-.fi-sidebar .fi-sidebar-item-button:hover,
-.fi-sidebar .fi-sidebar-item-btn:hover {
+.crm-rail__control:hover,
+.crm-rail__control[aria-expanded='true'] {
     background: var(--crm-nav-bg-hover);
     color: var(--crm-nav-text);
-    transform: none;
 }
 
-.fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-button,
-.fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+.crm-rail__control--selected {
     background: var(--crm-nav-bg-active);
-    border-color: transparent;
     color: var(--crm-nav-text);
 }
 
-.fi-sidebar .fi-sidebar-item-btn .fi-sidebar-item-label,
-.fi-sidebar .fi-sidebar-item-btn .fi-sidebar-item-icon,
-.fi-sidebar .fi-sidebar-item-icon,
-.fi-sidebar .fi-sidebar-group-collapse-button {
-    color: currentColor;
+.crm-rail__icon {
+    width: var(--crm-shell-rail-icon-size);
+    height: var(--crm-shell-rail-icon-size);
 }
 
-.fi-sidebar .fi-sidebar-item-button:hover .fi-sidebar-item-icon,
-.fi-sidebar .fi-sidebar-item-btn:hover .fi-sidebar-item-icon {
-    transform: none;
+.crm-rail__label {
+    font-size: var(--crm-shell-rail-label-size);
+    font-weight: 400;
+    line-height: var(--crm-shell-rail-label-line);
+}
+
+.crm-rail__flyout {
+    position: absolute;
+    z-index: 40;
+    inset-block-start: 0;
+    inset-inline-start: 100%;
+    min-width: 14rem;
+    margin-inline-start: var(--crm-space-2);
+    padding: var(--crm-space-2);
+    background: var(--crm-flyout-surface);
+    border: 1px solid var(--crm-flyout-border);
+    border-radius: var(--crm-radius-lg);
+    box-shadow: var(--crm-flyout-shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity var(--crm-shell-transition), transform var(--crm-shell-transition), visibility 0s linear var(--crm-shell-transition);
+    pointer-events: none;
+}
+
+.crm-rail__flyout--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity var(--crm-shell-transition), transform var(--crm-shell-transition);
+    pointer-events: auto;
+}
+
+.crm-rail__flyout-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--crm-space-1);
+}
+
+.crm-rail__flyout-link {
+    display: block;
+    padding: var(--crm-space-2) var(--crm-space-3);
+    border-radius: var(--crm-radius-md);
+    color: var(--crm-text);
+    font-size: var(--crm-text-sm);
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color var(--crm-shell-transition), color var(--crm-shell-transition);
+}
+
+.crm-rail__flyout-link:hover,
+.crm-rail__flyout-link:focus-visible {
+    background: var(--crm-surface-hover);
+}
+
+.crm-rail__flyout-link--selected {
+    background: var(--crm-accent-100);
+    color: var(--crm-accent-700);
+}
+
+.dark .crm-rail__flyout-link--selected {
+    color: var(--crm-accent-800);
 }
 
 .fi-topbar {
-    min-height: 3.5rem;
+    min-height: var(--crm-shell-topbar-height);
     background: var(--crm-topbar-bg);
     border-color: var(--crm-border);
+    border-block-end: 1px solid var(--crm-border);
     backdrop-filter: none;
+    box-shadow: none;
+}
+
+/* The rail already carries the brand mark; the topbar keeps only the
+   product name so the reference topbar geometry stays intact. */
+.fi-topbar .crm-brand__mark,
+.fi-topbar .crm-brand__copy small {
+    display: none;
+}
+
+.fi-topbar .crm-brand {
+    gap: 0;
+}
+
+.fi-topbar .crm-brand__copy strong {
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
 }
 
 .fi-topbar nav {
-    min-height: 3.5rem;
+    min-height: var(--crm-shell-topbar-height);
     padding-inline: var(--crm-space-4);
 }
 
+/* Shared content inset: every Filament page starts the same distance below
+   the topbar, so no screen needs its own vertical offset. */
 .fi-main {
     width: min(100%, var(--crm-content-max));
-    padding-block: var(--crm-space-4) var(--crm-space-8);
+    padding-block: var(--crm-shell-content-block-start) var(--crm-space-8);
+    padding-inline: var(--crm-shell-content-inset);
+}
+
+.fi-page-header-main-ctn {
+    padding-block-start: 0;
+}
+
+@media (max-width: 1023.98px) {
+    .fi-sidebar {
+        width: min(20rem, 88vw);
+        border-inline-end: 0;
+    }
+
+    .fi-topbar-ctn,
+    .fi-main-ctn {
+        margin-inline-start: 0;
+    }
+
+    .fi-sidebar-nav {
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .crm-rail__control {
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: var(--crm-space-3);
+        margin-inline: 0;
+        padding-block: var(--crm-space-2);
+        padding-inline: var(--crm-space-3);
+        border-radius: var(--crm-radius-md);
+    }
+
+    .crm-rail__list {
+        gap: var(--crm-space-1);
+        padding: var(--crm-space-2);
+    }
+
+    .crm-rail__icon {
+        flex: 0 0 auto;
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .crm-rail__label {
+        font-size: var(--crm-text-sm);
+        font-weight: 650;
+        line-height: 1.4;
+        white-space: nowrap;
+    }
+
+    .crm-rail__flyout {
+        position: static;
+        inset-inline-start: auto;
+        display: none;
+        margin-inline-start: 0;
+        margin-block-start: var(--crm-space-1);
+        box-shadow: none;
+        transform: none;
+    }
+
+    .crm-rail__flyout--open {
+        display: block;
+    }
 }
 
 .fi-header {
@@ -5052,6 +5247,612 @@ input[type='radio'].fi-radio-input:focus-visible,
     padding-inline: var(--crm-space-1);
     color: var(--crm-text-subtle);
     font-size: var(--crm-text-xs);
+}
+
+/* Service workflow workspace ----------------------------------- */
+
+.fi-resource-service-workflows-page .fi-page-content {
+    font-family: var(--crm-workflow-font);
+}
+
+/* Create and edit screens share the workspace content width of the list. */
+.fi-resource-service-workflows .fi-page-content,
+.fi-resource-service-workflows .fi-form-actions {
+    max-width: var(--crm-shell-content-max-width);
+}
+
+.cubicl-workflow {
+    display: grid;
+    max-width: var(--crm-shell-content-max-width);
+    gap: var(--crm-workflow-section-gap);
+    color: var(--crm-workflow-text);
+    font-family: var(--crm-workflow-font);
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
+}
+
+.cubicl-workflow__intro {
+    display: grid;
+    min-height: var(--crm-workflow-intro-min-height);
+    align-content: start;
+    gap: var(--crm-space-2);
+    padding: var(--crm-shell-card-padding);
+    background: var(--crm-workflow-surface);
+    border: 1px solid var(--crm-workflow-border);
+    border-radius: var(--crm-workflow-card-radius);
+    box-shadow: none;
+}
+
+.cubicl-workflow__intro-header,
+.cubicl-workflow__intro-title-group,
+.cubicl-workflow__help-button,
+.cubicl-workflow__permission-pill,
+.cubicl-workflow__permission-link,
+.cubicl-workflow__list-header,
+.cubicl-workflow__create-btn {
+    display: flex;
+    align-items: center;
+}
+
+.cubicl-workflow__intro-header {
+    justify-content: space-between;
+    gap: var(--crm-space-3);
+}
+
+.cubicl-workflow__intro-title-group {
+    flex-wrap: wrap;
+    gap: var(--crm-space-3);
+}
+
+.cubicl-workflow__intro h1,
+.cubicl-workflow__list h2 {
+    color: var(--crm-workflow-text);
+    font-size: var(--crm-shell-title-size);
+    font-weight: 500;
+    line-height: var(--crm-shell-title-line);
+}
+
+.cubicl-workflow__intro p {
+    max-width: 70rem;
+    color: var(--crm-workflow-text-muted);
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
+}
+
+.cubicl-workflow__intro p + p {
+    margin-block-start: calc(var(--crm-space-1) * -1);
+}
+
+.cubicl-workflow__help-button,
+.cubicl-workflow__permission-pill,
+.cubicl-workflow__permission-link {
+    min-height: 28px;
+    gap: var(--crm-space-2);
+    padding-inline: var(--crm-space-3);
+    border: 1px solid var(--crm-workflow-border);
+    border-radius: var(--crm-radius-full);
+    font-size: 11px;
+    font-weight: 500;
+    transition:
+        color var(--crm-workflow-transition),
+        background-color var(--crm-workflow-transition),
+        border-color var(--crm-workflow-transition);
+}
+
+.cubicl-workflow__help-button {
+    background: var(--crm-workflow-surface);
+    color: var(--crm-workflow-action-info);
+}
+
+.cubicl-workflow__help-button:hover,
+.cubicl-workflow__help-button[aria-expanded='true'] {
+    background: var(--crm-accent-soft);
+    border-color: var(--crm-workflow-action-info);
+}
+
+.cubicl-workflow__permission-link {
+    background: var(--crm-workflow-pill-bg);
+    color: var(--crm-workflow-action-info);
+}
+
+.cubicl-workflow__permission-link:hover {
+    background: var(--crm-accent-soft);
+    border-color: var(--crm-workflow-action-info);
+}
+
+.cubicl-workflow__help-button:focus-visible,
+.cubicl-workflow__permission-link:focus-visible,
+.cubicl-workflow__create-btn:focus-visible {
+    outline: 2px solid var(--crm-workflow-action-info);
+    outline-offset: 2px;
+}
+
+.cubicl-workflow__permission-pill {
+    background: var(--crm-workflow-pill-bg);
+    color: var(--crm-workflow-text-subtle);
+}
+
+.cubicl-workflow__help-button svg,
+.cubicl-workflow__permission-pill svg,
+.cubicl-workflow__permission-link svg,
+.cubicl-workflow__create-btn svg {
+    width: var(--crm-space-4);
+    height: var(--crm-space-4);
+}
+
+.cubicl-workflow__help {
+    padding: var(--crm-space-3);
+    background: var(--crm-workflow-pill-bg);
+    border-inline-start: var(--crm-space-1) solid var(--crm-workflow-action-info);
+    border-radius: var(--crm-radius-md);
+    color: var(--crm-workflow-text-muted);
+}
+
+.cubicl-workflow__help strong {
+    color: var(--crm-workflow-text);
+    font-weight: 600;
+}
+
+.cubicl-workflow__help ol {
+    display: grid;
+    gap: var(--crm-space-1);
+    margin-block-start: var(--crm-space-2);
+    padding-inline-start: var(--crm-space-5);
+    list-style: decimal;
+}
+
+.cubicl-workflow__list {
+    display: grid;
+    gap: var(--crm-workflow-list-gap);
+}
+
+.cubicl-workflow__list-header {
+    justify-content: space-between;
+    gap: var(--crm-space-3);
+}
+
+.cubicl-workflow__create-btn {
+    gap: var(--crm-space-1);
+    min-height: var(--crm-workflow-control-height);
+    padding-inline: var(--crm-space-4);
+    background: var(--crm-workflow-action-create);
+    border: 1px solid var(--crm-workflow-action-create);
+    border-radius: var(--crm-radius-full);
+    color: var(--crm-neutral-0);
+    font-size: 11px;
+    font-weight: 500;
+    transition:
+        background-color var(--crm-workflow-transition),
+        border-color var(--crm-workflow-transition),
+        transform var(--crm-workflow-transition);
+}
+
+.cubicl-workflow__create-btn:hover {
+    background: var(--crm-workflow-action-create-hover);
+    border-color: var(--crm-workflow-action-create-hover);
+}
+
+/* Inline flow creation ------------------------------------------------- */
+
+.cubicl-workflow__inline-create {
+    display: grid;
+    gap: var(--crm-space-2);
+}
+
+.cubicl-workflow__inline-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: var(--crm-workflow-control-height);
+    background: var(--crm-workflow-surface);
+    border: 1px solid var(--crm-workflow-border);
+    border-radius: var(--crm-workflow-pill-radius);
+}
+
+.cubicl-workflow__inline-field:focus-within {
+    border-color: var(--crm-border-focus);
+    box-shadow: 0 0 0 3px var(--crm-focus-ring);
+}
+
+.cubicl-workflow__inline-field input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding-inline: var(--crm-space-4) var(--crm-space-2);
+    background: transparent;
+    border: 0;
+    border-radius: inherit;
+    color: var(--crm-workflow-text);
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
+}
+
+.cubicl-workflow__inline-field input:focus {
+    outline: none;
+}
+
+.cubicl-workflow__inline-submit {
+    display: inline-flex;
+    height: 24px;
+    align-items: center;
+    gap: var(--crm-space-1);
+    margin-inline-end: 4px;
+    padding-inline: var(--crm-space-4);
+    background: var(--crm-workflow-action-create);
+    border: 0;
+    border-radius: var(--crm-workflow-pill-radius);
+    color: var(--crm-workflow-action-create-text);
+    font-size: var(--crm-shell-body-size);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--crm-workflow-transition);
+}
+
+.cubicl-workflow__inline-submit:hover {
+    background: var(--crm-workflow-action-create-hover);
+}
+
+.cubicl-workflow__inline-submit svg {
+    width: 14px;
+    height: 14px;
+}
+
+.cubicl-workflow__inline-hint {
+    color: var(--crm-workflow-text-subtle);
+    font-size: var(--crm-text-xs);
+}
+
+.cubicl-workflow__inline-error {
+    color: var(--crm-status-danger-fg);
+    font-size: var(--crm-text-xs);
+    font-weight: 650;
+}
+
+.cubicl-workflow__search {
+    display: inline-flex;
+    height: 28px;
+    align-items: center;
+    gap: var(--crm-space-2);
+    padding-inline: var(--crm-space-3);
+    background: var(--crm-workflow-surface);
+    border: 1px solid var(--crm-workflow-border);
+    border-radius: var(--crm-workflow-pill-radius);
+}
+
+.cubicl-workflow__search:focus-within {
+    border-color: var(--crm-border-focus);
+}
+
+.cubicl-workflow__search svg {
+    width: 14px;
+    height: 14px;
+    color: var(--crm-workflow-text-subtle);
+}
+
+.cubicl-workflow__search input {
+    width: 12rem;
+    background: transparent;
+    border: 0;
+    color: var(--crm-workflow-text);
+    font-size: var(--crm-text-xs);
+}
+
+.cubicl-workflow__search input:focus {
+    outline: none;
+}
+
+/* Flow cards ----------------------------------------------------------- */
+
+.cubicl-workflow__cards {
+    display: grid;
+    margin-block-start: calc(var(--crm-workflow-cards-gap) - var(--crm-workflow-list-gap));
+    gap: var(--crm-space-3);
+}
+
+.cubicl-workflow__card {
+    display: grid;
+    gap: var(--crm-workflow-card-gap);
+    padding: var(--crm-shell-card-padding);
+    background: var(--crm-workflow-surface);
+    border: 1px solid var(--crm-workflow-border);
+    border-radius: var(--crm-workflow-card-radius);
+}
+
+.cubicl-workflow__card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-3);
+}
+
+.cubicl-workflow__card-identity {
+    display: flex;
+    align-items: center;
+    gap: var(--crm-space-3);
+}
+
+.cubicl-workflow__card-identity h3 {
+    margin-block-start: var(--crm-workflow-card-title-offset);
+    color: var(--crm-workflow-text);
+    font-size: var(--crm-shell-title-size);
+    font-weight: 500;
+    line-height: var(--crm-shell-title-line);
+}
+
+.cubicl-workflow__state {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--crm-space-1);
+    padding: 2px var(--crm-space-2);
+    border: 1px solid currentColor;
+    border-radius: var(--crm-workflow-pill-radius);
+    font-size: var(--crm-text-2xs);
+    font-weight: 650;
+}
+
+.cubicl-workflow__state svg {
+    width: 12px;
+    height: 12px;
+}
+
+.cubicl-workflow__state--active {
+    color: var(--crm-status-success-fg);
+    background: var(--crm-status-success-bg);
+}
+
+.cubicl-workflow__state--inactive {
+    color: var(--crm-status-neutral-fg);
+    background: var(--crm-status-neutral-bg);
+}
+
+.cubicl-workflow__card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--crm-space-3);
+    color: var(--crm-workflow-text-subtle);
+    font-size: var(--crm-text-xs);
+}
+
+.cubicl-workflow__card-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--crm-space-1);
+    color: var(--crm-workflow-action-info);
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.cubicl-workflow__card-edit svg {
+    width: 14px;
+    height: 14px;
+}
+
+.cubicl-workflow__stages {
+    display: flex;
+    padding-inline-start: var(--crm-workflow-stage-inset);
+    gap: var(--crm-workflow-stage-gap);
+    padding-block-end: var(--crm-space-2);
+    overflow-x: auto;
+    list-style: none;
+}
+
+.cubicl-workflow__stage {
+    position: relative;
+    display: grid;
+    width: var(--crm-workflow-stage-width);
+    min-width: var(--crm-workflow-stage-width);
+    min-height: var(--crm-workflow-stage-min-height);
+    align-content: start;
+    gap: var(--crm-space-1);
+    padding: var(--crm-workflow-stage-padding);
+    border: 1px solid var(--crm-workflow-border);
+    border-radius: var(--crm-workflow-stage-radius);
+}
+
+.cubicl-workflow__stage + .cubicl-workflow__stage::before {
+    position: absolute;
+    inset-inline-start: calc((var(--crm-workflow-stage-gap) + 12px) * -1);
+    inset-block-start: 50%;
+    color: var(--crm-workflow-text-subtle);
+    content: '\2192';
+    font-size: var(--crm-text-lg);
+    transform: translateY(-50%);
+}
+
+.cubicl-workflow__stage-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-2);
+}
+
+.cubicl-workflow__stage-type {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--crm-space-1);
+    font-size: var(--crm-text-2xs);
+    font-weight: 650;
+}
+
+.cubicl-workflow__stage-type svg {
+    width: 12px;
+    height: 12px;
+}
+
+.cubicl-workflow__stage-type--action {
+    color: var(--crm-workflow-stage-action);
+}
+
+.cubicl-workflow__stage-type--waiting {
+    color: var(--crm-workflow-stage-waiting);
+}
+
+.cubicl-workflow__stage-type--decision {
+    color: var(--crm-workflow-stage-decision);
+}
+
+.cubicl-workflow__stage-title {
+    color: var(--crm-workflow-text);
+    font-size: var(--crm-shell-body-size);
+    font-weight: 500;
+    line-height: var(--crm-shell-body-line);
+}
+
+.cubicl-workflow__stage-note {
+    color: var(--crm-status-waiting-fg);
+}
+
+.cubicl-workflow__stage-note svg {
+    width: 12px;
+    height: 12px;
+}
+
+.cubicl-workflow__stages-empty,
+.cubicl-workflow__empty {
+    color: var(--crm-workflow-text-muted);
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
+}
+
+.cubicl-workflow__stage-add {
+    display: inline-flex;
+    height: var(--crm-workflow-control-height);
+    align-items: center;
+    justify-self: start;
+    gap: var(--crm-space-2);
+    padding-inline: var(--crm-space-6);
+    background: var(--crm-workflow-action-create);
+    border-radius: var(--crm-workflow-pill-radius);
+    color: var(--crm-workflow-action-create-text);
+    font-size: var(--crm-shell-body-size);
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color var(--crm-workflow-transition);
+}
+
+.cubicl-workflow__stage-add:hover {
+    background: var(--crm-workflow-action-create-hover);
+}
+
+.cubicl-workflow__stage-add svg {
+    width: 14px;
+    height: 14px;
+}
+
+.fi-resource-service-workflows-page .cubicl-workflow-form-section {
+    overflow: hidden;
+    background: var(--crm-workflow-surface);
+    border: 1px solid var(--crm-workflow-border);
+    border-radius: var(--crm-workflow-card-radius);
+    box-shadow: none;
+    color: var(--crm-workflow-text);
+    font-family: var(--crm-workflow-font);
+}
+
+.fi-resource-service-workflows-page .cubicl-workflow-form-section .fi-section-header {
+    min-height: 58px;
+    padding: var(--crm-space-4);
+    border-block-end: 1px solid var(--crm-workflow-border);
+}
+
+.fi-resource-service-workflows-page .cubicl-workflow-form-section .fi-section-content {
+    padding: var(--crm-space-4);
+}
+
+.fi-resource-service-workflows-page .cubicl-workflow-form-section .fi-fo-field-wrp-label {
+    color: var(--crm-workflow-text);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.fi-resource-service-workflows-page .cubicl-workflow-form-section .fi-fo-textarea .fi-input-wrp {
+    border-radius: var(--crm-workflow-card-radius);
+}
+
+.fi-resource-service-workflows-page .cubicl-workflow-steps .fi-fo-repeater-item {
+    overflow: hidden;
+    background: var(--crm-workflow-surface);
+    border: 1px solid var(--crm-workflow-border);
+    border-radius: var(--crm-workflow-card-radius);
+    box-shadow: none;
+    transition:
+        border-color var(--crm-workflow-transition),
+        transform var(--crm-workflow-transition);
+}
+
+.fi-resource-service-workflows-page .cubicl-workflow-steps .fi-fo-repeater-item:hover {
+    border-color: var(--crm-workflow-action-info);
+    transform: translateY(-1px);
+}
+
+.fi-resource-service-workflows-page .cubicl-workflow-steps .fi-fo-repeater-item-header {
+    min-height: 40px;
+    background: var(--crm-workflow-pill-bg);
+    border-block-end: 1px solid var(--crm-workflow-border);
+}
+
+.fi-resource-service-workflows-page form .fi-btn {
+    min-height: var(--crm-workflow-control-height);
+    border-radius: var(--crm-radius-full);
+    font-family: var(--crm-workflow-font);
+    font-size: 11px;
+    transition:
+        background-color var(--crm-workflow-transition),
+        border-color var(--crm-workflow-transition),
+        color var(--crm-workflow-transition);
+}
+
+.fi-resource-service-workflows-page form .fi-btn.fi-color-primary {
+    background: var(--crm-workflow-action-create);
+    border-color: var(--crm-workflow-action-create);
+    color: var(--crm-neutral-0);
+}
+
+.fi-resource-service-workflows-page form .fi-btn.fi-color-primary:hover {
+    background: var(--crm-workflow-action-create-hover);
+    border-color: var(--crm-workflow-action-create-hover);
+}
+
+.dark .cubicl-workflow__intro,
+.dark .cubicl-workflow__card,
+.dark .fi-resource-service-workflows-page .cubicl-workflow-form-section {
+    border: 1px solid var(--crm-workflow-border);
+}
+
+@media (max-width: 48rem) {
+    .cubicl-workflow {
+        gap: var(--crm-space-5);
+    }
+
+    .cubicl-workflow__intro {
+        padding: var(--crm-space-3);
+    }
+
+    .cubicl-workflow__intro-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .cubicl-workflow__permission-pill,
+    .cubicl-workflow__permission-link {
+        align-self: flex-start;
+    }
+
+    .cubicl-workflow__list-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: var(--crm-space-2);
+    }
+
+    .cubicl-workflow__create-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .fi-resource-service-workflows-page .cubicl-workflow-form-section .fi-section-content {
+        padding: var(--crm-space-3);
+    }
 }
 
 @media (max-width: 64rem) {
