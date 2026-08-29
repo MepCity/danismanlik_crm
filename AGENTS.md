@@ -95,15 +95,17 @@ Policy + `own | team | all` kapsamı. Arayüzde butonu gizlemek yetki değildir.
 
 ## Tasarım sistemi (arayüz paketleri için bağlayıcı)
 
-Birincil referans: **Zoho CRM'in çalışma ve tasarım dili**. Birebir marka/ekran kopyası yapılmaz; bilgi yoğunluğu, sayfa iskeleti ve etkileşim tutarlılığı uyarlanır. **ERPNext'in görsel dili referans değildir** — müşteri onu zaten reddetti.
+Birincil referans: **Cubicl'in çalışma ve tasarım dili**. Sayfa iskeleti, ölçüler, yoğunluk, yerleşim, kontrol biçimleri ve geçiş ritmi yakın uygulanır; Cubicl markası, logosu, özgün illüstrasyonları, metinleri ve ikon fontu kopyalanmaz. **Hangi Cubicl ekranlarının ürün kapsamına alınacağını kullanıcı adım adım belirler** — görülmüş olması kapsam onayı değildir. ERPNext'in görsel dili referans değildir.
 
-- Koyu lacivert uygulama kabuğu + açık/nötr ana içerik, koyu temada aynı katman hiyerarşisinin özel karşılığı.
-- Birincil eylemler mavi; tek vurgu rengi korunur. Durum renkleri (bekliyor / tamam / gecikmiş / iptal) ayrı bir eksendir.
+- Cubicl esinli 100px ana navigasyon rayı + 60px üst çubuk + açık/nötr ana içerik; koyu tema aynı katman hiyerarşisinin özel karşılığı.
+- Cubicl semantiği korunur: oluştur/ekle/gönder eylemleri yeşil, seçili navigasyon ve bilgi eylemleri mavi, ikincil eylemler nötr kapsüldür. Durum renkleri (bekliyor / tamam / gecikmiş / iptal) ayrı bir eksendir.
 - Nötr gri skala hafif mavi eğilimlidir; saf gri kullanılmaz.
 - Katman ayrımı **1px kenarlık + arka plan tonu** ile yapılır; gölge yalnız menü/modal/drawer gibi geçici yüzeylerde hafiftir.
 - Liste araçlarının konumu bütün modüllerde aynıdır: görünüm/filtre/sıralama solda veya üst araç şeridinde, ana oluşturma eylemi sağ üstte.
 - Kayıt detayında üst kimlik ve eylem alanı, ilişkili içerik navigasyonu, ana özet ve okunabilir etkinlik geçmişi tutarlı kalır.
-- Formlar Zoho'dan daha kısa tutulur: sık kullanılan alanlar önce, ikincil alanlar açıklanabilir bölümde; tek ana kaydet eylemi vardır.
+- Formlar Cubicl'in kompakt modal ve bölüm dilini kullanır; sık kullanılan alanlar önce, ikincil alanlar açıklanabilir bölümde ve tek ana kaydet eylemi vardır.
+- Kontroller 28–32px kapsül ritminde; kartlar 10–12px yarıçapta; mikro geçişler 150ms `ease-in-out` ritminde tasarlanır. Filament'in erişilebilir odak halkası ve `prefers-reduced-motion` desteği korunur.
+- Kayıt ve görev detaylarında ana çalışma alanı + sağ özet kolonu; listelerde gerektiğinde sağ hızlı önizleme kullanılır.
 - Operasyonel yoğunluk: bir ekranda 25–30 satır görünmeli.
 - Durum renkle **ve** formla kodlanır (rozet, şerit, ikon).
 - Sayı sütunlarında `tabular-nums`.
@@ -112,7 +114,7 @@ Birincil referans: **Zoho CRM'in çalışma ve tasarım dili**. Birebir marka/ek
 
 ---
 
-## Git akışı — her paket için zorunlu
+## Git akışı — main üzerinden devam
 
 **Remote:** `https://github.com/MepCity/danismanlik_crm.git`
 **Hesap:** GitHub CLI zaten `MepCity` olarak oturum açmış (`gh auth status` ile doğrula). Ek kimlik bilgisi girmene gerek yok.
@@ -122,14 +124,9 @@ git config user.name  "MepCity"
 git config user.email "hamasetyasir@gmail.com"
 ```
 
-**Dal stratejisi:** her iş paketi **kendi dalında**, `main`'e doğrudan push yok.
+**Dal stratejisi — müşteri kararı, 29.08.2026:** Mevcut `wp-22-cubicl-workflow-ui` dalı, Cubicl İş Akışları işi tamamlanıp kabul kontrolünden geçince `main` ile birleştirilir. Bu birleşmeden sonra **yeni dal açılmaz**; bütün değişiklikler `main` üzerinde devam eder.
 
-```
-main                     ← korumalı, sadece PR ile
-  └── wp-01-docker-iskelet
-  └── wp-02-kod-kalite
-  └── ...
-```
+GitHub dal koruması doğrudan push'u teknik olarak engellerse, aynı `main` çalışma çizgisini yayımlamak için zorunlu PR kullanılır; bu durum yeni geliştirme dalı açma yetkisi vermez. Agent kendiliğinden branch oluşturmaz veya değiştirmez.
 
 **Commit mesajı — Conventional Commits, kısa ve öz:**
 
@@ -148,9 +145,10 @@ Aynı kural PR açıklamaları için de geçerli: araç/model imzası eklenmez.
 
 **Paket bitince:**
 
-1. Dalı push et: `git push -u origin wp-XX-...`
-2. PR aç: `gh pr create --fill` — açıklamada paketin kabul kriterlerini **işaretlenmiş liste** olarak koy, hangilerinin doğrulandığını göster.
-3. **Merge etme.** İnceleme bekle.
+1. Değişiklikleri mevcut `main` çalışma çizgisinde atomik commitlere ayır.
+2. Test, Pint, Larastan ve pakete özgü kırmızı/yeşil kanıtları tamamla.
+3. `main` koruması izin veriyorsa doğrudan push et; izin vermiyorsa kullanıcıya korumayı bildir ve zorunlu PR akışını kullan.
+4. Mevcut `wp-22-cubicl-workflow-ui` dalını yalnız Cubicl İş Akışları işi kabul edildikten sonra `main` ile birleştir.
 
 **Atomik commit.** "Her şey tek commit" kabul edilmez; mantıksal adımlar ayrı commit olur (migration ayrı, servis ayrı, test ayrı).
 
