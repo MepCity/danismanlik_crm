@@ -1,7 +1,7 @@
 # Bizlife CRM — Proje Planı
 
 > **Durum:** Ana operasyon akışı uygulanıyor
-> **Sürüm:** 1.25 — 27.08.2026
+> **Sürüm:** 1.28 — 29.08.2026
 > **Teknik fizibilite raporu:** https://claude.ai/code/artifact/2e291308-4cd0-4696-8747-99e93095aa51
 
 ---
@@ -247,20 +247,24 @@ Program şablonu ile iş akışı arasındaki fark korunuyor: **program şablonu
 
 **Gerekçe:** Saf Filament en hızlısı ama günlük kullanılan ekranlar jenerik CRUD gibi durur. Ayrı bir React ön yüzü ise ikinci bir oturum, ikinci bir tasarım sistemi ve haftalarca ek iş demek. Hibrit, tek çatı altında kalırken ekibin yaşadığı 5 ekrana özel tasarım imkânı verir.
 
-**Tasarım referansı — Zoho CRM, ERPNext DEĞİL.** 21.08.2026 kararıyla birincil referans Zoho CRM'in çalışma ve tasarım dili oldu: tutarlı liste araçları, yoğun tablolar, koyu lacivert uygulama kabuğu, açık/nötr içerik yüzeyi, mavi birincil eylemler, kayıt detayında güçlü bağlam ve modüller arası ortak etkileşim kalıpları. Birebir marka veya ekran kopyası yapılmaz; Bizlife'ın dar kapsamına uyarlanır. ERPNext'in görsel dili referans değildir.
+**Tasarım referansı — Cubicl, ERPNext DEĞİL.** 29.08.2026 kararıyla birincil referans Cubicl'in çalışma ve tasarım dili oldu: 100px ana navigasyon rayı, 60px üst çubuk, açık gri çalışma yüzeyi, kompakt kapsül kontroller, yüksek bilgi yoğunluğu, ana çalışma alanı + sağ özet düzeni ve sakin mikro geçişler. Yerleşim, ölçü ve etkileşim ritmi yakın uygulanır; Cubicl markası, logosu, özgün illüstrasyonları, metinleri ve ikon fontu taşınmaz. ERPNext'in görsel dili referans değildir.
 
-**Değiştirilen önceki yön:** Linear / Attio / Twenty, ilk görsel turlarda daha sakin ve çağdaş bir estetik referans olarak kullanılmıştı. Kullanıcı geri bildirimiyle bu yön 21.08.2026'da değiştirildi: Zoho yalnız mekanik ve yoğunluk referansı değil, palet ve kabuk referansı da oldu. Önceki ürünlerden yalnız düşük görsel gürültü ve tek vurgu rengi ilkesi korunur; lacivert navigasyon, açık mavi-gri çalışma yüzeyi, mavi eylemler, küçük yarıçaplar ve çizgi ağırlıklı katman ayrımı Zoho yönüne geçti.
+**Kapsam kapısı:** Cubicl'de incelenen her sayfa otomatik olarak ürün kapsamına girmez. Kullanıcı hangi ekranın alınacağını ve Bizlife iş akışına nasıl çevrileceğini adım adım belirler. İlk onaylı ekran İş Akışlarıdır. Cubicl'in sohbet, muhasebe, Gantt, zaman takibi, genel proje yönetimi ve AI görev özellikleri bu kararla kapsama alınmamıştır.
+
+**Navigasyon eşlemesi — müşteri kararı, 29.08.2026:** Cubicl'in 100px ana ray geometrisi, ikon/etiket ritmi, seçili öğe biçimi ve açılır “Diğer” davranışı görsel olarak yakın uygulanır. Bizlife karşılıkları `Ana Panel`, `Pazarlama`, `Firmalar`, `Dosyalar`, `Raporlar` ve `Diğer`dir. `Diğer`; `İş Akışları`, `Hizmetler`, `Statüler`, `Geçişler` ve `Erişim Yönetimi` sayfalarını açar; İş Akışları ekranındayken seçili görünür. Cubicl'deki Takvim, Yazışmalar, sohbet/not paneli ve genel arama bu eşlemeyle ürün kapsamına girmez.
+
+**Değiştirilen önceki yön:** Linear / Attio / Twenty ilk görsel turlarda, Zoho CRM ise 21.08.2026–29.08.2026 arasında palet ve kabuk referansıydı. 29.08.2026 tarihli kullanıcı geri bildirimiyle Cubicl ana referans oldu. Önceki yönlerden yalnız düşük görsel gürültü, tek vurgu rengi, erişilebilir durum kodlama ve operasyonel yoğunluk ilkeleri korunur.
 
 **Bağlayıcı tasarım kuralları** (WP-14'te token olarak kodlanır, sonraki tüm paketler bunlara uyar):
 
-- **Zoho esinli uygulama kabuğu.** Koyu lacivert navigasyon, açık/nötr ana içerik ve mavi birincil eylemler; koyu tema aynı katman mantığının özel karşılığıdır.
+- **Cubicl esinli uygulama kabuğu.** 100px ana navigasyon rayı, 60px üst çubuk ve açık/nötr ana içerik; oluştur/ekle/gönder eylemleri yeşil, seçili navigasyon ve bilgi eylemleri mavi, ikincil eylemler nötr kapsüldür. Koyu tema aynı katman mantığının özel karşılığıdır. Kabuk ekran ekran değil ortak bir paket olarak uygulanır.
 - **Ortak liste araç şeridi.** Görünüm, filtre, sıralama, yenileme ve oluşturma eylemlerinin konumu modüller arasında değişmez.
 - **Tek vurgu rengi.** Durum renkleri (bekliyor / tamam / gecikmiş / iptal) vurgu renginden ayrıdır ve yalnızca durum bildirir.
 - **Nötr renkler seçilir, miras alınmaz** — hafif mavi-gri eğilimli gri skala; saf `#808080` kullanılmaz.
 - **Katman ayrımı önce kenarlıkla.** Durağan kart ve paneller 1px kenarlık + arka plan tonuyla ayrılır. Yalnız etkileşimli kartın üzerine gelindiğinde çok hafif yükselti; menü, modal ve çekmece gibi geçici katmanlarda tek bir kaplama gölgesi kullanılabilir. Koyu temadaki durağan kartlar gölgesizdir.
-- **Formlar Zoho'dan daha sade uyarlanır.** Zorunlu ve sık kullanılan alanlar önce gelir; ikincil kurumsal ayrıntılar açılabilir bölümde kalır. Ana eylem tektir; yinelenen “Kaydet / Kaydet ve yeni” eylemleri varsayılan değildir.
-- **Yoğunluk operasyonel.** Form kontrolleri 40px, yoğun tablo satırları 38px ritmindedir; bir ekranda 25–30 dosya görünmeli, 8 değil.
-- **Hareket anlam taşır.** Tek hareket eğrisi ve 120/170/220 ms süreleri kullanılır; geçişler yalnız odak, durum ve katman değişimini açıklar. Hareket azaltma tercihi tüm hareketleri etkisizleştirir.
+- **Formlar Cubicl'in kompakt bölüm/modal diline uyarlanır.** Zorunlu ve sık kullanılan alanlar önce gelir; ikincil kurumsal ayrıntılar açılabilir bölümde kalır. Ana eylem tektir; yinelenen “Kaydet / Kaydet ve yeni” eylemleri varsayılan değildir.
+- **Yoğunluk operasyonel.** Form kontrolleri 28–32px kapsül ritminde, yoğun tablo satırları 38px ritmindedir; bir ekranda 25–30 dosya görünmeli, 8 değil.
+- **Hareket anlam taşır.** Cubicl referansındaki 150ms `ease-in-out` mikro geçiş ritmi kullanılır; geçişler yalnız odak, durum ve katman değişimini açıklar. Hareket azaltma tercihi tüm hareketleri etkisizleştirir.
 - **Sayfa geçişi süreklidir.** Filament SPA gezinmesi tam sayfa parlamasını azaltır; tarayıcı desteği varsa aynı kısa hareket sözleşmesiyle görünüm geçişi uygulanır.
 - **Dosya detayı tek çalışma alanıdır.** Ayrı sekmeler yerine şirket ve satış bağlamı ile evrak listesi ana akışta; süreç, ayrıntı ve ekip sabit sağ panelde; yorum, görev, görüşme ve geçmiş alttaki birleşik Etkinlik alanında sunulur.
 - **Durum formla da kodlanır**, sadece renkle değil — rozet, şerit, ikon. Renk körlüğü ve siyah-beyaz çıktı için.
@@ -940,14 +944,14 @@ Kişi başı lisans yok — kullanıcı eklemek bedava. *(Karşılaştırma: ki�
 
 ## 18.5 Geliştirme yürütmesi
 
-Kod, **iş paketleri** halinde yazılır. Her paket ayrı bir agent'a verilir, ayrı dalda geliştirilir, ayrı PR olarak incelenir.
+Kod, **iş paketleri** halinde yazılır. Her paket ayrı bir agent'a verilebilir ancak müşteri kararıyla geliştirme `main` çalışma çizgisinde sürdürülür. Mevcut `wp-22-cubicl-workflow-ui` dalı Cubicl İş Akışları işi tamamlanıp kabul edildikten sonra `main` ile birleştirilir; sonrasında yeni dal açılmaz. GitHub dal koruması zorunlu kılarsa PR yalnız yayımlama mekanizması olarak kullanılır.
 
 - **Ortak bağlam (her agent önce bunu okur):** `AGENTS.md` — depo kökünde
 - **Paket tanımları:** depoda tutulmaz, sohbette verilir. Depo yalnızca kalıcı belgeleri taşır
 - **Depo:** `https://github.com/MepCity/danismanlik_crm` — ⚠️ şu an **public**, gerçek müşteri verisi ve sır asla commit edilmez
 - **Toplam:** 21 paket, 5 faz (Temel · Veri · Domain · Arayüz · Operasyon)
 
-Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam kaymasına ve mimari savrulmaya karşı asıl koruma bu.
+Kural: bir paket incelenip kabul edilmeden sonraki pakete geçilmez. Kapsam kaymasına ve mimari savrulmaya karşı asıl koruma bu.
 
 ---
 
@@ -984,6 +988,9 @@ Kural: bir paket incelenip PR'ı onaylanmadan sonraki pakete geçilmez. Kapsam k
 
 | Sürüm | Tarih | Değişiklik |
 |---|---|---|
+| 1.28 | 29.08.2026 | Cubicl ana navigasyonunun görsel sözleşmesi ve Bizlife eşlemesi onaylandı: Ana Panel, Pazarlama, Firmalar, Dosyalar, Raporlar, Diğer; yapılandırma sayfaları Diğer açılır menüsünde. Takvim, Yazışmalar, sohbet/not paneli ve genel arama kapsam dışı kaldı |
+| 1.27 | 29.08.2026 | Müşteri kararıyla Cubicl İş Akışları dalının kabul sonrası `main` ile birleştirilmesi ve bundan sonraki değişikliklerin yeni branch açılmadan `main` üzerinde sürdürülmesi benimsendi. Dal koruması zorunlu kılarsa PR yalnız teknik yayımlama mekanizmasıdır |
+| 1.26 | 29.08.2026 | Birincil arayüz referansı Cubicl olarak değiştirildi. Yerleşim, ölçü, yoğunluk, kapsül kontroller ve 150ms etkileşim ritmi alınır; marka varlıkları taşınmaz. Cubicl ekranları otomatik kapsam değildir; kullanıcı adım adım onaylar. İlk onaylı uyarlama İş Akışları ekranıdır |
 | 1.25 | 27.08.2026 | Firma aksiyonu kullanıcı dilinde yalnız “Arama planla” olarak sadeleştirildi. Ayrı e-posta şablonları menüsü kaldırıldı; toplu gönderim firma listesindeki etkin filtreyi başlangıç hedef kitlesi yapar, kullanıcı kapsamdan firma çıkarabilir veya filtre dışından firma ekleyebilir ve konu/gövdeyi gerçek alıcı önizlemesiyle aynı pencerede yazar. İzin defteri, abonelikten çıkma, policy ve denetim davranışları korunur (ADR-0033) |
 | 1.24 | 21.08.2026 | K-14 ve ADR-0032 ile müşteri kararı kaydedildi: firma doğrudan açılır, fırsat isteğe bağlıdır ve müşteri akışı firmadan başlatılabilir; hizmet taslak/başlatma kapısı, bağlı rehber görünümü ve program yorumları eklendi; kullanıcı/rol/acil erişim ekranları tek gerekçeli Erişim yönetiminde birleşti ve break-glass kaldırıldı; toplu e-posta şablon, gerçek alıcı önizlemesi ve append-only abonelikten çıkma ile tamamlandı |
 | 1.23 | 21.08.2026 | Müşteri talebiyle pazarlama araması izin kontrolü, `consent_call` / `do_not_call` ve kullanılmayan SMS izin özeti ürün kapsamından çıkarıldı. Arama uygunluğu manuel süreç sorumluluğunda kaldı; toplu pazarlama e-postası append-only defterdeki güncel e-posta iznini doğrulamaya devam eder. Gelen/giden ve pazarlama/hizmet görüşme metadatası raporlama için korundu |

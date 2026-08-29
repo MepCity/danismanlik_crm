@@ -45,9 +45,7 @@ final class AdminPanelProvider extends PanelProvider
             ->spa()
             ->defaultThemeMode(ThemeMode::Light)
             ->maxContentWidth(Width::Full)
-            ->sidebarCollapsibleOnDesktop()
-            ->sidebarWidth('22.875rem')
-            ->collapsedSidebarWidth('4.5rem')
+            ->sidebarWidth('100px')
             ->navigationGroups([
                 NavigationGroup::make()->label(__('panel.navigation.groups.overview')),
                 NavigationGroup::make()->label(__('panel.navigation.groups.marketing')),

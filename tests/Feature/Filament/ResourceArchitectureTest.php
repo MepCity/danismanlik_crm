@@ -96,7 +96,7 @@ it('tasarım paketi ortak hareket ve erişilebilirlik sözleşmesini uygular', f
         ->and($theme)->toContain('transform: translateY(0) scale(0.985);');
 });
 
-it('zoho esintili operasyon kabuğunu tokenlarla uygular', function (): void {
+it('ortak operasyon kabuğunu tokenlarla uygular', function (): void {
     $tokens = file_get_contents(resource_path('css/filament/operations/tokens.css'));
     $theme = file_get_contents(resource_path('css/filament/operations/theme.css'));
     $provider = file_get_contents(app_path('Providers/Filament/AdminPanelProvider.php'));
@@ -107,10 +107,12 @@ it('zoho esintili operasyon kabuğunu tokenlarla uygular', function (): void {
         ->and($tokens)->toContain('--crm-nav-bg:')
         ->and($tokens)->toContain('--crm-topbar-bg:')
         ->and($tokens)->toContain('--crm-control-height: 36px;')
-        ->and($theme)->toContain('.fi-sidebar .fi-sidebar-item-button')
+        ->and($tokens)->toContain('--crm-shell-rail-width: 100px;')
+        ->and($tokens)->toContain('--crm-shell-topbar-height: 60px;')
+        ->and($theme)->toContain('.crm-rail__control')
         ->and($theme)->toContain('background: var(--crm-nav-bg);')
         ->and($provider)->toContain('->defaultThemeMode(ThemeMode::Light)')
-        ->and($provider)->toContain("->sidebarWidth('22.875rem')");
+        ->and($provider)->toContain("->sidebarWidth('100px')");
 });
 
 it('giriş kontrollerini kart yüzeyinden belirgin biçimde ayırır', function (): void {
@@ -137,7 +139,7 @@ it('bütün form kontrollerini panel yüzeyinden belirgin biçimde ayırır', fu
         ->and($theme)->toContain('box-shadow: 0 0 0 3px var(--crm-focus-ring);');
 });
 
-it('bütün kaynak listelerinde ortak zoho liste kabuğunu kullanır', function (): void {
+it('bütün kaynak listelerinde referanstan bağımsız ortak liste kabuğunu kullanır', function (): void {
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(app_path('Filament/Resources')));
     $violations = [];
 
@@ -152,17 +154,40 @@ it('bütün kaynak listelerinde ortak zoho liste kabuğunu kullanır', function 
             continue;
         }
 
-        if (! str_contains($contents, 'use HasZohoListChrome;')) {
+        if (! str_contains($contents, 'use HasConsistentListChrome;')) {
             $violations[] = $file->getPathname();
         }
     }
 
-    $chrome = file_get_contents(app_path('Filament/Concerns/HasZohoListChrome.php'));
+    $chrome = file_get_contents(app_path('Filament/Concerns/HasConsistentListChrome.php'));
 
     expect($violations)->toBe([], 'Ortak liste kabuğunu kullanmayan kaynak bulundu: '.implode(', ', $violations))
         ->and($chrome)->not->toBeFalse()
         ->and($chrome)->toContain("'all' => Tab::make")
         ->and($chrome)->toContain("Action::make('refresh_list')");
+});
+
+it('iş akışları ekranında cubicl referans sözleşmesini uygular', function (): void {
+    $page = file_get_contents(resource_path('views/filament/resources/service-workflows/pages/list-service-workflows.blade.php'));
+    $tokens = file_get_contents(resource_path('css/filament/operations/tokens.css'));
+    $theme = file_get_contents(resource_path('css/filament/operations/theme.css'));
+    $listPage = file_get_contents(app_path('Filament/Resources/ServiceWorkflows/Pages/ListServiceWorkflows.php'));
+
+    expect($page)->not->toBeFalse()
+        ->and($tokens)->not->toBeFalse()
+        ->and($theme)->not->toBeFalse()
+        ->and($listPage)->not->toBeFalse()
+        ->and($page)->toContain('data-testid="cubicl-workflow-page"')
+        ->and($page)->toContain('data-testid="cubicl-workflow-intro"')
+        ->and($page)->toContain('data-testid="cubicl-workflow-inline-create"')
+        ->and($page)->toContain('data-testid="cubicl-workflow-cards"')
+        ->and($tokens)->toContain('--crm-workflow-control-height: 32px;')
+        ->and($tokens)->toContain('--crm-workflow-card-radius: 10px;')
+        ->and($tokens)->toContain('--crm-workflow-transition: 150ms ease-in-out;')
+        ->and($theme)->toContain('.cubicl-workflow__intro')
+        ->and($theme)->toContain('.cubicl-workflow__create-btn')
+        ->and($theme)->toContain('.cubicl-workflow-form-section')
+        ->and($listPage)->toContain("protected string \$view = 'filament.resources.service-workflows.pages.list-service-workflows';");
 });
 
 it('varlıkları host node kurulumu olmadan container içinde derler', function (): void {

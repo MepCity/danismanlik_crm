@@ -6,7 +6,7 @@ namespace App\Filament\Resources\ProgramVersions\Pages;
 
 use App\Domain\Program\Actions\CopyProgramVersion;
 use App\Domain\Program\Models\ProgramVersion;
-use App\Filament\Concerns\HasZohoListChrome;
+use App\Filament\Concerns\HasConsistentListChrome;
 use App\Filament\Resources\ProgramVersions\ProgramVersionResource;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -19,7 +19,7 @@ use Filament\Resources\Pages\ListRecords;
 
 final class ListProgramVersions extends ListRecords
 {
-    use HasZohoListChrome;
+    use HasConsistentListChrome;
 
     protected static string $resource = ProgramVersionResource::class;
 

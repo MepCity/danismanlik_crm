@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Customers\Pages;
 
-use App\Filament\Concerns\HasZohoListChrome;
+use App\Filament\Concerns\HasConsistentListChrome;
 use App\Filament\Resources\Customers\CustomerResource;
 use App\Filament\Support\CustomerFlowAction;
 use Filament\Resources\Pages\ListRecords;
 
 final class ListCustomers extends ListRecords
 {
-    use HasZohoListChrome;
+    use HasConsistentListChrome;
 
     protected static string $resource = CustomerResource::class;
 
