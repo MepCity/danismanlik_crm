@@ -5,12 +5,14 @@ declare(strict_types=1);
 use App\Domain\Program\Models\DocTemplate;
 use App\Domain\Program\Models\ProgramVersion;
 use App\Domain\Program\Models\ServiceWorkflow;
+use App\Filament\Resources\Companies\Pages\ListCompanies;
 use App\Filament\Resources\DocTemplates\DocTemplateResource;
 use App\Filament\Resources\DocTemplates\Pages\CreateDocTemplate;
 use App\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Filament\Resources\Programs\Pages\CreateProgram;
 use App\Filament\Resources\Programs\ProgramResource;
 use App\Filament\Resources\ProgramVersions\ProgramVersionResource;
+use App\Filament\Resources\ServiceWorkflows\Pages\ListServiceWorkflows;
 use App\Filament\Resources\ServiceWorkflows\ServiceWorkflowResource;
 use App\Filament\Resources\Statuses\Pages\CreateStatus;
 use App\Filament\Resources\Statuses\StatusResource;
@@ -86,6 +88,54 @@ it('program yönetiminde teknik alt kaynakları menüden gizler', function (): v
         ->and(ProgramVersionResource::shouldRegisterNavigation())->toBeFalse()
         ->and(DocTemplateResource::shouldRegisterNavigation())->toBeFalse()
         ->and(EmailTemplateResource::shouldRegisterNavigation())->toBeFalse();
+});
+
+it('iş akışları listesini yetkili kullanıcıya açar ve cubicl çalışma alanında gösterir', function (): void {
+    $admin = wp15User('Sistem Yöneticisi', 'cubicl-workflow-admin');
+    Auth::login($admin);
+
+    Livewire::test(ListServiceWorkflows::class)
+        ->assertSee('İş Akışı Nedir?')
+        ->assertSee('Nasıl Kullanılır?')
+        ->assertSee('Kullanıcı İzinleri')
+        ->assertSee('KOSGEB başvuru rehberi')
+        ->assertSeeHtml('data-testid="cubicl-workflow-page"')
+        ->assertSeeHtml('data-testid="cubicl-workflow-intro"')
+        ->assertSeeHtml('data-testid="cubicl-workflow-inline-create"')
+        ->assertSeeHtml('data-testid="workflow-permissions-link"')
+        ->assertSeeHtml('data-testid="cubicl-workflow-cards"');
+});
+
+it('iş akışları listesinde eşleşen kayıt olmadığında Türkçe boş ekran gösterir', function (): void {
+    $admin = wp15User('Sistem Yöneticisi', 'cubicl-workflow-empty');
+    Auth::login($admin);
+
+    Livewire::test(ListServiceWorkflows::class)
+        ->set('workflowSearch', 'OLMAYAN_BIR_IS_AKISI_ARAMASI')
+        ->assertSee('Aramanızla eşleşen iş akışı bulunamadı.')
+        ->assertSeeHtml('data-testid="cubicl-workflow-empty"');
+});
+
+it('yetkisiz kullanıcının iş akışları listesine erişimini sunucu tarafında 403 ile reddeder', function (): void {
+    $pm = wp15User('Proje Yöneticisi', 'unauthorized-pm-workflow');
+    $response = wp15Get($pm, '/operasyon/service-workflows');
+
+    expect($response->status())->toBe(403);
+});
+
+it('yenileme eylemi arama ve seçili filtreyi bozmadan listeyi tazeler', function (): void {
+    $admin = wp15User('Pazarlama', 'admin-refresh-test');
+    Auth::login($admin);
+
+    Livewire::test(ListCompanies::class)
+        ->searchTable('Kurgusal')
+        ->filterTable('is_active', true)
+        ->assertSet('tableSearch', 'Kurgusal')
+        ->assertSet('tableFilters.is_active', ['value' => true])
+        ->callAction('refresh_list')
+        ->assertSet('tableSearch', 'Kurgusal')
+        ->assertSet('tableFilters.is_active', ['value' => true])
+        ->assertSuccessful();
 });
 
 it('programı dönem ve belge listesiyle tek formdan oluşturur', function (): void {
