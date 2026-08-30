@@ -100,12 +100,6 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Ön yüz bağımlılıklarını kur
-        run: npm ci --ignore-scripts --no-audit --no-fund
-
-      - name: Ön yüz varlıklarını derle
-        run: npm run build
-
       - name: Composer önbellek dizinini bul
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
@@ -120,6 +114,12 @@ jobs:
 
       - name: Bağımlılıkları kur
         run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Ön yüz bağımlılıklarını kur
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Ön yüz varlıklarını derle
+        run: npm run build
 
       - name: Pint
         run: vendor/bin/pint --test
