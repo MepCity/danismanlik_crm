@@ -39,6 +39,9 @@ it('production ortamında yazmadan önce demo seederı reddeder', function (): v
 
 it('tamamen kurgusal demo grafiğini ve sabit hesapları kurar', function (): void {
     /** @var TestCase $this */
+    // The panel render at the end of this test asserts backend behaviour, not the
+    // compiled frontend, so it must not depend on a Vite manifest.
+    $this->disableVite();
     Storage::fake('s3');
     Queue::fake();
     (new DemoDataSeeder)->setContainer(app())->run();

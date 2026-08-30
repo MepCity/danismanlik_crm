@@ -93,6 +93,19 @@ jobs:
             --env MC_HOST_local=http://minioadmin:minioadmin@127.0.0.1:9000 \
             minio/mc:latest mb --ignore-existing local/tesvik-crm
 
+      - name: Node kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Ön yüz bağımlılıklarını kur
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Ön yüz varlıklarını derle
+        run: npm run build
+
       - name: Composer önbellek dizinini bul
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
