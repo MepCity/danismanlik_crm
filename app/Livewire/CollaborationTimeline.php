@@ -11,6 +11,7 @@ use App\Domain\Collaboration\Services\TimelineQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 final class CollaborationTimeline extends Component
@@ -29,13 +30,24 @@ final class CollaborationTimeline extends Component
 
     public string $direction = 'desc';
 
-    public function mount(string $subjectType, int $subjectId, string $filter = 'all', bool $embedded = false, string $direction = 'desc'): void
+    /**
+     * Presentation variant. "default" is the shared flat feed used by deal,
+     * lead, program and document screens; "customer" is the day grouped
+     * layout that only the company workspace asks for.
+     */
+    public string $variant = 'default';
+
+    public const VARIANTS = ['default', 'customer'];
+
+    public function mount(string $subjectType, int $subjectId, string $filter = 'all', bool $embedded = false, string $direction = 'desc', string $variant = 'default'): void
     {
         $this->subjectType = $subjectType;
         $this->subjectId = $subjectId;
         $this->setFilter($filter);
         $this->embedded = $embedded;
         $this->direction = in_array($direction, ['asc', 'desc'], true) ? $direction : 'desc';
+        abort_unless(in_array($variant, self::VARIANTS, true), 422);
+        $this->variant = $variant;
         $this->timeline();
     }
 
@@ -43,6 +55,21 @@ final class CollaborationTimeline extends Component
     {
         abort_unless(in_array($filter, ['all', 'activity', 'status', 'document', 'comment'], true), 422);
         $this->filter = $filter;
+        $this->page = 1;
+    }
+
+    /**
+     * A sibling composer on the same page announces new notes. Only refresh when
+     * the event belongs to this exact subject, so another customer's note can
+     * never repaint this timeline.
+     */
+    #[On('comments-updated')]
+    public function refreshAfterComment(?string $subjectType = null, ?int $subjectId = null): void
+    {
+        if ($subjectType !== null && ($subjectType !== $this->subjectType || (int) $subjectId !== $this->subjectId)) {
+            return;
+        }
+
         $this->page = 1;
     }
 

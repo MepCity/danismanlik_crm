@@ -2619,8 +2619,13 @@ body {
     }
 }
 
+/*
+ * The action-modal wrapper must stay transform-free: a finished animation with
+ * fill-mode "both" keeps translateY(0) on the element, which turns it into a
+ * containing block and drags every position: fixed modal out of the viewport.
+ */
 .fi-page > section,
-.fi-page > div,
+.fi-page > div:not([x-data^='filamentActionModals']),
 .fi-simple-main {
     animation: crm-enter var(--crm-duration-slow) var(--crm-ease) both;
 }
@@ -4869,158 +4874,11 @@ input[type='radio'].fi-radio-input:focus-visible,
     transform: none;
 }
 
-.company-workspace {
-    display: grid;
-    grid-template-columns: minmax(0, 1.85fr) minmax(18rem, 1fr);
-    align-items: start;
-    gap: var(--crm-space-4);
-}
-
-.company-workspace__main {
-    display: grid;
-    gap: var(--crm-space-4);
-    min-width: 0;
-}
-
-.company-workspace__rail {
-    position: sticky;
-    inset-block-start: var(--crm-space-4);
-    display: grid;
-    gap: var(--crm-space-3);
-    min-width: 0;
-}
-
-.company-section {
-    background: var(--crm-surface-panel);
-    border: 1px solid var(--crm-border);
-    border-radius: var(--crm-radius-md);
-    overflow: hidden;
-}
-
-.company-section--empty {
-    opacity: 0.92;
-}
-
-.company-section__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: var(--crm-row-height);
-    padding: var(--crm-space-2) var(--crm-space-3);
-    background: var(--crm-surface-muted);
-    border-block-end: 1px solid var(--crm-border);
-    user-select: none;
-}
-
-.company-section.is-collapsed .company-section__header {
-    border-block-end: none;
-}
-
-.company-section__trigger {
-    display: flex;
-    align-items: center;
-    gap: var(--crm-space-2);
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: var(--crm-text-base);
-    font-weight: 700;
-    color: var(--crm-text-strong);
-    text-align: start;
-}
-
-.company-section__trigger:focus-visible {
-    outline: 2px solid var(--crm-focus-ring);
-    outline-offset: 2px;
-    border-radius: var(--crm-radius-sm);
-}
-
-.company-section__chevron {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.125rem;
-    height: 1.125rem;
-    flex-shrink: 0;
-    color: var(--crm-text-muted);
-    transition: transform var(--crm-duration-fast) var(--crm-ease);
-}
-
-.company-section.is-collapsed .company-section__chevron {
-    transform: rotate(-90deg);
-}
-
-.company-section__title {
-    font-size: var(--crm-text-base);
-    font-weight: 700;
-    color: var(--crm-text-strong);
-}
-
-.company-section__count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    padding-inline: var(--crm-space-1);
-    background: var(--crm-surface-panel);
-    border: 1px solid var(--crm-border);
-    border-radius: var(--crm-radius-full);
-    color: var(--crm-text-muted);
-    font-family: var(--crm-font-data);
-    font-size: var(--crm-text-xs);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-}
-
-.company-section__count--zero {
-    color: var(--crm-text-disabled);
-    background: transparent;
-}
-
-.company-section__body {
-    padding: var(--crm-space-3);
-}
-
-.company-section__body--flush {
-    padding: 0;
-}
-
 .company-contact-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
     gap: var(--crm-space-3);
     margin-block-end: var(--crm-space-4);
-}
-
-.company-contact-card {
-    display: grid;
-    gap: var(--crm-space-2);
-    padding: var(--crm-space-3);
-    background: var(--crm-surface-panel);
-    border: 1px solid var(--crm-border);
-    border-radius: var(--crm-radius-sm);
-}
-
-.company-contact-card__identity {
-    display: flex;
-    align-items: center;
-    gap: var(--crm-space-3);
-}
-
-.company-contact-card__name {
-    display: flex;
-    align-items: center;
-    gap: var(--crm-space-2);
-    font-size: var(--crm-text-sm);
-}
-
-.company-contact-card__name strong {
-    color: var(--crm-text-strong);
-    font-weight: 700;
 }
 
 .contact-primary-badge {
@@ -5034,37 +4892,6 @@ input[type='radio'].fi-radio-input:focus-visible,
     border-radius: var(--crm-radius-sm);
 }
 
-.company-contact-card__channels {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--crm-space-2);
-    font-size: var(--crm-text-xs);
-}
-
-.company-contact-card__consent {
-    display: flex;
-    align-items: center;
-    gap: var(--crm-space-2);
-    padding-block-start: var(--crm-space-2);
-    border-block-start: 1px solid var(--crm-border);
-    font-size: var(--crm-text-xs);
-}
-
-.company-contact-form-wrap {
-    background: var(--crm-surface-muted);
-    border: 1px solid var(--crm-border);
-    border-radius: var(--crm-radius-sm);
-    padding: var(--crm-space-3);
-}
-
-.company-contact-form-header h3 {
-    font-size: var(--crm-text-sm);
-    font-weight: 700;
-    color: var(--crm-text-strong);
-    margin-block-end: var(--crm-space-2);
-}
-
 .company-form-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
@@ -5075,24 +4902,6 @@ input[type='radio'].fi-radio-input:focus-visible,
     display: flex;
     justify-content: flex-end;
     margin-block-start: var(--crm-space-3);
-}
-
-.company-activity-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--crm-space-2);
-    min-height: var(--crm-row-height);
-    padding: var(--crm-space-2) var(--crm-space-3);
-    background: var(--crm-surface-muted);
-    border-block-end: 1px solid var(--crm-border);
-}
-
-.company-activity-toolbar {
-    display: flex;
-    align-items: center;
-    gap: var(--crm-space-2);
 }
 
 .activity-sort-btn {
@@ -5112,141 +4921,6 @@ input[type='radio'].fi-radio-input:focus-visible,
 .activity-sort-btn:hover {
     color: var(--crm-text-strong);
     border-color: var(--crm-border-strong);
-}
-
-.company-rail {
-    display: grid;
-    gap: var(--crm-space-3);
-}
-
-.company-rail__actions {
-    display: grid;
-    gap: var(--crm-space-2);
-}
-
-.company-rail__primary-action button,
-.company-rail__primary-action .fi-btn,
-.company-rail__primary-action a {
-    width: 100%;
-    justify-content: center;
-    font-weight: 700;
-    font-size: var(--crm-text-sm);
-    min-height: calc(var(--crm-control-height) + 2px);
-}
-
-.company-rail__secondary-actions {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-    gap: var(--crm-space-2);
-}
-
-.company-rail__secondary-actions button,
-.company-rail__secondary-actions .fi-btn,
-.company-rail__secondary-actions a {
-    width: 100%;
-    justify-content: center;
-    font-size: var(--crm-text-xs);
-    font-weight: 600;
-}
-
-.company-rail__panel {
-    background: var(--crm-surface-panel);
-    border: 1px solid var(--crm-border);
-    border-radius: var(--crm-radius-md);
-    padding: var(--crm-space-3);
-    display: grid;
-    gap: var(--crm-space-3);
-}
-
-.company-rail__panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-block-end: 1px solid var(--crm-border);
-    padding-block-end: var(--crm-space-2);
-}
-
-.company-rail__panel-header h2 {
-    font-size: var(--crm-text-base);
-    font-weight: 700;
-    color: var(--crm-text-strong);
-}
-
-.company-details-list {
-    display: grid;
-    gap: 0;
-}
-
-.company-detail-row {
-    display: grid;
-    grid-template-columns: minmax(6.5rem, 8.5rem) 1fr;
-    align-items: baseline;
-    gap: var(--crm-space-2);
-    padding-block: var(--crm-space-1);
-    min-height: calc(var(--crm-row-height) * 0.7);
-    font-size: var(--crm-text-sm);
-    border-block-end: 1px solid var(--crm-border);
-}
-
-.company-detail-row:last-child {
-    border-block-end: none;
-}
-
-.company-detail-row dt {
-    color: var(--crm-text-muted);
-    font-size: var(--crm-text-xs);
-    font-weight: 600;
-}
-
-.company-detail-row dd {
-    margin: 0;
-    color: var(--crm-text-strong);
-    font-weight: 500;
-    word-break: break-word;
-}
-
-.company-detail-row dd.is-empty {
-    color: var(--crm-text-disabled);
-    font-style: italic;
-}
-
-.company-rail__counters {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--crm-space-2);
-    padding: var(--crm-space-2);
-    background: var(--crm-surface-muted);
-    border: 1px solid var(--crm-border);
-    border-radius: var(--crm-radius-sm);
-    text-align: center;
-}
-
-.company-rail__counter-item {
-    display: grid;
-    gap: var(--crm-space-1);
-}
-
-.company-rail__counter-item dt {
-    font-size: var(--crm-text-2xs);
-    color: var(--crm-text-muted);
-    font-weight: 600;
-}
-
-.company-rail__counter-item dd {
-    margin: 0;
-    font-size: var(--crm-text-lg);
-    font-weight: 700;
-    color: var(--crm-text-strong);
-    font-family: var(--crm-font-data);
-    font-variant-numeric: tabular-nums;
-}
-
-.company-rail__meta {
-    display: grid;
-    gap: var(--crm-space-1);
-    padding-inline: var(--crm-space-1);
-    color: var(--crm-text-subtle);
-    font-size: var(--crm-text-xs);
 }
 
 /* Service workflow workspace ----------------------------------- */
@@ -5856,15 +5530,6 @@ input[type='radio'].fi-radio-input:focus-visible,
 }
 
 @media (max-width: 64rem) {
-    .company-workspace {
-        grid-template-columns: 1fr;
-    }
-
-    .company-workspace__rail {
-        position: static;
-        inset-block-start: auto;
-    }
-
     .fi-main {
         padding-inline: var(--crm-space-3);
     }
@@ -5878,5 +5543,868 @@ input[type='radio'].fi-radio-input:focus-visible,
         animation-duration: 1ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 1ms !important;
+    }
+}
+
+/* Customer detail workspace ---------------------------------------------
+ * Reference-informed layout: identity card, inline note, horizontal tabs and
+ * a two-column body. Branding, copy and domain behaviour stay native.
+ */
+
+/* Inline note composer */
+
+.comment-composer--compact {
+    display: grid;
+    width: 100%;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--crm-space-3);
+    min-height: 95px;
+    padding: var(--crm-space-3);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-xl);
+}
+
+.comment-composer__field {
+    position: relative;
+}
+
+.comment-composer--compact textarea {
+    width: 100%;
+    min-height: 34px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: var(--crm-text);
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
+    resize: none;
+}
+
+.comment-composer--compact textarea:focus {
+    outline: none;
+}
+
+.comment-composer--compact .comment-composer__footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.comment-composer__submit {
+    display: inline-flex;
+    height: 30px;
+    align-items: center;
+    padding-inline: var(--crm-space-4);
+    background: var(--crm-workflow-action-create);
+    border: 0;
+    border-radius: var(--crm-radius-full);
+    color: var(--crm-workflow-action-create-text);
+    font-size: var(--crm-shell-body-size);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--crm-shell-transition);
+}
+
+.comment-composer__submit:hover:not(:disabled) {
+    background: var(--crm-workflow-action-create-hover);
+}
+
+.comment-composer__submit:disabled {
+    background: var(--crm-surface-disabled);
+    color: var(--crm-text-disabled);
+    cursor: not-allowed;
+}
+
+.comment-composer__hint {
+    color: var(--crm-text-subtle);
+    font-size: var(--crm-text-2xs);
+}
+
+.mention-suggestions {
+    position: absolute;
+    z-index: 40;
+    inset-inline-start: 0;
+    inset-block-start: calc(100% + var(--crm-space-1));
+    display: grid;
+    min-width: 14rem;
+    padding: var(--crm-space-1);
+    background: var(--crm-flyout-surface);
+    border: 1px solid var(--crm-flyout-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-flyout-shadow);
+    list-style: none;
+}
+
+.mention-suggestions__item {
+    padding: var(--crm-space-1) var(--crm-space-2);
+    border-radius: var(--crm-radius-sm);
+    font-size: var(--crm-shell-body-size);
+    cursor: pointer;
+}
+
+.mention-suggestions__item--active,
+.mention-suggestions__item:hover {
+    background: var(--crm-surface-hover);
+    color: var(--crm-accent-700);
+}
+
+/* Tabs */
+
+/* Two columns */
+
+@media (max-width: 64rem) {
+}
+
+/* ==========================================================================
+ * Customer workspace
+ * Layout, density and colour balance follow the approved reference capture.
+ * All colours resolve through semantic tokens; no raw values here.
+ * ========================================================================== */
+
+.customer-detail {
+    display: grid;
+    max-width: var(--crm-shell-content-max-width);
+    gap: var(--crm-customer-gutter);
+}
+
+/* --- identity card --- */
+
+.customer-identity {
+    display: grid;
+    min-height: var(--crm-customer-identity-min);
+    align-content: start;
+    gap: var(--crm-space-2);
+    padding: var(--crm-space-3) var(--crm-space-4) var(--crm-space-2);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-lg);
+}
+
+.customer-identity__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-3);
+}
+
+.customer-identity__title {
+    color: var(--crm-text-strong);
+    font-size: var(--crm-text-xl);
+    font-weight: 650;
+    line-height: 1.3;
+}
+
+.customer-identity__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--crm-space-2);
+}
+
+.customer-identity__actions .fi-btn.fi-color-success,
+.customer-identity__actions .fi-ac-btn-action .fi-btn {
+    background: var(--crm-customer-action-info);
+    border-color: var(--crm-customer-action-info);
+    color: var(--crm-customer-action-info-fg);
+}
+
+.customer-identity__actions .fi-btn.fi-color-success:hover {
+    background: var(--crm-customer-action-info-hover);
+    border-color: var(--crm-customer-action-info-hover);
+}
+
+.customer-menu {
+    position: relative;
+}
+
+.customer-menu__trigger {
+    display: inline-flex;
+    height: 32px;
+    align-items: center;
+    gap: var(--crm-space-1);
+    padding-inline: var(--crm-space-3);
+    background: var(--crm-surface-muted);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    color: var(--crm-text-muted);
+    font-size: var(--crm-shell-body-size);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--crm-shell-transition), border-color var(--crm-shell-transition);
+}
+
+.customer-menu__trigger:hover,
+.customer-menu__trigger[aria-expanded='true'] {
+    background: var(--crm-surface-hover);
+    border-color: var(--crm-border-hover);
+}
+
+.customer-menu__trigger svg {
+    width: 14px;
+    height: 14px;
+}
+
+.customer-menu__list {
+    position: absolute;
+    z-index: 30;
+    inset-inline-end: 0;
+    inset-block-start: calc(100% + var(--crm-space-1));
+    display: grid;
+    min-width: 13rem;
+    gap: var(--crm-space-1);
+    padding: var(--crm-space-2);
+    background: var(--crm-flyout-surface);
+    border: 1px solid var(--crm-flyout-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-flyout-shadow);
+}
+
+.customer-menu__item .fi-btn {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+/* 2 x 2 contact grid */
+.customer-identity__channels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--crm-space-2);
+    list-style: none;
+}
+
+.customer-channel {
+    display: flex;
+    height: var(--crm-customer-channel-height);
+    align-items: center;
+    gap: var(--crm-space-3);
+    padding-inline: var(--crm-space-3);
+    border: 1px solid var(--crm-customer-channel-border);
+    border-radius: var(--crm-radius-md);
+}
+
+.customer-channel > svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    color: var(--crm-text-subtle);
+}
+
+.customer-channel__body {
+    display: grid;
+    min-width: 0;
+    gap: 1px;
+}
+
+.customer-channel__label {
+    color: var(--crm-text-subtle);
+    font-size: var(--crm-text-2xs);
+    font-weight: 650;
+}
+
+.customer-channel__value {
+    overflow: hidden;
+    color: var(--crm-text);
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.customer-identity__footer {
+    display: flex;
+    justify-content: center;
+    border-block-start: 1px solid var(--crm-border);
+}
+
+.customer-identity__toggle {
+    display: inline-flex;
+    height: 24px;
+    align-items: center;
+    gap: var(--crm-space-1);
+    padding-inline: var(--crm-space-3);
+    background: transparent;
+    border: 0;
+    color: var(--crm-customer-action-info);
+    font-size: var(--crm-shell-body-size);
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.customer-identity__toggle svg {
+    width: 14px;
+    height: 14px;
+}
+
+.customer-details {
+    display: grid;
+    gap: var(--crm-space-3);
+    padding-block-start: var(--crm-space-3);
+    border-block-start: 1px solid var(--crm-border);
+}
+
+.customer-details__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--crm-space-2);
+}
+
+.customer-details__facts dt {
+    color: var(--crm-text-subtle);
+    font-size: var(--crm-text-2xs);
+    font-weight: 650;
+}
+
+.customer-details__facts dd {
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
+}
+
+.customer-details__contacts {
+    display: grid;
+    gap: var(--crm-space-2);
+}
+
+.customer-contact {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--crm-space-3);
+    padding: var(--crm-space-2) var(--crm-space-3);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+}
+
+.customer-contact__name {
+    display: flex;
+    align-items: center;
+    gap: var(--crm-space-2);
+    font-size: var(--crm-shell-body-size);
+}
+
+.customer-contact__channels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--crm-space-3);
+    font-size: var(--crm-shell-body-size);
+}
+
+.customer-contact-form summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    color: var(--crm-customer-action-info);
+    font-size: var(--crm-shell-body-size);
+    font-weight: 650;
+    cursor: pointer;
+}
+
+/* --- note row: avatar sits outside the card --- */
+
+.customer-note .comments-panel--compact {
+    display: block;
+    width: 100%;
+}
+
+.comment-composer--compact {
+    display: grid;
+    width: 100%;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--crm-space-3);
+    padding: 0;
+    background: transparent;
+    border: 0;
+}
+
+.comment-composer--compact > .comment-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--crm-customer-avatar);
+    border: 0;
+    border-radius: var(--crm-radius-full);
+    color: var(--crm-customer-avatar-fg);
+    font-weight: 700;
+}
+
+.comment-composer--compact .comment-composer__surface {
+    display: grid;
+    min-height: var(--crm-customer-note-height);
+    align-content: space-between;
+    gap: var(--crm-space-2);
+    padding: var(--crm-space-3) var(--crm-space-4);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-customer-note-radius);
+}
+
+.comment-composer__field {
+    position: relative;
+}
+
+.comment-composer--compact textarea {
+    width: 100%;
+    min-height: 34px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: var(--crm-text);
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
+    resize: none;
+}
+
+.comment-composer--compact textarea:focus {
+    outline: none;
+}
+
+.comment-composer--compact .comment-composer__footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.comment-composer__submit {
+    display: inline-flex;
+    height: 30px;
+    align-items: center;
+    gap: var(--crm-space-1);
+    padding-inline: var(--crm-space-4);
+    background: var(--crm-workflow-action-create);
+    border: 0;
+    border-radius: var(--crm-radius-full);
+    color: var(--crm-workflow-action-create-text);
+    font-size: var(--crm-shell-body-size);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--crm-shell-transition);
+}
+
+.comment-composer__submit:hover:not(:disabled) {
+    background: var(--crm-workflow-action-create-hover);
+}
+
+/*
+ * Disabled still reads as the green send action: a tinted surface with a
+ * readable green label instead of a flat grey chip that disappears.
+ */
+.comment-composer__submit:disabled {
+    background: var(--crm-customer-send-disabled-bg);
+    border: 1px solid var(--crm-customer-send-disabled-border);
+    color: var(--crm-customer-send-disabled-fg);
+    cursor: not-allowed;
+}
+
+.comment-composer__submit svg {
+    width: 14px;
+    height: 14px;
+}
+
+.mention-suggestions {
+    position: absolute;
+    z-index: 40;
+    inset-inline-start: 0;
+    inset-block-start: calc(100% + var(--crm-space-1));
+    display: grid;
+    min-width: 14rem;
+    padding: var(--crm-space-1);
+    background: var(--crm-flyout-surface);
+    border: 1px solid var(--crm-flyout-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-flyout-shadow);
+    list-style: none;
+}
+
+.mention-suggestions__item {
+    padding: var(--crm-space-1) var(--crm-space-2);
+    border-radius: var(--crm-radius-sm);
+    font-size: var(--crm-shell-body-size);
+    cursor: pointer;
+}
+
+.mention-suggestions__item--active,
+.mention-suggestions__item:hover {
+    background: var(--crm-surface-hover);
+    color: var(--crm-customer-action-info);
+}
+
+/* --- block tabs sitting on the panel edge --- */
+
+.customer-tabs {
+    display: flex;
+    gap: var(--crm-space-1);
+    margin-block-end: calc(var(--crm-customer-gutter) * -1);
+    overflow-x: auto;
+}
+
+.customer-tab {
+    display: inline-flex;
+    width: var(--crm-customer-tab-width);
+    height: var(--crm-customer-tab-height);
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--crm-space-1);
+    background: var(--crm-customer-tab-idle);
+    border: 1px solid transparent;
+    border-block-end: 0;
+    border-radius: var(--crm-radius-xl) var(--crm-radius-xl) 0 0;
+    color: var(--crm-text-muted);
+    font-size: var(--crm-shell-body-size);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--crm-shell-transition), color var(--crm-shell-transition);
+}
+
+.customer-tab svg {
+    width: 20px;
+    height: 20px;
+}
+
+.customer-tab:hover {
+    color: var(--crm-text);
+}
+
+.customer-tab--active {
+    background: var(--crm-surface-panel);
+    border-color: var(--crm-border);
+    color: var(--crm-customer-action-info);
+}
+
+.customer-tab--active svg {
+    color: var(--crm-customer-action-info);
+}
+
+/* --- two columns --- */
+
+.customer-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--crm-customer-gutter);
+}
+
+.customer-columns__main:focus-visible {
+    outline: 2px solid var(--crm-focus-ring);
+    outline-offset: 2px;
+}
+
+.customer-panel {
+    display: grid;
+    gap: var(--crm-space-3);
+    padding: var(--crm-space-4);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: 0 var(--crm-radius-lg) var(--crm-radius-lg);
+}
+
+.customer-panel__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-2);
+}
+
+.customer-panel__head h3 {
+    color: var(--crm-text-strong);
+    font-size: var(--crm-shell-title-size);
+    font-weight: 600;
+    line-height: var(--crm-shell-title-line);
+}
+
+.customer-panel__tools {
+    display: flex;
+    align-items: center;
+    gap: var(--crm-space-2);
+}
+
+.customer-sort {
+    display: inline-flex;
+    height: 28px;
+    align-items: center;
+    gap: var(--crm-space-1);
+    padding-inline: var(--crm-space-3);
+    background: var(--crm-surface-muted);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-full);
+    color: var(--crm-text-muted);
+    font-size: var(--crm-text-2xs);
+    font-weight: 650;
+    cursor: pointer;
+}
+
+/* --- operations column --- */
+
+/* Vertical rhythm between the hero and the sectioned cards. */
+.customer-columns__aside {
+    display: grid;
+    gap: var(--crm-customer-section-gap);
+}
+
+.ops-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-3);
+    padding: calc(var(--crm-customer-card-padding) + 3px) var(--crm-customer-card-padding);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-customer-card-radius);
+}
+
+.ops-hero__body {
+    display: grid;
+    gap: 3px;
+}
+
+.ops-hero__label {
+    color: var(--crm-text-muted);
+    font-size: var(--crm-customer-section-title-size);
+    font-weight: 620;
+}
+
+.ops-hero__value {
+    color: var(--crm-customer-action-info);
+    font-size: var(--crm-text-2xl);
+    font-weight: 750;
+    line-height: 1.1;
+}
+
+.ops-hero__action {
+    display: inline-flex;
+    height: 30px;
+    align-items: center;
+    gap: var(--crm-space-1);
+    padding-inline: var(--crm-space-3);
+    background: var(--crm-customer-action-info);
+    border: 0;
+    border-radius: var(--crm-radius-full);
+    color: var(--crm-customer-action-info-fg);
+    font-size: var(--crm-text-2xs);
+    font-weight: 650;
+    cursor: pointer;
+    transition: background-color var(--crm-shell-transition);
+}
+
+.ops-hero__action:hover {
+    background: var(--crm-customer-action-info-hover);
+}
+
+.ops-hero__action svg {
+    width: 13px;
+    height: 13px;
+}
+
+.ops-section {
+    display: grid;
+    gap: var(--crm-space-2);
+}
+
+.ops-section__title {
+    display: flex;
+    align-items: baseline;
+    gap: var(--crm-space-1);
+    color: var(--crm-text-strong);
+    font-size: var(--crm-customer-section-title-size);
+    font-weight: 630;
+    letter-spacing: normal;
+    line-height: 1.3;
+    text-transform: none;
+}
+
+.ops-section__count {
+    color: var(--crm-text-muted);
+    font-size: var(--crm-customer-section-title-size);
+    font-weight: 600;
+}
+
+/* Standing cards: 1px border + surface tone, never a heavy shadow (AGENTS.md). */
+.ops-card {
+    display: grid;
+    gap: var(--crm-customer-card-row-gap);
+    padding: var(--crm-customer-card-padding);
+    background: var(--crm-surface-panel);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-customer-card-radius);
+}
+
+.ops-card__title {
+    color: var(--crm-text-strong);
+    font-size: var(--crm-customer-card-title-size);
+    font-weight: 640;
+    line-height: 1.35;
+}
+
+.ops-card__context {
+    overflow: hidden;
+    color: var(--crm-text-muted);
+    font-size: var(--crm-customer-card-context-size);
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ops-card__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-2);
+    margin-block-start: 2px;
+    color: var(--crm-text-subtle);
+    font-size: var(--crm-customer-card-context-size);
+}
+
+.ops-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--crm-space-1);
+    padding: 1px var(--crm-space-2);
+    border: 1px solid currentColor;
+    border-radius: var(--crm-radius-full);
+    font-weight: 650;
+}
+
+.ops-badge svg {
+    width: 11px;
+    height: 11px;
+}
+
+.ops-badge--waiting { color: var(--crm-status-waiting-fg); background: var(--crm-status-waiting-bg); }
+.ops-badge--info { color: var(--crm-status-info-fg); background: var(--crm-status-info-bg); }
+.ops-badge--danger { color: var(--crm-status-danger-fg); background: var(--crm-status-danger-bg); }
+.ops-badge--success { color: var(--crm-status-success-fg); background: var(--crm-status-success-bg); }
+
+/* --- timeline --- */
+
+/*
+ * Customer workspace timeline only. The shared component keeps its default
+ * flat feed for deal, lead, program and document screens; these day grouped
+ * rules never leave the company workspace.
+ */
+.timeline-panel--customer .timeline-days {
+    display: grid;
+    gap: var(--crm-space-4);
+}
+
+.timeline-panel--customer .timeline-day {
+    display: grid;
+    gap: var(--crm-space-2);
+}
+
+.timeline-panel--customer .timeline-day__label {
+    justify-self: start;
+    padding: 2px var(--crm-space-3);
+    background: var(--crm-customer-day-bg);
+    border-radius: var(--crm-radius-full);
+    color: var(--crm-customer-day);
+    font-size: var(--crm-text-2xs);
+    font-weight: 700;
+}
+
+.timeline-panel--customer .timeline-day__items {
+    display: grid;
+    gap: var(--crm-space-3);
+    margin-inline-start: var(--crm-space-3);
+    padding-inline-start: var(--crm-space-4);
+    border-inline-start: 1px dashed var(--crm-border-strong);
+    list-style: none;
+}
+
+.timeline-panel--customer .timeline-entry {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--crm-space-3);
+}
+
+.timeline-panel--customer .timeline-entry__icon {
+    display: inline-grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    margin-inline-start: calc(var(--crm-space-4) * -1 - 14px);
+    background: var(--crm-surface-muted);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-full);
+    color: var(--crm-text-subtle);
+}
+
+.timeline-panel--customer .timeline-entry__icon svg {
+    width: 14px;
+    height: 14px;
+}
+
+.timeline-panel--customer .timeline-entry--note .timeline-entry__icon { color: var(--crm-customer-day); background: var(--crm-customer-day-bg); }
+.timeline-panel--customer .timeline-entry--success .timeline-entry__icon { color: var(--crm-status-success-fg); background: var(--crm-status-success-bg); }
+.timeline-panel--customer .timeline-entry--info .timeline-entry__icon { color: var(--crm-status-info-fg); background: var(--crm-status-info-bg); }
+
+.timeline-panel--customer .timeline-entry__body {
+    display: grid;
+    min-width: 0;
+    gap: var(--crm-space-1);
+}
+
+.timeline-panel--customer .timeline-entry__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--crm-space-2);
+    font-size: var(--crm-text-2xs);
+}
+
+.timeline-panel--customer .timeline-entry__avatar {
+    display: inline-grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    background: var(--crm-accent-100);
+    border-radius: var(--crm-radius-full);
+    color: var(--crm-accent-700);
+    font-size: var(--crm-text-2xs);
+    font-weight: 700;
+}
+
+.timeline-panel--customer .timeline-entry__actor {
+    color: var(--crm-text-strong);
+    font-size: var(--crm-shell-body-size);
+}
+
+.timeline-panel--customer .timeline-entry__lead,
+.timeline-panel--customer .timeline-entry__time {
+    color: var(--crm-text-subtle);
+}
+
+.timeline-panel--customer .timeline-entry__sentence {
+    color: var(--crm-text);
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
+}
+
+.timeline-panel--customer .timeline-entry__note {
+    padding: var(--crm-space-3);
+    background: var(--crm-customer-note-surface);
+    border: 1px solid var(--crm-customer-note-border);
+    border-radius: var(--crm-radius-md);
+    color: var(--crm-text);
+    font-size: var(--crm-shell-body-size);
+    line-height: var(--crm-shell-body-line);
+}
+
+@media (max-width: 64rem) {
+    .customer-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* The 2x2 contact grid only collapses once a single box would get too narrow. */
+@media (max-width: 40rem) {
+    .customer-identity__channels {
+        grid-template-columns: 1fr;
+    }
+
+    .customer-identity__head {
+        align-items: stretch;
+        flex-direction: column;
     }
 }

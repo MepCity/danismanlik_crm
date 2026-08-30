@@ -39,6 +39,7 @@ return [
     ],
     'activity' => [
         'system' => 'Sistem',
+        'note_added' => 'Bir not ekledi:',
         'document' => 'Belge',
         'file' => 'dosya',
         'unknown_value' => 'Bilinmeyen',
@@ -87,6 +88,7 @@ return [
         'expired' => 'Süresi doldu',
     ],
     'timeline' => [
+        'days' => ['today' => 'Bugün', 'yesterday' => 'Dün'],
         'title' => 'İşlem geçmişi',
         'description' => 'Yorumlar ve işlemler gerçekleşme sırasıyla birlikte gösterilir.',
         'empty' => 'Bu kayıt için henüz işlem yok.',
@@ -107,5 +109,6 @@ return [
         'new' => 'Yeni görev', 'title' => 'Başlık', 'assignee' => 'Atanan',
         'choose_assignee' => 'Kişi seçin', 'due_at' => 'Son tarih', 'description' => 'Açıklama',
         'create' => 'Görev oluştur', 'empty' => 'Henüz görev yok.', 'complete' => 'Tamamla', 'reopen' => 'Yeniden aç',
+        'created_message' => 'Görev oluşturuldu.',
     ],
 ];

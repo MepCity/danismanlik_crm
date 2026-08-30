@@ -33,11 +33,15 @@ final class CollaborationComments extends Component
 
     public string $direction = 'asc';
 
-    public function mount(string $subjectType, int $subjectId, string $direction = 'asc'): void
+    /** Compact mode renders only the composer, for the customer identity card. */
+    public bool $compact = false;
+
+    public function mount(string $subjectType, int $subjectId, string $direction = 'asc', bool $compact = false): void
     {
         $this->subjectType = $subjectType;
         $this->subjectId = $subjectId;
         $this->direction = in_array($direction, ['asc', 'desc'], true) ? $direction : 'asc';
+        $this->compact = $compact;
         $this->authorizeSubject();
     }
 
@@ -46,6 +50,23 @@ final class CollaborationComments extends Component
         $candidate = $this->mentionCandidates()->firstWhere('id', $this->mentionUserId);
         abort_unless($candidate instanceof User, 404);
         $this->body = rtrim($this->body).' @['.$candidate->name.'](user:'.$candidate->id.') ';
+        $this->mentionUserId = null;
+    }
+
+    /**
+     * Inline "@" picker entry point. The candidate list is rebuilt server-side,
+     * so an id forced from the client that is not mentionable is rejected.
+     */
+    public function insertMention(int $userId, string $trigger = '@'): void
+    {
+        $candidate = $this->mentionCandidates()->firstWhere('id', $userId);
+        abort_unless($candidate instanceof User, 404);
+
+        $body = $this->body;
+        $position = mb_strrpos($body, $trigger);
+
+        $this->body = ($position === false ? rtrim($body).' ' : mb_substr($body, 0, $position))
+            .'@['.$candidate->name.'](user:'.$candidate->id.') ';
         $this->mentionUserId = null;
     }
 
@@ -85,7 +106,7 @@ final class CollaborationComments extends Component
         }
 
         $this->resetComposer();
-        $this->dispatch('comments-updated');
+        $this->dispatch('comments-updated', subjectType: $this->subjectType, subjectId: $this->subjectId);
     }
 
     public function render(): View

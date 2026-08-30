@@ -268,43 +268,43 @@ it('veri kaynağını göstermeden yeni kişiyi sistem kaynağıyla kaydeder', f
     expect(Contact::query()->where('full_name', 'Kurgusal Yeni Yetkili')->sole()->data_source)->toBe('other');
 });
 
-it('firma detayını jira tarzı tek sayfada sekmeler olmadan iki kolon ve katlanabilir bölümlerle gösterir', function (): void {
-    $owner = User::factory()->create(['name' => 'Kurgusal Pazarlamacı', 'email' => 'ekran-jira-firma@example.invalid']);
+it('firma detayını cubicl uyarlamasında kimlik kartı, not alanı ve sekmelerle gösterir', function (): void {
+    $owner = User::factory()->create(['name' => 'Kurgusal Pazarlamacı', 'email' => 'ekran-cubicl-firma@example.invalid']);
     $owner->assignRole('Pazarlama');
-    $fixture = marketingScreenLead($owner, 'Jira Düzeni');
+    $fixture = marketingScreenLead($owner, 'Cubicl Düzeni');
     Auth::login($owner);
 
     $view = file_get_contents(resource_path('views/filament/resources/companies/view-company.blade.php'));
     expect($view)->not->toBeFalse()
-        ->and($view)->not->toContain('deal-tabs')
-        ->and($view)->toContain('company-workspace')
-        ->and($view)->toContain('company-workspace__main')
-        ->and($view)->toContain('company-workspace__rail')
-        ->and($view)->toContain('company-contacts-section')
-        ->and($view)->toContain('company-opportunities-section')
-        ->and($view)->toContain('company-projects-section')
-        ->and($view)->toContain('company-tasks-section')
-        ->and($view)->toContain('company-activity-section');
+        ->and($view)->toContain('customer-identity')
+        ->and($view)->toContain('customer-note')
+        ->and($view)->toContain('customer-tabs')
+        ->and($view)->toContain('customer-columns__main')
+        ->and($view)->toContain('customer-columns__aside')
+        ->and($view)->not->toContain('company-section__trigger');
 
     $test = Livewire::test(ViewCompany::class, ['record' => $fixture['company']->getRouteKey()])
-        ->assertSee('Kişiler')
-        ->assertSee('Fırsatlar')
-        ->assertSee('Projeler')
+        ->assertSet('activeTab', 'activities')
+        ->assertSee('Aktiviteler')
         ->assertSee('Görevler')
-        ->assertSee('Etkinlik')
-        ->assertSee('Ayrıntılar')
-        ->assertSee('Müşteri Oluştur')
-        ->assertSee('Arama planla')
-        ->assertSee('Firma bilgilerini düzenle')
-        ->assertDontSeeHtml('fi-header-actions-ctn')
+        ->assertSee('Fırsatlar')
+        ->assertSee('Dosyalar')
+        ->assertSee('Detayları Göster')
+        ->assertSee('İşlemler')
+        ->assertSee('Görev Oluştur')
+        ->assertSeeHtml('data-testid="customer-identity"')
+        ->assertSeeHtml('data-testid="customer-note"')
+        ->assertSeeHtml('data-testid="customer-tabs"')
+        ->assertSeeHtml('role="tablist"')
         ->assertSee($fixture['company']->legal_name)
-        ->assertSee($fixture['contact']->full_name)
-        ->assertDontSeeHtml('class="deal-tabs"')
-        ->assertSee('Yok')
+        ->assertDontSeeHtml('fi-header-actions-ctn')
+        // out-of-scope Cubicl features must not leak in
+        ->assertDontSee('Birleştir')
+        ->assertDontSee('Müşteri portalı')
+        ->assertDontSee('Cari hesap')
+        ->assertDontSee('Teklif')
         ->call('setActivityFilter', 'history')
         ->assertSet('activityFilter', 'history')
-        ->call('setActivityFilter', 'all')
-        ->assertSet('activityFilter', 'all')
         ->call('toggleActivityDirection')
         ->assertSet('activityDirection', 'asc')
         ->call('toggleActivityDirection')
@@ -314,6 +314,37 @@ it('firma detayını jira tarzı tek sayfada sekmeler olmadan iki kolon ve katla
     expect(substr_count($html, 'Müşteri Oluştur'))->toBe(1)
         ->and(substr_count($html, 'Arama planla'))->toBe(1)
         ->and(substr_count($html, 'Firma bilgilerini düzenle'))->toBe(1);
+});
+
+it('müşteri detayında yalnız izin verilen sekmeler seçilebilir', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-sekme-firma@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $fixture = marketingScreenLead($owner, 'Sekme Kontrolü');
+    Auth::login($owner);
+
+    $component = Livewire::test(ViewCompany::class, ['record' => $fixture['company']->getRouteKey()]);
+
+    foreach (ViewCompany::TABS as $tab) {
+        $component->call('setActiveTab', $tab)->assertSet('activeTab', $tab);
+    }
+
+    $component->call('setActiveTab', 'muhasebe')->assertStatus(422);
+});
+
+it('detayları göster kontrolü firma alanlarını ve kişileri açar', function (): void {
+    $owner = User::factory()->create(['email' => 'ekran-detay-firma@example.invalid']);
+    $owner->assignRole('Pazarlama');
+    $fixture = marketingScreenLead($owner, 'Detay Kontrolü');
+    Auth::login($owner);
+
+    Livewire::test(ViewCompany::class, ['record' => $fixture['company']->getRouteKey()])
+        ->assertSet('showDetails', false)
+        ->assertDontSeeHtml('data-testid="customer-details-region"')
+        ->call('toggleDetails')
+        ->assertSet('showDetails', true)
+        ->assertSeeHtml('data-testid="customer-details-region"')
+        ->assertSee('Detayları Gizle')
+        ->assertSee($fixture['contact']->full_name);
 });
 
 it('boş bölümleri gizlemeden sıfır sayısıyla ve sağ raydaki boş alanları Yok olarak gösterir', function (): void {
@@ -334,14 +365,22 @@ it('boş bölümleri gizlemeden sıfır sayısıyla ve sağ raydaki boş alanlar
     Auth::login($owner);
 
     Livewire::test(ViewCompany::class, ['record' => $emptyCompany->getRouteKey()])
-        ->assertSee('Kişiler')
-        ->assertSee('Fırsatlar')
-        ->assertSee('Projeler')
+        ->assertSee('Aktiviteler')
         ->assertSee('Görevler')
-        ->assertSee('Bu firmada kayıtlı kişi yok.')
+        ->assertSee('Fırsatlar')
+        ->assertSee('Dosyalar')
+        // empty sections stay visible with a zero counter instead of collapsing
+        ->assertSeeHtml('data-testid="ops-section-pending_documents"')
+        ->assertSeeHtml('data-testid="ops-section-overdue_tasks"')
+        ->assertSee('(0)')
+        ->assertDontSeeHtml('data-testid="ops-card"')
+        ->assertSee('Belirtilmedi')
+        ->call('setActiveTab', 'opportunities')
         ->assertSee('Bu firma için henüz fırsat yok.')
-        ->assertSee('Bu firma için henüz proje yok.')
-        ->assertSee('Yok');
+        ->call('setActiveTab', 'files')
+        ->assertSee('Bu firmaya bağlı dosya yok.')
+        ->call('toggleDetails')
+        ->assertSee('Bu firmada kayıtlı kişi yok.');
 });
 
 it('kapsam dışı firma detayına doğrudan erişimi 403 ile engeller', function (): void {

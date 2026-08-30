@@ -2,93 +2,164 @@
     @php($company = $this->record->load([
         'owner',
         'contacts' => fn ($query) => $query->orderByDesc('is_primary')->orderBy('full_name'),
-        'leads' => fn ($query) => $query->with(['status', 'owner', 'interestedProgramVersion.program', 'primaryContact'])->latest(),
-        'deals' => fn ($query) => $query->with(['status', 'projectManager', 'programVersion.program'])->latest(),
-        'tasks' => fn ($query) => $query->with('assignee')->latest(),
     ]))
 
-    @php($contactsCount = $company->contacts->count())
-    @php($leadsCount = $company->leads->count())
-    @php($openLeadsCount = $company->leads->whereNull('converted_deal_id')->count())
-    @php($dealsCount = $company->deals->count())
-    @php($tasksCount = $company->tasks->count())
+    @php($primaryContact = $company->contacts->firstWhere('is_primary', true) ?? $company->contacts->first())
+    {{-- Every tab and counter reads from this single scoped set. --}}
+    @php($summary = $this->workspaceSummary())
+    @php($view = \App\Filament\Support\CollaborationView::class)
 
-    <div class="company-workspace" data-testid="company-workspace">
-        <main class="company-workspace__main">
-            {{-- BÖLÜM 1: KİŞİLER --}}
-            <section
-                x-data="{
-                    open: localStorage.getItem('crm_sec_company_contacts_{{ $company->id }}') !== 'false',
-                    toggle() {
-                        this.open = !this.open;
-                        localStorage.setItem('crm_sec_company_contacts_{{ $company->id }}', this.open);
-                    }
-                }"
-                class="company-section"
-                :class="{ 'is-collapsed': !open, 'company-section--empty': {{ $contactsCount === 0 ? 'true' : 'false' }} }"
-                data-section="contacts"
-                data-testid="company-contacts-section"
-            >
-                <header class="company-section__header">
-                    <button
-                        type="button"
-                        @click="toggle"
-                        :aria-expanded="open.toString()"
-                        class="company-section__trigger"
-                        aria-controls="company-section-contacts-body"
+    <div class="customer-detail" data-testid="company-workspace">
+
+        {{-- 1 · ÜST MÜŞTERİ KİMLİK KARTI --}}
+        <section class="customer-identity" data-testid="customer-identity">
+            <header class="customer-identity__head">
+                <div class="customer-identity__who">
+                    <h2 class="customer-identity__title">{{ $company->legal_name }}</h2>
+                </div>
+
+                <div class="customer-identity__actions">
+                    @if ($this->getAction('create_task')?->isVisible())
+                        {{ $this->getAction('create_task') }}
+                    @endif
+
+                    <div
+                        class="customer-menu"
+                        x-data="{
+                            open: false,
+                            toggle() {
+                                this.open = ! this.open;
+                                if (! this.open) return;
+                                this.$nextTick(() => this.$refs.menu.querySelector('button, [href], [tabindex]:not([tabindex=\'-1\'])')?.focus());
+                            },
+                            close(refocus = false) {
+                                if (! this.open) return;
+                                this.open = false;
+                                if (refocus) this.$refs.trigger.focus();
+                            },
+                        }"
+                        x-on:keydown.escape.window="close(true)"
+                        x-on:click.outside="close()"
                     >
-                        <svg class="company-section__chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="company-section__title">{{ __('marketing.company.tabs.contacts') }}</span>
-                        <span class="company-section__count {{ $contactsCount === 0 ? 'company-section__count--zero' : '' }} numeric-data">{{ $contactsCount }}</span>
-                    </button>
-                </header>
+                        <button
+                            type="button"
+                            x-ref="trigger"
+                            class="customer-menu__trigger"
+                            aria-haspopup="menu"
+                            aria-controls="customer-actions-menu"
+                            x-bind:aria-expanded="open.toString()"
+                            x-on:click="toggle()"
+                            data-testid="customer-actions-trigger"
+                        >
+                            <span>{{ __('marketing.company.identity.actions') }}</span>
+                            <x-filament::icon icon="heroicon-o-chevron-down" aria-hidden="true" />
+                        </button>
 
-                <div x-show="open" id="company-section-contacts-body" class="company-section__body">
-                    <div class="company-contact-list" data-testid="company-contact-cards">
-                        @forelse ($company->contacts as $contact)
-                            <article class="company-contact-card">
-                                <div class="company-contact-card__identity">
-                                    <span class="comment-avatar" aria-hidden="true">{{ \App\Filament\Support\CollaborationView::initials($contact->full_name) }}</span>
-                                    <div>
-                                        <div class="company-contact-card__name">
-                                            <strong>{{ $contact->full_name }}</strong>
-                                            @if ($contact->is_primary)
-                                                <span class="contact-primary-badge">{{ __('panel.fields.primary') }}</span>
-                                            @endif
-                                        </div>
-                                        <span class="operations-muted">{{ $contact->title ?: __('marketing.consent.not_recorded') }}</span>
+                        <div
+                            id="customer-actions-menu"
+                            x-ref="menu"
+                            role="menu"
+                            aria-label="{{ __('marketing.company.identity.actions_menu') }}"
+                            class="customer-menu__list"
+                            x-show="open"
+                            x-cloak
+                            data-testid="customer-actions-menu"
+                        >
+                            @foreach (['edit', 'start_customer_flow', 'schedule_call'] as $actionName)
+                                @if ($this->getAction($actionName)?->isVisible())
+                                    <div class="customer-menu__item" role="menuitem" x-on:click="close()">
+                                        {{ $this->getAction($actionName) }}
                                     </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+
+                </div>
+            </header>
+
+            <ul class="customer-identity__channels">
+                <li class="customer-channel">
+                    <x-filament::icon icon="heroicon-o-user" aria-hidden="true" />
+                    <span class="customer-channel__body">
+                        <span class="customer-channel__label">{{ __('marketing.company.identity.primary_contact') }}</span>
+                        <span class="customer-channel__value">{{ $primaryContact?->full_name ?? __('marketing.company.identity.no_contact') }}</span>
+                    </span>
+                </li>
+                <li class="customer-channel">
+                    <x-filament::icon icon="heroicon-o-briefcase" aria-hidden="true" />
+                    <span class="customer-channel__body">
+                        <span class="customer-channel__label">{{ __('marketing.company.identity.role') }}</span>
+                        <span class="customer-channel__value">{{ $primaryContact?->title ?: __('marketing.company.identity.not_set') }}</span>
+                    </span>
+                </li>
+                <li class="customer-channel">
+                    <x-filament::icon icon="heroicon-o-phone" aria-hidden="true" />
+                    <span class="customer-channel__body">
+                        <span class="customer-channel__label">{{ __('marketing.company.identity.phone') }}</span>
+                        @if ($primaryContact?->phone)
+                            <a class="customer-channel__value numeric-data" href="tel:{{ $primaryContact->phone }}">{{ $primaryContact->phone }}</a>
+                        @else
+                            <span class="customer-channel__value operations-muted">{{ __('marketing.calls.no_phone') }}</span>
+                        @endif
+                    </span>
+                </li>
+                <li class="customer-channel">
+                    <x-filament::icon icon="heroicon-o-envelope" aria-hidden="true" />
+                    <span class="customer-channel__body">
+                        <span class="customer-channel__label">{{ __('marketing.company.identity.email') }}</span>
+                        @if ($primaryContact?->email)
+                            <a class="customer-channel__value" href="mailto:{{ $primaryContact->email }}">{{ $primaryContact->email }}</a>
+                        @else
+                            <span class="customer-channel__value operations-muted">{{ __('marketing.company.identity.not_set') }}</span>
+                        @endif
+                    </span>
+                </li>
+            </ul>
+
+            <div class="customer-identity__footer">
+                <button
+                    type="button"
+                    class="customer-identity__toggle"
+                    wire:click="toggleDetails"
+                    aria-controls="customer-details-region"
+                    aria-expanded="{{ $showDetails ? 'true' : 'false' }}"
+                    data-testid="customer-details-toggle"
+                >
+                    <span>{{ $showDetails ? __('marketing.company.identity.hide_details') : __('marketing.company.identity.show_details') }}</span>
+                    <x-filament::icon :icon="$showDetails ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down'" aria-hidden="true" />
+                </button>
+            </div>
+
+            @if ($showDetails)
+                <div id="customer-details-region" class="customer-details" aria-label="{{ __('marketing.company.identity.details_region') }}" data-testid="customer-details-region">
+                    <dl class="customer-details__facts">
+                        <div><dt>{{ __('panel.fields.tax_number') }}</dt><dd class="numeric-data">{{ $company->tax_number ?: __('marketing.company.identity.not_set') }}</dd></div>
+                        <div><dt>{{ __('panel.fields.tax_office') }}</dt><dd>{{ $company->tax_office ?: __('marketing.company.identity.not_set') }}</dd></div>
+                        <div><dt>{{ __('panel.fields.nace_code') }}</dt><dd class="numeric-data">{{ $company->nace_code ?: __('marketing.company.identity.not_set') }}</dd></div>
+                        <div><dt>{{ __('panel.fields.size') }}</dt><dd>{{ $company->size ? __('panel.company_directory.sizes.'.$company->size) : __('marketing.company.identity.not_set') }}</dd></div>
+                        <div><dt>{{ __('panel.fields.employee_count') }}</dt><dd class="numeric-data">{{ $company->employee_count ?: __('marketing.company.identity.not_set') }}</dd></div>
+                        <div><dt>{{ __('panel.fields.owner') }}</dt><dd>{{ $company->owner?->name ?? __('marketing.company.identity.not_set') }}</dd></div>
+                        <div><dt>{{ __('panel.fields.city') }}</dt><dd>{{ $company->city ?: __('marketing.company.identity.not_set') }}</dd></div>
+                        <div><dt>{{ __('panel.fields.industry') }}</dt><dd>{{ $company->industry ? __('panel.industries.'.$company->industry) : __('marketing.company.identity.not_set') }}</dd></div>
+                    </dl>
+
+                    <div class="customer-details__contacts" data-testid="company-contact-cards">
+                        @forelse ($company->contacts as $contact)
+                            <article class="customer-contact">
+                                <span class="comment-avatar" aria-hidden="true">{{ \App\Filament\Support\CollaborationView::initials($contact->full_name) }}</span>
+                                <div class="customer-contact__body">
+                                    <div class="customer-contact__name">
+                                        <strong>{{ $contact->full_name }}</strong>
+                                        @if ($contact->is_primary)
+                                            <span class="contact-primary-badge">{{ __('panel.fields.primary') }}</span>
+                                        @endif
+                                    </div>
+                                    <span class="operations-muted">{{ $contact->title ?: __('marketing.consent.not_recorded') }}</span>
                                 </div>
-                                <div class="company-contact-card__channels">
-                                    @if ($contact->phone)
-                                        <a class="operations-link numeric-data" href="tel:{{ $contact->phone }}">{{ $contact->phone }}</a>
-                                    @else
-                                        <span class="operations-muted">{{ __('marketing.calls.no_phone') }}</span>
-                                    @endif
-                                    @if ($contact->email)
-                                        <a class="operations-link" href="mailto:{{ $contact->email }}">{{ $contact->email }}</a>
-                                    @endif
-                                </div>
-                                <div class="company-contact-card__consent">
-                                    <span class="operations-label">{{ __('marketing.contacts.email_consent') }}:</span>
-                                    @if ($contact->consent_email === true)
-                                        <span class="status-token" data-status="success">
-                                            <span class="status-token__shape">✓</span>
-                                            {{ __('marketing.contacts.consent_options.granted') }}
-                                        </span>
-                                    @elseif ($contact->consent_email === false)
-                                        <span class="status-token" data-status="danger">
-                                            <span class="status-token__shape">✕</span>
-                                            {{ __('marketing.contacts.consent_options.denied') }}
-                                        </span>
-                                    @else
-                                        <span class="status-token" data-status="neutral">
-                                            <span class="status-token__shape">?</span>
-                                            {{ __('marketing.contacts.consent_options.unknown') }}
-                                        </span>
-                                    @endif
+                                <div class="customer-contact__channels">
+                                    @if ($contact->phone)<a class="operations-link numeric-data" href="tel:{{ $contact->phone }}">{{ $contact->phone }}</a>@endif
+                                    @if ($contact->email)<a class="operations-link" href="mailto:{{ $contact->email }}">{{ $contact->email }}</a>@endif
                                 </div>
                             </article>
                         @empty
@@ -96,454 +167,290 @@
                         @endforelse
                     </div>
 
-                    <div class="company-contact-form-wrap">
-                        <header class="company-contact-form-header">
-                            <h3>{{ __('marketing.contacts.add') }}</h3>
-                        </header>
-                        <form wire:submit="addContact" class="company-contact-form">
-                            <div class="company-form-grid">
-                                <label class="operations-label">
-                                    {{ __('marketing.contacts.full_name') }} <span class="operations-required">*</span>
-                                    <input wire:model="contactFullName" required placeholder="Ad Soyad">
-                                    @error('contactFullName') <span class="operations-error">{{ $message }}</span> @enderror
+                    @can('create', \App\Domain\Crm\Models\Contact::class)
+                        <details class="customer-contact-form" data-testid="company-contact-form">
+                            <summary>{{ __('marketing.contacts.add') }}</summary>
+                            <form wire:submit="addContact" class="operations-inline-form">
+                                <label class="intake-field">
+                                    <span>{{ __('marketing.contacts.full_name') }}</span>
+                                    <input type="text" wire:model="contactFullName" maxlength="255" required />
+                                    @error('contactFullName')<span class="operations-field-error">{{ $message }}</span>@enderror
                                 </label>
-                                <label class="operations-label">
-                                    {{ __('marketing.contacts.title') }}
-                                    <input wire:model="contactTitle" placeholder="Ör. Genel Müdür">
-                                    @error('contactTitle') <span class="operations-error">{{ $message }}</span> @enderror
+                                <label class="intake-field">
+                                    <span>{{ __('marketing.contacts.title') }}</span>
+                                    <input type="text" wire:model="contactTitle" maxlength="255" />
                                 </label>
-                                <label class="operations-label">
-                                    {{ __('marketing.contacts.phone') }}
-                                    <input class="numeric-data" wire:model="contactPhone" placeholder="+90 ...">
-                                    @error('contactPhone') <span class="operations-error">{{ $message }}</span> @enderror
+                                <label class="intake-field">
+                                    <span>{{ __('marketing.contacts.phone') }}</span>
+                                    <input type="text" wire:model="contactPhone" maxlength="40" />
                                 </label>
-                                <label class="operations-label">
-                                    {{ __('marketing.contacts.email') }}
-                                    <input type="email" wire:model="contactEmail" placeholder="ornek@firma.com">
-                                    @error('contactEmail') <span class="operations-error">{{ $message }}</span> @enderror
+                                <label class="intake-field">
+                                    <span>{{ __('marketing.contacts.email') }}</span>
+                                    <input type="email" wire:model="contactEmail" maxlength="255" />
+                                    @error('contactEmail')<span class="operations-field-error">{{ $message }}</span>@enderror
                                 </label>
-                                <label class="operations-label">
-                                    {{ __('marketing.contacts.email_consent') }}
+                                <label class="intake-field">
+                                    <span>{{ __('marketing.contacts.email_consent') }}</span>
                                     <select wire:model="contactEmailConsent">
-                                        @foreach (__('marketing.contacts.consent_options') as $value => $label)
-                                            <option value="{{ $value }}">{{ $label }}</option>
+                                        @foreach (['unknown', 'granted', 'denied'] as $consent)
+                                            <option value="{{ $consent }}">{{ __('marketing.contacts.consent_options.'.$consent) }}</option>
                                         @endforeach
                                     </select>
-                                    @error('contactEmailConsent') <span class="operations-error">{{ $message }}</span> @enderror
                                 </label>
-                                <label class="operations-label">
-                                    {{ __('marketing.contacts.disclosure_date') }}
-                                    <input type="date" wire:model="contactDisclosureDate">
-                                    @error('contactDisclosureDate') <span class="operations-error">{{ $message }}</span> @enderror
+                                <label class="intake-field">
+                                    <span>{{ __('marketing.contacts.disclosure_date') }}</span>
+                                    <input type="date" wire:model="contactDisclosureDate" />
                                 </label>
-                            </div>
-                            <div class="company-form-actions">
-                                <button class="operations-button operations-button--primary" type="submit">
-                                    {{ __('marketing.contacts.save') }}
+                                <div class="operations-actions">
+                                    <button class="operations-button operations-button--primary">{{ __('marketing.contacts.save') }}</button>
+                                </div>
+                            </form>
+                        </details>
+                    @endcan
+                </div>
+            @endif
+        </section>
+
+        {{-- 2 · HIZLI NOT --}}
+        <div class="customer-note" data-testid="customer-note">
+            <livewire:collaboration-comments
+                subject-type="company"
+                :subject-id="$company->id"
+                direction="desc"
+                :compact="true"
+                :key="'company-note-'.$company->id"
+            />
+        </div>
+
+        {{-- 3 · SEKMELER --}}
+        <nav
+            class="customer-tabs"
+            role="tablist"
+            aria-label="{{ __('marketing.company.workspace.tabs_label') }}"
+            data-testid="customer-tabs"
+            x-data="{
+                move(step) {
+                    const tabs = [...$el.querySelectorAll('[role=\'tab\']')];
+                    const current = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+                    const next = tabs[(current + step + tabs.length) % tabs.length];
+                    next?.focus();
+                    next?.click();
+                },
+            }"
+            x-on:keydown.arrow-right.prevent="move(1)"
+            x-on:keydown.arrow-left.prevent="move(-1)"
+        >
+            @foreach ([
+                'activities' => 'heroicon-o-bolt',
+                'tasks' => 'heroicon-o-check-circle',
+                'opportunities' => 'heroicon-o-flag',
+                'files' => 'heroicon-o-folder-open',
+            ] as $tab => $icon)
+                <button
+                    type="button"
+                    role="tab"
+                    id="customer-tab-{{ $tab }}"
+                    aria-controls="customer-panel-{{ $tab }}"
+                    aria-selected="{{ $activeTab === $tab ? 'true' : 'false' }}"
+                    tabindex="{{ $activeTab === $tab ? '0' : '-1' }}"
+                    class="customer-tab {{ $activeTab === $tab ? 'customer-tab--active' : '' }}"
+                    wire:click="setActiveTab('{{ $tab }}')"
+                    data-testid="customer-tab-{{ $tab }}"
+                >
+                    <x-filament::icon :icon="$icon" aria-hidden="true" />
+                    <span>{{ __('marketing.company.workspace.tabs.'.$tab) }}</span>
+                </button>
+            @endforeach
+        </nav>
+
+        {{-- 4-5 · İKİ KOLON --}}
+        <div class="customer-columns">
+            <main
+                class="customer-columns__main"
+                role="tabpanel"
+                id="customer-panel-{{ $activeTab }}"
+                aria-labelledby="customer-tab-{{ $activeTab }}"
+                tabindex="0"
+                wire:key="customer-panel-{{ $activeTab }}"
+            >
+                @if ($activeTab === 'activities')
+                    <div class="customer-panel" data-testid="customer-panel-activities">
+                        <header class="customer-panel__head">
+                            <h3>{{ __('marketing.company.activity.title') }}</h3>
+                            <div class="customer-panel__tools">
+                                <nav class="activity-switcher" aria-label="{{ __('marketing.detail.activity.filters_label') }}">
+                                    @foreach (['comments', 'history', 'all'] as $filter)
+                                        <button
+                                            type="button"
+                                            wire:click="setActivityFilter('{{ $filter }}')"
+                                            class="activity-switcher__item {{ $activityFilter === $filter ? 'activity-switcher__item--active' : '' }}"
+                                        >{{ __('marketing.company.activity.filters.'.$filter) }}</button>
+                                    @endforeach
+                                </nav>
+                                <button type="button" wire:click="toggleActivityDirection" class="customer-sort" title="{{ __('marketing.company.activity.sort.label') }}">
+                                    <span aria-hidden="true">{{ $activityDirection === 'desc' ? '↓' : '↑' }}</span>
+                                    <span>{{ __('marketing.company.activity.sort.'.($activityDirection === 'desc' ? 'newest' : 'oldest')) }}</span>
                                 </button>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            </section>
+                        </header>
 
-            {{-- BÖLÜM 2: FIRSATLAR --}}
-            <section
-                x-data="{
-                    open: localStorage.getItem('crm_sec_company_opportunities_{{ $company->id }}') !== 'false',
-                    toggle() {
-                        this.open = !this.open;
-                        localStorage.setItem('crm_sec_company_opportunities_{{ $company->id }}', this.open);
-                    }
-                }"
-                class="company-section"
-                :class="{ 'is-collapsed': !open, 'company-section--empty': {{ $leadsCount === 0 ? 'true' : 'false' }} }"
-                data-section="opportunities"
-                data-testid="company-opportunities-section"
-            >
-                <header class="company-section__header">
+                        <div wire:key="company-activity-{{ $activityFilter }}-{{ $activityDirection }}">
+                            @if ($activityFilter === 'comments')
+                                <livewire:collaboration-timeline subject-type="company" :subject-id="$company->id" filter="comment" :embedded="true" variant="customer" :direction="$activityDirection" :key="'company-notes-'.$company->id.'-'.$activityDirection" />
+                            @elseif ($activityFilter === 'history')
+                                <livewire:collaboration-timeline subject-type="company" :subject-id="$company->id" filter="activity" :embedded="true" variant="customer" :direction="$activityDirection" :key="'company-history-'.$company->id.'-'.$activityDirection" />
+                            @else
+                                <livewire:collaboration-timeline subject-type="company" :subject-id="$company->id" filter="all" :embedded="true" variant="customer" :direction="$activityDirection" :key="'company-all-'.$company->id.'-'.$activityDirection" />
+                            @endif
+                        </div>
+                    </div>
+                @elseif ($activeTab === 'tasks')
+                    <div class="customer-panel" data-testid="customer-panel-tasks">
+                        <livewire:subject-tasks subject-type="company" :subject-id="$company->id" :key="'company-tasks-'.$company->id" />
+                    </div>
+                @elseif ($activeTab === 'opportunities')
+                    <div class="customer-panel" data-testid="customer-panel-opportunities">
+                        <div class="checklist-table-wrap">
+                            <table class="checklist-table">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __('marketing.detail.program') }}</th>
+                                        <th>{{ __('marketing.detail.status') }}</th>
+                                        <th>{{ __('marketing.detail.owner') }}</th>
+                                        <th>{{ __('marketing.contacts.person') }}</th>
+                                        <th>{{ __('marketing.board.last_interaction') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($summary->leads as $lead)
+                                        <tr>
+                                            <td><a class="operations-link" href="{{ \App\Filament\Pages\LeadDetail::getUrl(['lead' => $lead->id]) }}">{{ $lead->interestedProgramVersion?->program?->name ?? __('marketing.board.no_program') }}</a></td>
+                                            <td>{!! \App\Filament\Support\StatusBadge::make($lead->status->color, $lead->status->label) !!}</td>
+                                            <td>{{ $lead->owner->name }}</td>
+                                            <td>{{ $lead->primaryContact?->full_name ?? __('marketing.consent.not_recorded') }}</td>
+                                            <td class="numeric-data">{{ $lead->updated_at->format('d.m.Y H:i') }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr><td colspan="5" class="operations-placeholder">{{ __('marketing.company.no_opportunities') }}</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @else
+                    <div class="customer-panel" data-testid="customer-panel-files">
+                        <div class="checklist-table-wrap">
+                            <table class="checklist-table">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __('marketing.company.workspace.files.reference') }}</th>
+                                        <th>{{ __('marketing.company.workspace.files.program') }}</th>
+                                        <th>{{ __('marketing.company.workspace.files.status') }}</th>
+                                        <th>{{ __('marketing.company.workspace.files.manager') }}</th>
+                                        <th>{{ __('marketing.company.workspace.files.updated') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($summary->deals as $deal)
+                                        <tr>
+                                            <td><a class="operations-link numeric-data" href="{{ \App\Filament\Pages\DealDetail::getUrl(['deal' => $deal->id]) }}">{{ $deal->reference_no }}</a></td>
+                                            <td>{{ $deal->programVersion->program->name }}</td>
+                                            <td>{!! \App\Filament\Support\StatusBadge::make($deal->status->color, $deal->status->label) !!}</td>
+                                            <td>{{ $deal->projectManager?->name ?? __('marketing.company.workspace.files.unassigned') }}</td>
+                                            <td class="numeric-data">{{ $deal->updated_at->format('d.m.Y H:i') }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr><td colspan="5" class="operations-placeholder">{{ __('marketing.company.workspace.files.empty') }}</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endif
+            </main>
+
+            {{-- 6 · SAĞ ÖZET --}}
+            <aside class="customer-columns__aside" aria-label="{{ __('marketing.company.workspace.summary_title') }}" data-testid="customer-summary">
+                {{-- Primary counter card --}}
+                <section class="ops-hero" data-testid="ops-hero">
+                    <div class="ops-hero__body">
+                        <span class="ops-hero__label">{{ __('marketing.company.workspace.summary.active_deals') }}</span>
+                        <span class="ops-hero__value numeric-data">{{ $summary->activeDeals }}</span>
+                    </div>
                     <button
                         type="button"
-                        @click="toggle"
-                        :aria-expanded="open.toString()"
-                        class="company-section__trigger"
-                        aria-controls="company-section-opportunities-body"
+                        class="ops-hero__action"
+                        wire:click="setActiveTab('files')"
+                        data-testid="ops-hero-action"
                     >
-                        <svg class="company-section__chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="company-section__title">{{ __('marketing.company.tabs.opportunities') }}</span>
-                        <span class="company-section__count {{ $leadsCount === 0 ? 'company-section__count--zero' : '' }} numeric-data">{{ $leadsCount }}</span>
+                        <x-filament::icon icon="heroicon-o-arrow-right" aria-hidden="true" />
+                        <span>{{ __('marketing.company.workspace.tabs.files') }}</span>
                     </button>
-                </header>
-
-                <div x-show="open" id="company-section-opportunities-body" class="company-section__body company-section__body--flush">
-                    <div class="checklist-table-wrap">
-                        <table class="checklist-table">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('marketing.detail.program') }}</th>
-                                    <th>{{ __('marketing.detail.status') }}</th>
-                                    <th>{{ __('marketing.detail.owner') }}</th>
-                                    <th>{{ __('marketing.contacts.person') }}</th>
-                                    <th>{{ __('marketing.board.last_interaction') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($company->leads as $lead)
-                                    <tr>
-                                        <td>
-                                            <a class="operations-link" href="{{ \App\Filament\Pages\LeadDetail::getUrl(['lead' => $lead->id]) }}">
-                                                {{ $lead->interestedProgramVersion?->program?->name ?? __('marketing.board.no_program') }}
-                                            </a>
-                                        </td>
-                                        <td>{!! \App\Filament\Support\StatusBadge::make($lead->status->color, $lead->status->label) !!}</td>
-                                        <td>{{ $lead->owner->name }}</td>
-                                        <td>{{ $lead->primaryContact?->full_name ?? __('marketing.consent.not_recorded') }}</td>
-                                        <td class="numeric-data">{{ $lead->updated_at->format('d.m.Y H:i') }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="operations-placeholder">{{ __('marketing.company.no_opportunities') }}</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            {{-- BÖLÜM 3: PROJELER --}}
-            <section
-                x-data="{
-                    open: localStorage.getItem('crm_sec_company_projects_{{ $company->id }}') !== 'false',
-                    toggle() {
-                        this.open = !this.open;
-                        localStorage.setItem('crm_sec_company_projects_{{ $company->id }}', this.open);
-                    }
-                }"
-                class="company-section"
-                :class="{ 'is-collapsed': !open, 'company-section--empty': {{ $dealsCount === 0 ? 'true' : 'false' }} }"
-                data-section="projects"
-                data-testid="company-projects-section"
-            >
-                <header class="company-section__header">
-                    <button
-                        type="button"
-                        @click="toggle"
-                        :aria-expanded="open.toString()"
-                        class="company-section__trigger"
-                        aria-controls="company-section-projects-body"
-                    >
-                        <svg class="company-section__chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="company-section__title">{{ __('marketing.company.tabs.projects') }}</span>
-                        <span class="company-section__count {{ $dealsCount === 0 ? 'company-section__count--zero' : '' }} numeric-data">{{ $dealsCount }}</span>
-                    </button>
-                </header>
-
-                <div x-show="open" id="company-section-projects-body" class="company-section__body company-section__body--flush">
-                    <div class="checklist-table-wrap">
-                        <table class="checklist-table">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('operations.detail.fields.reference') }}</th>
-                                    <th>{{ __('marketing.detail.program') }}</th>
-                                    <th>{{ __('marketing.detail.status') }}</th>
-                                    <th>{{ __('operations.detail.fields.manager') }}</th>
-                                    <th>{{ __('marketing.company.opened_at') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($company->deals as $deal)
-                                    <tr>
-                                        <td>
-                                            <a class="operations-link numeric-data" href="{{ \App\Filament\Pages\DealDetail::getUrl(['deal' => $deal->id]) }}">
-                                                {{ $deal->reference_no }}
-                                            </a>
-                                        </td>
-                                        <td>{{ $deal->programVersion->program->name }}</td>
-                                        <td>{!! \App\Filament\Support\StatusBadge::make($deal->status->color, $deal->status->label) !!}</td>
-                                        <td>{{ $deal->projectManager?->name ?? __('operations.board.unassigned') }}</td>
-                                        <td class="numeric-data">{{ $deal->created_at->format('d.m.Y H:i') }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="operations-placeholder">{{ __('marketing.company.no_projects') }}</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            {{-- BÖLÜM 4: GÖREVLER --}}
-            <section
-                x-data="{
-                    open: localStorage.getItem('crm_sec_company_tasks_{{ $company->id }}') !== 'false',
-                    toggle() {
-                        this.open = !this.open;
-                        localStorage.setItem('crm_sec_company_tasks_{{ $company->id }}', this.open);
-                    }
-                }"
-                class="company-section"
-                :class="{ 'is-collapsed': !open, 'company-section--empty': {{ $tasksCount === 0 ? 'true' : 'false' }} }"
-                data-section="tasks"
-                data-testid="company-tasks-section"
-            >
-                <header class="company-section__header">
-                    <button
-                        type="button"
-                        @click="toggle"
-                        :aria-expanded="open.toString()"
-                        class="company-section__trigger"
-                        aria-controls="company-section-tasks-body"
-                    >
-                        <svg class="company-section__chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="company-section__title">{{ __('marketing.company.tabs.tasks') }}</span>
-                        <span class="company-section__count {{ $tasksCount === 0 ? 'company-section__count--zero' : '' }} numeric-data">{{ $tasksCount }}</span>
-                    </button>
-                </header>
-
-                <div x-show="open" id="company-section-tasks-body" class="company-section__body">
-                    <livewire:subject-tasks subject-type="company" :subject-id="$company->id" :key="'company-tasks-'.$company->id" />
-                </div>
-            </section>
-
-            {{-- BÖLÜM 5: ETKİNLİK (Jira-style Activity) --}}
-            <section
-                x-data="{
-                    open: localStorage.getItem('crm_sec_company_activity_{{ $company->id }}') !== 'false',
-                    toggle() {
-                        this.open = !this.open;
-                        localStorage.setItem('crm_sec_company_activity_{{ $company->id }}', this.open);
-                    }
-                }"
-                class="company-section"
-                :class="{ 'is-collapsed': !open }"
-                data-section="activity"
-                data-testid="company-activity-section"
-            >
-                <header class="company-activity-header">
-                    <button
-                        type="button"
-                        @click="toggle"
-                        :aria-expanded="open.toString()"
-                        class="company-section__trigger"
-                        aria-controls="company-section-activity-body"
-                        style="width: auto;"
-                    >
-                        <svg class="company-section__chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
-                        </svg>
-                        <span class="company-section__title">{{ __('marketing.company.activity.title') }}</span>
-                    </button>
-
-                    <div class="company-activity-toolbar">
-                        <nav class="activity-switcher" aria-label="{{ __('marketing.detail.activity.filters_label') }}">
-                            @foreach (['comments', 'history', 'all'] as $filter)
-                                <button
-                                    type="button"
-                                    wire:click="setActivityFilter('{{ $filter }}')"
-                                    class="activity-switcher__item {{ $activityFilter === $filter ? 'activity-switcher__item--active' : '' }}"
-                                >
-                                    {{ __('marketing.company.activity.filters.'.$filter) }}
-                                </button>
-                            @endforeach
-                        </nav>
-
-                        <button
-                            type="button"
-                            wire:click="toggleActivityDirection"
-                            class="activity-sort-btn"
-                            title="{{ __('marketing.company.activity.sort.label') }}"
-                        >
-                            <span>{{ $activityDirection === 'desc' ? '↓' : '↑' }}</span>
-                            <span>{{ __('marketing.company.activity.sort.'.($activityDirection === 'desc' ? 'newest' : 'oldest')) }}</span>
-                        </button>
-                    </div>
-                </header>
-
-                <div x-show="open" id="company-section-activity-body" class="company-section__body">
-                    <div class="company-activity-stream" wire:key="company-activity-{{ $activityFilter }}-{{ $activityDirection }}">
-                        @if ($activityFilter === 'comments')
-                            <livewire:collaboration-comments subject-type="company" :subject-id="$company->id" :direction="$activityDirection" :key="'company-comments-'.$company->id.'-'.$activityDirection" />
-                        @elseif ($activityFilter === 'history')
-                            <livewire:collaboration-timeline subject-type="company" :subject-id="$company->id" filter="activity" :embedded="true" :direction="$activityDirection" :key="'company-history-'.$company->id.'-'.$activityDirection" />
-                        @else
-                            <livewire:collaboration-timeline subject-type="company" :subject-id="$company->id" filter="all" :embedded="true" :direction="$activityDirection" :key="'company-all-'.$company->id.'-'.$activityDirection" />
-                        @endif
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        {{-- SAĞ RAY (RAY / ASIDE) --}}
-        <aside class="company-workspace__rail" aria-label="{{ __('marketing.detail.details.title') }}">
-            <div class="company-rail">
-                {{-- AKSİYONLAR --}}
-                <div class="company-rail__actions">
-                    @if ($this->getAction('start_customer_flow')?->isVisible())
-                        <div class="company-rail__primary-action">
-                            {{ $this->getAction('start_customer_flow') }}
-                        </div>
-                    @endif
-
-                    <div class="company-rail__secondary-actions">
-                        @if ($this->getAction('schedule_call')?->isVisible())
-                            {{ $this->getAction('schedule_call') }}
-                        @endif
-                        @if ($this->getAction('edit')?->isVisible())
-                            {{ $this->getAction('edit') }}
-                        @endif
-                    </div>
-                </div>
-
-                {{-- AYRINTILAR PANELİ --}}
-                <section class="company-rail__panel">
-                    <header class="company-rail__panel-header">
-                        <h2>{{ __('marketing.detail.details.title') }}</h2>
-                    </header>
-
-                    <dl class="company-details-list">
-                        {{-- 1. Firma unvanı --}}
-                        <div class="company-detail-row">
-                            <dt>{{ __('panel.fields.legal_name') }}</dt>
-                            <dd>{{ $company->legal_name }}</dd>
-                        </div>
-
-                        {{-- 2. Sektör --}}
-                        <div class="company-detail-row">
-                            <dt>{{ __('panel.fields.industry') }}</dt>
-                            @if ($company->industry)
-                                <dd>{{ __('panel.industries.'.$company->industry) ?? $company->industry }}</dd>
-                            @else
-                                <dd class="is-empty">{{ __('marketing.board.none') }}</dd>
-                            @endif
-                        </div>
-
-                        {{-- 3. İl --}}
-                        <div class="company-detail-row">
-                            <dt>{{ __('panel.fields.city') }}</dt>
-                            @if ($company->city)
-                                <dd>{{ $company->city }}</dd>
-                            @else
-                                <dd class="is-empty">{{ __('marketing.board.none') }}</dd>
-                            @endif
-                        </div>
-
-                        {{-- 4. İlçe --}}
-                        <div class="company-detail-row">
-                            <dt>{{ __('panel.fields.district') }}</dt>
-                            @if ($company->district)
-                                <dd>{{ $company->district }}</dd>
-                            @else
-                                <dd class="is-empty">{{ __('marketing.board.none') }}</dd>
-                            @endif
-                        </div>
-
-                        {{-- 5. Vergi no --}}
-                        <div class="company-detail-row">
-                            <dt>{{ __('panel.fields.tax_number') }}</dt>
-                            @if ($company->tax_number)
-                                <dd class="numeric-data">{{ $company->tax_number }}</dd>
-                            @else
-                                <dd class="is-empty">{{ __('marketing.board.none') }}</dd>
-                            @endif
-                        </div>
-
-                        {{-- 6. Ölçek --}}
-                        <div class="company-detail-row">
-                            <dt>{{ __('panel.fields.size') }}</dt>
-                            @if ($company->size)
-                                <dd>{{ __('panel.company_directory.sizes.'.$company->size) ?? $company->size }}</dd>
-                            @else
-                                <dd class="is-empty">{{ __('marketing.board.none') }}</dd>
-                            @endif
-                        </div>
-
-                        {{-- 7. Personel sayısı --}}
-                        <div class="company-detail-row">
-                            <dt>{{ __('panel.fields.employee_count') }}</dt>
-                            @if ($company->employee_count)
-                                <dd class="numeric-data">{{ $company->employee_count }}</dd>
-                            @else
-                                <dd class="is-empty">{{ __('marketing.board.none') }}</dd>
-                            @endif
-                        </div>
-
-                        {{-- 8. Kaynak --}}
-                        <div class="company-detail-row">
-                            <dt>{{ __('panel.fields.source') }}</dt>
-                            @if ($company->source)
-                                <dd>{{ $company->source }}</dd>
-                            @else
-                                <dd class="is-empty">{{ __('marketing.board.none') }}</dd>
-                            @endif
-                        </div>
-
-                        {{-- 9. Sorumlu --}}
-                        <div class="company-detail-row">
-                            <dt>{{ __('panel.fields.owner') }}</dt>
-                            @if ($company->owner)
-                                <dd>{{ $company->owner->name }}</dd>
-                            @else
-                                <dd class="is-empty">{{ __('marketing.board.none') }}</dd>
-                            @endif
-                        </div>
-
-                        {{-- 10. Aktif mi --}}
-                        <div class="company-detail-row">
-                            <dt>{{ __('panel.fields.is_active') }}</dt>
-                            <dd>
-                                @if ($company->is_active)
-                                    <span class="status-token" data-status="success">
-                                        <span class="status-token__shape">✓</span>
-                                        {{ __('panel.fields.active') }}
-                                    </span>
-                                @else
-                                    <span class="status-token" data-status="danger">
-                                        <span class="status-token__shape">✕</span>
-                                        {{ __('panel.fields.inactive') }}
-                                    </span>
-                                @endif
-                            </dd>
-                        </div>
-                    </dl>
-
-                    {{-- Sayaç Bloğu --}}
-                    <div class="company-rail__counters">
-                        <div class="company-rail__counter-item">
-                            <dt>{{ __('marketing.company.open_opportunities') }}</dt>
-                            <dd class="numeric-data">{{ $openLeadsCount }}</dd>
-                        </div>
-                        <div class="company-rail__counter-item">
-                            <dt>{{ __('marketing.company.projects') }}</dt>
-                            <dd class="numeric-data">{{ $dealsCount }}</dd>
-                        </div>
-                        <div class="company-rail__counter-item">
-                            <dt>{{ __('panel.company_directory.contacts') }}</dt>
-                            <dd class="numeric-data">{{ $contactsCount }}</dd>
-                        </div>
-                    </div>
-
-                    {{-- Zaman Damgaları --}}
-                    <div class="company-rail__meta">
-                        <div>
-                            <span>{{ __('marketing.detail.created_at') }}:</span>
-                            <strong class="numeric-data">{{ $company->created_at->format('d.m.Y H:i') }}</strong>
-                        </div>
-                        <div>
-                            <span>{{ __('marketing.detail.updated_at') }}:</span>
-                            <strong class="numeric-data">{{ $company->updated_at->format('d.m.Y H:i') }}</strong>
-                        </div>
-                    </div>
                 </section>
-            </div>
-        </aside>
+
+                @php($sections = [
+                    ['key' => 'pending_documents', 'rows' => $summary->pendingDocumentDeals(), 'kind' => 'deal', 'tone' => 'waiting'],
+                    ['key' => 'open_leads', 'rows' => $summary->openLeadRows(), 'kind' => 'lead', 'tone' => 'info'],
+                    ['key' => 'overdue_tasks', 'rows' => $summary->overdueTaskRows(), 'kind' => 'task', 'tone' => 'danger'],
+                    ['key' => 'open_tasks', 'rows' => $summary->openTaskRows(), 'kind' => 'task', 'tone' => 'waiting'],
+                    ['key' => 'completed_tasks', 'rows' => $summary->completedTaskRows(), 'kind' => 'task', 'tone' => 'success'],
+                ])
+
+                @foreach ($sections as $section)
+                    <section class="ops-section" data-testid="ops-section-{{ $section['key'] }}">
+                        <h3 class="ops-section__title">
+                            {{ __('marketing.company.workspace.sections.'.$section['key']) }}
+                            <span class="ops-section__count numeric-data">({{ $section['rows']->count() }})</span>
+                        </h3>
+
+                        @foreach ($section['rows'] as $row)
+                            <article class="ops-card" data-testid="ops-card">
+                                @if ($section['kind'] === 'deal')
+                                    <h4 class="ops-card__title numeric-data">{{ $row->reference_no }}</h4>
+                                    <p class="ops-card__context">{{ $row->programVersion->program->name }}</p>
+                                    <footer class="ops-card__foot">
+                                        <span class="ops-badge ops-badge--{{ $section['tone'] }}">
+                                            {{ __('marketing.company.workspace.summary.pending_documents') }}: {{ $row->pending_documents_count }}
+                                        </span>
+                                        <time class="numeric-data">{{ $row->updated_at->format('d.m.Y') }}</time>
+                                    </footer>
+                                @elseif ($section['kind'] === 'lead')
+                                    <h4 class="ops-card__title">{{ $row->interestedProgramVersion?->program?->name ?? __('marketing.board.no_program') }}</h4>
+                                    <p class="ops-card__context">{{ $row->owner->name }}</p>
+                                    <footer class="ops-card__foot">
+                                        {!! \App\Filament\Support\StatusBadge::make($row->status->color, $row->status->label) !!}
+                                        <time class="numeric-data">{{ $row->updated_at->format('d.m.Y') }}</time>
+                                    </footer>
+                                @else
+                                    <h4 class="ops-card__title">{{ $row->title }}</h4>
+                                    <p class="ops-card__context">{{ $row->assignee?->name ?? __('marketing.company.workspace.files.unassigned') }}</p>
+                                    <footer class="ops-card__foot">
+                                        <span class="ops-badge ops-badge--{{ $section['tone'] }}">
+                                            <x-filament::icon
+                                                :icon="$section['key'] === 'completed_tasks' ? 'heroicon-o-check-circle' : ($section['key'] === 'overdue_tasks' ? 'heroicon-o-exclamation-triangle' : 'heroicon-o-clock')"
+                                                aria-hidden="true"
+                                            />
+                                            {{ __('marketing.company.workspace.sections.'.$section['key']) }}
+                                        </span>
+                                        <time class="numeric-data">{{ ($row->due_at ?? $row->updated_at)->format('d.m.Y') }}</time>
+                                    </footer>
+                                @endif
+                            </article>
+                        @endforeach
+                    </section>
+                @endforeach
+
+                <section class="ops-section" data-testid="ops-section-owner">
+                    <h3 class="ops-section__title">{{ __('marketing.company.workspace.summary.owner') }}</h3>
+                    <article class="ops-card">
+                        <h4 class="ops-card__title">{{ $summary->ownerName ?? __('marketing.company.workspace.summary.none') }}</h4>
+                        <footer class="ops-card__foot">
+                            <span>{{ __('marketing.company.workspace.summary.last_activity') }}</span>
+                            <time class="numeric-data">{{ $summary->lastActivityAt?->format('d.m.Y H:i') ?? __('marketing.company.workspace.summary.never') }}</time>
+                        </footer>
+                    </article>
+                </section>
+            </aside>
+        </div>
     </div>
 </x-filament-panels::page>

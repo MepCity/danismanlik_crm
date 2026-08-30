@@ -9,6 +9,7 @@ use App\Domain\Collaboration\Enums\CollaborationSubjectType;
 use App\Domain\Collaboration\Models\Task;
 use App\Domain\Collaboration\Services\TaskService;
 use App\Models\User;
+use App\Support\Authorization\ScopedQuery;
 use App\Support\Collaboration\SubjectModelResolver;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -67,8 +68,19 @@ final class SubjectTasks extends Component
     public function render(): View
     {
         $this->authorizeSubject();
-        $tasks = Task::query()->where($this->subject()->type->column(), $this->subjectId)
-            ->with(['assignee', 'creator'])->orderByRaw('completed_at NULLS FIRST')->orderBy('due_at')->get();
+        $user = Auth::user();
+        abort_unless($user !== null, 403);
+
+        // Seeing the subject is not permission to read its task list: the policy
+        // decides whether the viewer may list tasks, ScopedQuery narrows the rows.
+        $tasks = Gate::forUser($user)->allows('viewAny', Task::class)
+            ? app(ScopedQuery::class)->apply(Task::query(), $user, 'viewAny')
+                ->where($this->subject()->type->column(), $this->subjectId)
+                ->with(['assignee', 'creator'])
+                ->orderByRaw('completed_at NULLS FIRST')
+                ->orderBy('due_at')
+                ->get()
+            : Task::query()->whereRaw('1 = 0')->get();
 
         return view('livewire.subject-tasks', ['tasks' => $tasks, 'assignees' => $this->assignees()]);
     }
