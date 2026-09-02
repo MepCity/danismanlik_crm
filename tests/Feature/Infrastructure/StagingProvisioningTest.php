@@ -17,6 +17,8 @@ beforeEach(function (): void {
     $this->disableVite();
     (new ReferenceDataSeeder)->setContainer(app())->run();
     Filament::setCurrentPanel(Filament::getPanel('operations'));
+    Illuminate\Support\Facades\Storage::fake('s3');
+    config()->set('filesystems.default', 's3');
 });
 
 it('staging demo seederi staging veya prod ortamında hardcoded parola ile çalışmayı kesinlikle reddeder', function (): void {
@@ -29,6 +31,22 @@ it('staging demo seederi staging veya prod ortamında hardcoded parola ile çal�
 
     expect(fn () => (new DemoDataSeeder)->setContainer(app())->run())
         ->toThrow(RuntimeException::class);
+
+    config(['app.env' => 'testing']);
+});
+
+it('staging provision komutu production ve local ortamlarında çalışmayı reddeder', function (): void {
+    /** @var TestCase $this */
+    config(['app.env' => 'production']);
+
+    $this->artisan('system:provision-staging-demo')->assertFailed();
+    $this->artisan('system:provision-staging-demo', ['--force-test-environment' => true])->assertFailed();
+
+    config(['app.env' => 'local']);
+
+    $this->artisan('system:provision-staging-demo')->assertFailed();
+
+    config(['app.env' => 'testing']);
 });
 
 it('staging provision komutu eksik veya zayıf parolada işlemi derhal durdurur ve kullanıcı oluşturmaz', function (): void {
@@ -43,7 +61,7 @@ it('staging provision komutu eksik veya zayıf parolada işlemi derhal durdurur 
     putenv('STAGING_SYSTEM_ADMIN_EMAIL=admin@pilot.bizlife.invalid');
     putenv('STAGING_SYSTEM_ADMIN_PASSWORD=GucluParolaAdmin123!');
 
-    $this->artisan('system:provision-staging-demo')->assertFailed();
+    $this->artisan('system:provision-staging-demo', ['--force-test-environment' => true])->assertFailed();
 
     expect(User::query()->where('email', 'pazarlama@pilot.bizlife.invalid')->exists())->toBeFalse();
 });
@@ -67,7 +85,7 @@ it('staging provision komutu 4 ayrı rolü ve doğru kapsamları başarıyla kur
         $_SERVER[$k] = $v;
     }
 
-    $this->artisan('system:provision-staging-demo')->assertSuccessful();
+    $this->artisan('system:provision-staging-demo', ['--force-test-environment' => true])->assertSuccessful();
 
     $marketing = User::query()->where('email', 'pazarlama@pilot.bizlife.invalid')->first();
     $pm = User::query()->where('email', 'pm@pilot.bizlife.invalid')->first();
@@ -101,6 +119,8 @@ it('staging ortamında X-Robots-Tag başlığı eklenir', function (): void {
 
     $response = $this->get('/operasyon/login');
     $response->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+
+    config(['app.env' => 'testing']);
 });
 
 it('readiness healthcheck endpointi sistem çalışırken 200 döner', function (): void {
@@ -115,4 +135,15 @@ it('readiness healthcheck endpointi sistem çalışırken 200 döner', function 
                 'storage' => 'ok',
             ],
         ]);
+});
+
+it('readiness healthcheck bozuk depolama durumunda 503 döner ve sır sızdırmaz', function (): void {
+    /** @var TestCase $this */
+    Storage::shouldReceive('disk')->andThrow(new RuntimeException('S3 AWS credentials invalid or bucket missing: secret_access_key=xyz'));
+
+    $response = $this->getJson('/health');
+    $response->assertStatus(503)
+        ->assertExactJson(['status' => 'unhealthy'])
+        ->assertDontSee('secret_access_key')
+        ->assertDontSee('S3 AWS credentials');
 });
