@@ -58,14 +58,14 @@ docker compose --env-file .env.staging -f compose.staging.yaml ps
 ```
 
 ### B. Gerçek Yayın (Cloudflare Tüneli Dahil)
-Gerçek staging sunucusunda Cloudflare tüneli ile birlikte başlatmak için:
+Gerçek staging sunucusunda Cloudflare tüneli ile birlikte başlatmak için `compose.staging.tunnel.yaml` override dosyası eklenir:
 
 ```bash
-# 1. Konteyner imajlarını derleyin ve tünel profiliyle başlatın
-docker compose --env-file .env.staging -f compose.staging.yaml --profile tunnel up -d --build
+# 1. Konteyner imajlarını derleyin ve tünel override dosyasıyla başlatın
+docker compose --env-file .env.staging -f compose.staging.yaml -f compose.staging.tunnel.yaml up -d --build
 
 # 2. Servis durumlarını doğrulayın
-docker compose --env-file .env.staging -f compose.staging.yaml ps
+docker compose --env-file .env.staging -f compose.staging.yaml -f compose.staging.tunnel.yaml ps
 
 # 3. Veritabanı şemasını oluşturun
 docker compose --env-file .env.staging -f compose.staging.yaml exec app php artisan migrate --force
