@@ -13,7 +13,6 @@ final class BootstrapAdminCommand extends Command
     protected $signature = 'system:bootstrap-admin
         {--name= : Yönetici adı}
         {--email= : Yönetici e-posta adresi}
-        {--password= : En az 12 karakterlik güçlü parola}
         {--force : Mevcut etkin Sistem Yöneticisi olsa bile oluştur}';
 
     protected $description = 'Sistem için güvenli ilk yönetici hesabını oluşturur.';
@@ -22,7 +21,9 @@ final class BootstrapAdminCommand extends Command
     {
         $name = (string) ($this->option('name') ?: $this->ask('Yönetici Adı'));
         $email = (string) ($this->option('email') ?: $this->ask('Yönetici E-posta'));
-        $password = (string) ($this->option('password') ?: $this->secret('Yönetici Parolası'));
+
+        $envPassword = (string) (getenv('ADMIN_BOOTSTRAP_PASSWORD') ?: ($_ENV['ADMIN_BOOTSTRAP_PASSWORD'] ?? $_SERVER['ADMIN_BOOTSTRAP_PASSWORD'] ?? ''));
+        $password = $envPassword !== '' ? $envPassword : (string) $this->secret('Yönetici Parolası (en az 12 karakter, büyük/küçük harf, rakam, sembol)');
         $force = (bool) $this->option('force');
 
         try {
@@ -32,7 +33,7 @@ final class BootstrapAdminCommand extends Command
                 'password' => $password,
             ], force: $force);
 
-            $this->info("Sistem yöneticisi başarıyla oluşturuldu: {$user->email}");
+            $this->info(__('management.validation.admin_created', ['email' => $user->email]));
 
             return self::SUCCESS;
         } catch (Throwable $e) {

@@ -24,20 +24,30 @@ final class BootstrapAdmin
         $password = (string) ($data['password'] ?? '');
 
         if ($name === '') {
-            throw new InvalidArgumentException(__('management.validation.reason_required'));
+            throw new InvalidArgumentException(__('management.validation.name_required'));
+        }
+
+        if ($email === '') {
+            throw new InvalidArgumentException(__('management.validation.email_required'));
         }
 
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new InvalidArgumentException(__('validation.email', ['attribute' => 'email']));
+            throw new InvalidArgumentException(__('management.validation.email_invalid'));
         }
 
-        if (mb_strlen($password) < 12) {
-            throw new InvalidArgumentException(__('validation.min.string', ['attribute' => 'password', 'min' => 12]));
+        if (
+            mb_strlen($password) < 12
+            || ! preg_match('/[A-Z]/', $password)
+            || ! preg_match('/[a-z]/', $password)
+            || ! preg_match('/[0-9]/', $password)
+            || ! preg_match('/[\W_]/', $password)
+        ) {
+            throw new InvalidArgumentException(__('management.validation.password_strong'));
         }
 
         $adminRole = Role::query()->where('name', 'Sistem Yöneticisi')->first();
         if ($adminRole === null) {
-            throw new InvalidArgumentException('Sistem Yöneticisi rolü bulunamadı.');
+            throw new InvalidArgumentException(__('management.validation.admin_role_missing'));
         }
 
         if (! $force) {
@@ -47,7 +57,7 @@ final class BootstrapAdmin
                 ->exists();
 
             if ($existingAdmin) {
-                throw new InvalidArgumentException('Etkin bir Sistem Yöneticisi zaten mevcut.');
+                throw new InvalidArgumentException(__('management.validation.admin_exists'));
             }
         }
 

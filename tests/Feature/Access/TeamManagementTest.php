@@ -5,13 +5,19 @@ declare(strict_types=1);
 use App\Domain\Access\Actions\SaveTeam;
 use App\Domain\Access\Models\RolePermissionHistory;
 use App\Domain\Access\Models\Team;
+use App\Domain\Crm\Models\Company;
+use App\Domain\Deal\Models\Deal;
+use App\Domain\Deal\Models\Status;
+use App\Domain\Program\Models\Program;
 use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Teams\TeamResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
+use App\Support\Authorization\ScopedQuery;
 use Database\Seeders\ReferenceDataSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 uses(RefreshDatabase::class);
@@ -43,7 +49,7 @@ it('şirket yetkilisi izin verilmediyse takım ve rol ekranlarına doğrudan URL
     $this->actingAs($authority)->get(UserResource::getUrl('index'))->assertForbidden();
 });
 
-it('takım oluşturma yöneticisi ve üyeleriyle gerekçeli geçmiş kaydeder', function (): void {
+it('takım oluşturma yöneticisi role=manager üyeleri role=member olarak ve gerekçeli geçmiş kaydeder', function (): void {
     $actor = User::factory()->create(['email' => 'takim-admin@example.invalid']);
     $actor->assignRole('Sistem Yöneticisi');
 
@@ -62,8 +68,21 @@ it('takım oluşturma yöneticisi ve üyeleriyle gerekçeli geçmiş kaydeder', 
     expect($team)->not->toBeNull()
         ->and($team->name)->toBe('Kurgusal Marmara Ekibi')
         ->and($team->manager_id)->toBe($manager->id)
-        ->and($team->members()->count())->toBe(2)
+        ->and($team->members()->count())->toBe(3)
         ->and($team->is_active)->toBeTrue();
+
+    $managerRole = DB::table('team_members')
+        ->where('team_id', $team->id)
+        ->where('user_id', $manager->id)
+        ->value('role');
+
+    $member1Role = DB::table('team_members')
+        ->where('team_id', $team->id)
+        ->where('user_id', $member1->id)
+        ->value('role');
+
+    expect($managerRole)->toBe('manager')
+        ->and($member1Role)->toBe('member');
 
     $history = RolePermissionHistory::query()
         ->where('subject_type', 'team')
@@ -108,7 +127,7 @@ it('takım pasifleştirilince kaydı silmez ve geçmişe yazar', function (): vo
         ->and($history->reason)->toBe('Sezon sonu ekip pasifleştirme');
 });
 
-it('gerekçesiz takım işlemini reddeder', function (): void {
+it('gerekçesiz veya geçersiz üyeli takım işlemini reddeder', function (): void {
     $actor = User::factory()->create(['email' => 'takim-admin-3@example.invalid']);
     $actor->assignRole('Sistem Yöneticisi');
     $manager = User::factory()->create(['email' => 'lider-3@example.invalid', 'is_active' => true]);
@@ -118,4 +137,73 @@ it('gerekçesiz takım işlemini reddeder', function (): void {
         'manager_id' => $manager->id,
         'change_reason' => '   ',
     ], $actor))->toThrow(InvalidArgumentException::class);
+
+    expect(fn () => app(SaveTeam::class)->execute(null, [
+        'name' => 'Geçersiz Üyeli Takım',
+        'manager_id' => $manager->id,
+        'member_ids' => [999999],
+        'change_reason' => 'Hatalı ID ile deneme',
+    ], $actor))->toThrow(InvalidArgumentException::class);
+});
+
+it('yönetici ve üyelik değişikliği ScopedQuery team görünürlüğünü dinamik olarak günceller', function (): void {
+    $actor = User::factory()->create(['email' => 'admin-scope-test@example.invalid']);
+    $actor->assignRole('Sistem Yöneticisi');
+
+    $pm = User::factory()->create(['email' => 'pm-scope-test@example.invalid', 'data_scope' => 'team']);
+    $pm->assignRole('Proje Yöneticisi');
+
+    $marketing = User::factory()->create(['email' => 'marketing-scope-test@example.invalid', 'data_scope' => 'own']);
+    $marketing->assignRole('Pazarlama');
+
+    $company = Company::query()->create([
+        'legal_name' => 'Takım Kapsamı Deneme A.Ş.',
+        'industry' => 'technology',
+        'owner_user_id' => $marketing->id,
+        'is_active' => true,
+    ]);
+
+    $program = Program::query()->where('code', 'KOSGEB-YESIL-SANAYI')->firstOrFail();
+    $version = $program->versions()->firstOrFail();
+    $status = Status::query()->where('type', 'deal')->firstOrFail();
+
+    $deal = Deal::query()->create([
+        'company_id' => $company->id,
+        'program_version_id' => $version->id,
+        'status_id' => $status->id,
+        'status_changed_at' => now(),
+        'opened_by_user_id' => $marketing->id,
+        'pm_user_id' => null,
+        'reference_no' => 'TKM-2026-001',
+    ]);
+
+    $scopedQuery = app(ScopedQuery::class);
+
+    // 1. Durum: PM ve Marketing aynı takımda değilken PM dosyayı göremez
+    $visibleDealsBefore = $scopedQuery->apply(Deal::query(), $pm, 'deal.view')->get();
+    expect($visibleDealsBefore->pluck('id')->all())->not->toContain($deal->id);
+
+    // 2. Durum: Marketing kullanıcısı PM'in takımına eklendiğinde PM dosyayı team kapsamında görür
+    $team = app(SaveTeam::class)->execute(null, [
+        'name' => 'Dinamik Test Takımı',
+        'manager_id' => $pm->id,
+        'member_ids' => [$marketing->id],
+        'is_active' => true,
+        'change_reason' => 'Takım kapsamı testi için ekleme',
+    ], $actor);
+
+    $visibleDealsAfterJoin = $scopedQuery->apply(Deal::query(), $pm, 'deal.view')->get();
+    expect($visibleDealsAfterJoin->pluck('id')->all())->toContain($deal->id);
+
+    // 3. Durum: Marketing takımdan çıkarıldığında PM'in görünürlüğünden derhal düşer
+    app(SaveTeam::class)->execute($team, [
+        'name' => 'Dinamik Test Takımı',
+        'manager_id' => $pm->id,
+        'member_ids' => [],
+        'is_active' => true,
+        'change_reason' => 'Takım kapsamı testi için çıkarma',
+    ], $actor);
+
+    $visibleDealsAfterLeave = $scopedQuery->apply(Deal::query(), $pm, 'deal.view')->get();
+    expect($visibleDealsAfterLeave->pluck('id')->all())->not->toContain($deal->id);
 });

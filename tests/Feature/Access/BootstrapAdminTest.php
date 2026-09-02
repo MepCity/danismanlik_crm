@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Access\Actions\BootstrapAdmin;
 use App\Domain\Access\Models\RolePermissionHistory;
 use App\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
@@ -18,10 +19,12 @@ beforeEach(function (): void {
 
 it('güvenli ilk sistem yöneticisini doğru rol ve yetkilerle oluşturur', function (): void {
     /** @var TestCase $this */
+    putenv('ADMIN_BOOTSTRAP_PASSWORD=GucluParola123!');
+    $_ENV['ADMIN_BOOTSTRAP_PASSWORD'] = 'GucluParola123!';
+
     $this->artisan('system:bootstrap-admin', [
         '--name' => 'İlk Yönetici',
         '--email' => 'ilk-admin@bizlife.invalid',
-        '--password' => 'GucluParola123!',
     ])->assertSuccessful();
 
     $user = User::query()->where('email', 'ilk-admin@bizlife.invalid')->first();
@@ -49,10 +52,12 @@ it('etkin sistem yöneticisi varken varsayılan olarak reddeder', function (): v
     $admin = User::factory()->create(['email' => 'mevcut-admin@bizlife.invalid', 'is_active' => true]);
     $admin->assignRole('Sistem Yöneticisi');
 
+    putenv('ADMIN_BOOTSTRAP_PASSWORD=GucluParola123!');
+    $_ENV['ADMIN_BOOTSTRAP_PASSWORD'] = 'GucluParola123!';
+
     $this->artisan('system:bootstrap-admin', [
         '--name' => 'İkinci Yönetici',
         '--email' => 'ikinci-admin@bizlife.invalid',
-        '--password' => 'GucluParola123!',
     ])->assertFailed();
 
     expect(User::query()->where('email', 'ikinci-admin@bizlife.invalid')->exists())->toBeFalse();
@@ -63,23 +68,48 @@ it('force bayrağı verildiğinde mevcut yönetici olsa bile oluşturur', functi
     $admin = User::factory()->create(['email' => 'mevcut-admin@bizlife.invalid', 'is_active' => true]);
     $admin->assignRole('Sistem Yöneticisi');
 
+    putenv('ADMIN_BOOTSTRAP_PASSWORD=GucluParola123!');
+    $_ENV['ADMIN_BOOTSTRAP_PASSWORD'] = 'GucluParola123!';
+
     $this->artisan('system:bootstrap-admin', [
         '--name' => 'İkinci Yönetici',
         '--email' => 'ikinci-admin@bizlife.invalid',
-        '--password' => 'GucluParola123!',
         '--force' => true,
     ])->assertSuccessful();
 
     expect(User::query()->where('email', 'ikinci-admin@bizlife.invalid')->exists())->toBeTrue();
 });
 
-it('12 karakterden kısa zayıf parolayı reddeder', function (): void {
-    /** @var TestCase $this */
-    $this->artisan('system:bootstrap-admin', [
-        '--name' => 'Zayıf Yönetici',
-        '--email' => 'zayif@bizlife.invalid',
-        '--password' => 'Kisa123',
-    ])->assertFailed();
+it('büyük harf, küçük harf, rakam veya sembol içermeyen zayıf parolaları reddeder', function (): void {
+    $action = app(BootstrapAdmin::class);
 
-    expect(User::query()->where('email', 'zayif@bizlife.invalid')->exists())->toBeFalse();
+    // Kisa parola (<12)
+    expect(fn () => $action->execute(['name' => 'Admin', 'email' => 'a@b.com', 'password' => 'Kisa1!']))
+        ->toThrow(InvalidArgumentException::class);
+
+    // Buyuk harf yok
+    expect(fn () => $action->execute(['name' => 'Admin', 'email' => 'a@b.com', 'password' => 'kucukharfparola123!']))
+        ->toThrow(InvalidArgumentException::class);
+
+    // Kucuk harf yok
+    expect(fn () => $action->execute(['name' => 'Admin', 'email' => 'a@b.com', 'password' => 'BUYUKHARFPAROLA123!']))
+        ->toThrow(InvalidArgumentException::class);
+
+    // Rakam yok
+    expect(fn () => $action->execute(['name' => 'Admin', 'email' => 'a@b.com', 'password' => 'HarflerVeSemboller!']))
+        ->toThrow(InvalidArgumentException::class);
+
+    // Sembol yok
+    expect(fn () => $action->execute(['name' => 'Admin', 'email' => 'a@b.com', 'password' => 'HarflerVeRakamlar123']))
+        ->toThrow(InvalidArgumentException::class);
+});
+
+it('boş isim ve geçersiz e-posta durumunda hata fırlatır', function (): void {
+    $action = app(BootstrapAdmin::class);
+
+    expect(fn () => $action->execute(['name' => '', 'email' => 'a@b.com', 'password' => 'GucluParola123!']))
+        ->toThrow(InvalidArgumentException::class);
+
+    expect(fn () => $action->execute(['name' => 'Admin', 'email' => 'gecersiz-eposta', 'password' => 'GucluParola123!']))
+        ->toThrow(InvalidArgumentException::class);
 });
