@@ -1,16 +1,61 @@
+x-ci-app-env: &ci-app-env
+  APP_KEY: "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  APP_URL: "https://pilot.bizlife.invalid"
+  DB_PASSWORD: "stagingsecret"
+  REDIS_PASSWORD: "stagingsecret"
+  AWS_ENDPOINT: "http://minio:9000"
+  AWS_ACCESS_KEY_ID: "minioadmin"
+  AWS_SECRET_ACCESS_KEY: "minioadmin"
+  AWS_BUCKET: "tesvik-crm"
+  AWS_USE_PATH_STYLE_ENDPOINT: "true"
+  AWS_DEFAULT_REGION: "us-east-1"
+  MAIL_HOST: "mail.invalid"
+  MAIL_FROM_ADDRESS: "info@bizlife.invalid"
+  ENTRYPOINT_SKIP_CACHE: "1"
+
 services:
   app:
     environment:
-      AWS_ENDPOINT: http://minio:9000
-      AWS_ACCESS_KEY_ID: minioadmin
-      AWS_SECRET_ACCESS_KEY: minioadmin
-      AWS_BUCKET: tesvik-crm
-      AWS_USE_PATH_STYLE_ENDPOINT: "true"
-      AWS_DEFAULT_REGION: us-east-1
-      ENTRYPOINT_SKIP_CACHE: "1"
+      <<: *ci-app-env
     depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
       minio:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      clamav:
+        condition: service_healthy
+
+  queue:
+    environment:
+      <<: *ci-app-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      clamav:
+        condition: service_healthy
+
+  scheduler:
+    environment:
+      <<: *ci-app-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
       clamav:
         condition: service_healthy
 
