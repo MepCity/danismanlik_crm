@@ -198,8 +198,29 @@ it('staging provision komutu ikinci çalıştırmada katı yan etki idempotence 
     $this->artisan('system:provision-staging-demo')->assertSuccessful();
 
     $marketing = User::query()->where('email', 'pazarlama@pilot.bizlife.invalid')->firstOrFail();
-    $initialMarketingPasswordHash = $marketing->password;
-    $initialMarketingUpdatedAt = (string) $marketing->updated_at;
+    $pm = User::query()->where('email', 'pm@pilot.bizlife.invalid')->firstOrFail();
+    $authority = User::query()->where('email', 'yetkili@pilot.bizlife.invalid')->firstOrFail();
+    $admin = User::query()->where('email', 'admin@pilot.bizlife.invalid')->firstOrFail();
+    $team = Team::query()->where('name', (string) __('management.staging_provision.pilot_data.team_name'))->firstOrFail();
+    $company = Company::query()->where('tax_number', '1234567890')->firstOrFail();
+    $deal = Deal::query()->where('company_id', $company->id)->firstOrFail();
+
+    $initialUserHashes = [
+        'marketing' => $marketing->password,
+        'pm' => $pm->password,
+        'authority' => $authority->password,
+        'admin' => $admin->password,
+    ];
+
+    $initialUpdatedAts = [
+        'marketing' => (string) $marketing->updated_at,
+        'pm' => (string) $pm->updated_at,
+        'authority' => (string) $authority->updated_at,
+        'admin' => (string) $admin->updated_at,
+        'team' => (string) $team->updated_at,
+        'company' => (string) $company->updated_at,
+        'deal' => (string) $deal->updated_at,
+    ];
 
     $counts = [
         'users' => User::query()->count(),
@@ -215,6 +236,7 @@ it('staging provision komutu ikinci çalıştırmada katı yan etki idempotence 
         'activities' => Activity::query()->count(),
         'notifications' => Notification::query()->count(),
         'role_permission_history' => RolePermissionHistory::query()->count(),
+        'audit_log' => DB::table('audit_log')->count(),
         'model_has_roles' => DB::table('model_has_roles')->count(),
         'model_has_permissions' => DB::table('model_has_permissions')->count(),
         'team_members' => DB::table('team_members')->count(),
@@ -236,14 +258,31 @@ it('staging provision komutu ikinci çalıştırmada katı yan etki idempotence 
         ->and(Activity::query()->count())->toBe($counts['activities'])
         ->and(Notification::query()->count())->toBe($counts['notifications'])
         ->and(RolePermissionHistory::query()->count())->toBe($counts['role_permission_history'])
+        ->and(DB::table('audit_log')->count())->toBe($counts['audit_log'])
         ->and(DB::table('model_has_roles')->count())->toBe($counts['model_has_roles'])
         ->and(DB::table('model_has_permissions')->count())->toBe($counts['model_has_permissions'])
         ->and(DB::table('team_members')->count())->toBe($counts['team_members']);
 
-    // Kullanıcı parolası ve updated_at değeri değişmemeli
+    // Pilot kullanıcılarının parolaları ve updated_at değerleri değişmemeli
     $refreshedMarketing = User::query()->where('email', 'pazarlama@pilot.bizlife.invalid')->firstOrFail();
-    expect($refreshedMarketing->password)->toBe($initialMarketingPasswordHash)
-        ->and((string) $refreshedMarketing->updated_at)->toBe($initialMarketingUpdatedAt);
+    $refreshedPm = User::query()->where('email', 'pm@pilot.bizlife.invalid')->firstOrFail();
+    $refreshedAuthority = User::query()->where('email', 'yetkili@pilot.bizlife.invalid')->firstOrFail();
+    $refreshedAdmin = User::query()->where('email', 'admin@pilot.bizlife.invalid')->firstOrFail();
+    $refreshedTeam = Team::query()->where('name', (string) __('management.staging_provision.pilot_data.team_name'))->firstOrFail();
+    $refreshedCompany = Company::query()->where('tax_number', '1234567890')->firstOrFail();
+    $refreshedDeal = Deal::query()->where('company_id', $company->id)->firstOrFail();
+
+    expect($refreshedMarketing->password)->toBe($initialUserHashes['marketing'])
+        ->and($refreshedPm->password)->toBe($initialUserHashes['pm'])
+        ->and($refreshedAuthority->password)->toBe($initialUserHashes['authority'])
+        ->and($refreshedAdmin->password)->toBe($initialUserHashes['admin'])
+        ->and((string) $refreshedMarketing->updated_at)->toBe($initialUpdatedAts['marketing'])
+        ->and((string) $refreshedPm->updated_at)->toBe($initialUpdatedAts['pm'])
+        ->and((string) $refreshedAuthority->updated_at)->toBe($initialUpdatedAts['authority'])
+        ->and((string) $refreshedAdmin->updated_at)->toBe($initialUpdatedAts['admin'])
+        ->and((string) $refreshedTeam->updated_at)->toBe($initialUpdatedAts['team'])
+        ->and((string) $refreshedCompany->updated_at)->toBe($initialUpdatedAts['company'])
+        ->and((string) $refreshedDeal->updated_at)->toBe($initialUpdatedAts['deal']);
 
     config(['app.env' => 'testing']);
 });
