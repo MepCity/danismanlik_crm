@@ -161,7 +161,7 @@ jobs:
       - name: Production Web ve App Docker imajlarını derle
         run: |
           docker build --target prod -f docker/app/Dockerfile -t bizlife-crm-app:staging-test .
-          docker build -f docker/web/Dockerfile -t bizlife-crm-web:staging-test .
+          docker build --target web-prod -f docker/app/Dockerfile -t bizlife-crm-web:staging-test .
 
       - name: Build edilmiş app imajında entrypoint staging ve production olumlu testleri
         run: |
@@ -240,3 +240,45 @@ jobs:
           else
             echo "APP_DEBUG=true beklendiği gibi reddedildi."
           fi
+
+      - name: Tünelsiz gerçek staging stack smoke testi
+        run: |
+          set -e
+          trap 'STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=stagingsecret REDIS_PASSWORD=stagingsecret docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.ci.yaml down -v --remove-orphans || true' EXIT
+
+          echo "1. Staging stack'ini derleyip arka planda başlat..."
+          STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=stagingsecret REDIS_PASSWORD=stagingsecret \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.ci.yaml up -d --build
+
+          echo "2. Migration'ları çalıştır..."
+          STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=stagingsecret REDIS_PASSWORD=stagingsecret \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.ci.yaml exec -T app php artisan migrate --force
+
+          echo "3. Staging provizyon komutunu çalıştır..."
+          STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=stagingsecret REDIS_PASSWORD=stagingsecret \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.ci.yaml exec -T \
+            -e STAGING_MARKETING_PASSWORD="PilotPassword123!" \
+            -e STAGING_PM_PASSWORD="PilotPassword123!" \
+            -e STAGING_COMPANY_AUTHORITY_PASSWORD="PilotPassword123!" \
+            -e STAGING_SYSTEM_ADMIN_PASSWORD="PilotPassword123!" \
+            app php artisan system:provision-staging-demo
+
+          echo "4. Web container üzerinden HTTP uçlarını doğrula..."
+          # /up -> 200
+          STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=stagingsecret REDIS_PASSWORD=stagingsecret \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.ci.yaml exec -T web curl -s -f http://localhost/up >/dev/null
+          echo "✓ /up endpointi 200 döndü"
+
+          # /health -> 200 (database, redis, storage hepsi ok)
+          HEALTH_JSON=$(STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=stagingsecret REDIS_PASSWORD=stagingsecret \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.ci.yaml exec -T web curl -s -f http://localhost/health)
+          echo "Health yanıtı: ${HEALTH_JSON}"
+          echo "${HEALTH_JSON}" | grep -q '"status":"ok"'
+          echo "✓ /health endpointi 200 ve status:ok döndü"
+
+          # /robots.txt -> staging noindex ve X-Robots-Tag kontrolü
+          ROBOTS_HEADERS=$(STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=stagingsecret REDIS_PASSWORD=stagingsecret \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.ci.yaml exec -T web curl -s -I http://localhost/robots.txt)
+          echo "${ROBOTS_HEADERS}" | grep -i "X-Robots-Tag: noindex, nofollow, noarchive"
+          echo "✓ robots.txt üzerinde X-Robots-Tag başlığı doğrulandı"
+
