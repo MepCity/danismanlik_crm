@@ -1,5 +1,5 @@
-<div class="w-full bg-amber-500/10 dark:bg-amber-500/15 border-b border-amber-500/20 dark:border-amber-500/30 text-amber-900 dark:text-amber-200 px-4 py-2 text-center text-xs font-medium flex items-center justify-center gap-2 select-none z-50">
-    <svg class="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+<div class="staging-warning-banner">
+    <svg class="staging-warning-banner__icon" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
     </svg>
     <span>{{ __('panel.pilot_warning') }}</span>
