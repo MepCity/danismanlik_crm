@@ -82,7 +82,7 @@ return [
         'open_detail' => ':company ayrıntısını aç',
         'open_full_detail' => 'Tüm kaydı aç',
         'empty_column' => 'Bu statüde fırsat yok.',
-        'no_program' => 'Program seçilmedi',
+        'no_program' => 'Hizmet seçilmedi',
         'last_interaction' => 'Son görüşme',
         'none' => 'Yok',
         'waiting_days' => ':count gündür açık',

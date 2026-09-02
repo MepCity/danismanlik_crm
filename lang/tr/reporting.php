@@ -11,7 +11,7 @@ return [
     'export_permission_required' => 'Excel indirme izni gerekli',
     'row_summary' => ':total satırın :shown satırı gösteriliyor.',
     'not_available' => '—',
-    'no_program' => 'Program seçilmedi',
+    'no_program' => 'Hizmet seçilmedi',
     'availability' => [
         'idle' => 'Boşta',
         'busy' => 'Aktif',
@@ -73,7 +73,7 @@ return [
     'columns' => [
         'reference_no' => 'Dosya no',
         'company_name' => 'Firma',
-        'program_name' => 'Program',
+        'program_name' => 'Hizmet',
         'status_label' => 'Statü',
         'project_manager' => 'Proje yöneticisi',
         'status_days' => 'Statüde toplam gün',

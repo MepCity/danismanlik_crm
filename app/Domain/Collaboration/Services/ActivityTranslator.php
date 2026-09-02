@@ -14,6 +14,18 @@ final class ActivityTranslator
                 'from' => $this->snapshotLabel($payload['from_status'] ?? null),
                 'to' => $this->snapshotLabel($payload['to_status'] ?? null),
             ],
+            'deal.assigned' => [
+                'from' => $this->snapshotLabel($payload['from_assignee'] ?? null),
+                'to' => $this->snapshotLabel($payload['to_assignee'] ?? null),
+            ],
+            'lead.converted' => [
+                'reference' => $payload['deal_reference'] ?? trans('collaboration.activity.unknown_value'),
+            ],
+            'workflow.bulk_transition' => [
+                'count' => $payload['subject_count'] ?? 0,
+                'target' => $this->snapshotLabel($payload['target_status'] ?? null),
+                'sources' => implode(', ', (array) ($payload['source_statuses'] ?? [])),
+            ],
             'document.status_changed' => [
                 'document' => $payload['document_name'] ?? $subjectLabel ?? trans('collaboration.activity.document'),
                 'from' => $this->documentStatus($payload['from_status'] ?? null),
@@ -46,6 +58,19 @@ final class ActivityTranslator
                 'reference' => $payload['deal_reference'] ?? trans('collaboration.activity.unknown_value'),
             ],
             'company.bulk_email_requested' => [],
+            'company.created', 'company.updated' => [
+                'company' => $this->snapshotLabel($payload['company'] ?? null),
+            ],
+            'deal.created' => [
+                'company' => $this->snapshotLabel($payload['company'] ?? null),
+            ],
+            'lead.created' => [
+                'company' => $this->snapshotLabel($payload['company'] ?? null),
+            ],
+            'program.started' => [
+                'program' => $this->snapshotLabel($payload['program'] ?? null),
+            ],
+            'interaction.recorded' => [],
             default => [],
         };
         $key = 'collaboration.activity.actions.'.str_replace('.', '_', $action);

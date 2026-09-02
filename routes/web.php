@@ -4,13 +4,27 @@ declare(strict_types=1);
 
 use App\Http\Controllers\DealDocumentArchiveController;
 use App\Http\Controllers\DocumentDownloadController;
+use App\Http\Controllers\HealthCheckController;
 use App\Http\Controllers\MarketingUnsubscribeController;
 use App\Http\Controllers\ReportExportController;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return auth()->check()
+        ? redirect('/operasyon')
+        : redirect('/operasyon/login');
+})->name('root');
+
+Route::get('/health', HealthCheckController::class)->name('health');
+
+Route::get('/robots.txt', function (): Response {
+    if (app()->environment('staging') || config('app.env') === 'staging') {
+        return response("User-agent: *\nDisallow: /\n", 200, ['Content-Type' => 'text/plain']);
+    }
+
+    return response("User-agent: *\nDisallow:\n", 200, ['Content-Type' => 'text/plain']);
+})->name('robots');
 
 Route::get('/documents/{file}/download', DocumentDownloadController::class)
     ->middleware(['auth', 'signed'])

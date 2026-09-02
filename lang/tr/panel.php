@@ -122,7 +122,7 @@ return [
         'start_help' => 'Firma rehberindeki bir firmayı ve alınan hizmeti seçin. Operasyon dosyası atama bekleyen işler arasına düşer.',
         'submit' => 'Akışı başlat',
         'company' => 'Firma seçin',
-        'program' => 'Anlaşılan program',
+        'program' => 'Anlaşılan hizmet',
         'started' => 'Müşteri akışı başlatıldı.',
         'started_at' => 'İlk iş tarihi',
         'active_projects' => 'Aktif dosya',
@@ -133,6 +133,8 @@ return [
             'program' => 'Aktif bir program sürümü seçmelisiniz.',
         ],
     ],
+    'pilot_warning' => 'Test ortamı — gerçek müşteri veya evrak verisi girmeyin.',
+    'pilot_mode' => 'Pilot Test Ortamı',
     'industries' => [
         'food' => 'Gıda',
         'agriculture' => 'Tarım ve hayvancılık',
