@@ -276,9 +276,25 @@ jobs:
           echo "${HEALTH_JSON}" | grep -q '"status":"ok"'
           echo "✓ /health endpointi 200 ve status:ok döndü"
 
-          # /robots.txt -> staging noindex ve X-Robots-Tag kontrolü
+          # /robots.txt -> HTTP 200, X-Robots-Tag başlığı ve gövde (User-agent: *, Disallow: /) kontrolü
+          ROBOTS_STATUS=$(STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=stagingsecret REDIS_PASSWORD=stagingsecret \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.ci.yaml exec -T web curl -s -o /dev/null -w "%{http_code}" http://localhost/robots.txt)
+          if [ "${ROBOTS_STATUS}" != "200" ]; then
+            echo "HATA: robots.txt HTTP 200 yerine ${ROBOTS_STATUS} döndü!"
+            exit 1
+          fi
+          echo "✓ robots.txt HTTP 200 döndü"
+
           ROBOTS_HEADERS=$(STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=stagingsecret REDIS_PASSWORD=stagingsecret \
             docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.ci.yaml exec -T web curl -s -I http://localhost/robots.txt)
           echo "${ROBOTS_HEADERS}" | grep -i "X-Robots-Tag: noindex, nofollow, noarchive"
-          echo "✓ robots.txt üzerinde X-Robots-Tag başlığı doğrulandı"
+          echo "✓ robots.txt üzerinde X-Robots-Tag: noindex, nofollow, noarchive başlığı doğrulandı"
+
+          ROBOTS_BODY=$(STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=stagingsecret REDIS_PASSWORD=stagingsecret \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.ci.yaml exec -T web curl -s http://localhost/robots.txt)
+          echo "robots.txt gövdesi:"
+          echo "${ROBOTS_BODY}"
+          echo "${ROBOTS_BODY}" | grep -q "User-agent: \*"
+          echo "${ROBOTS_BODY}" | grep -q "Disallow: /"
+          echo "✓ robots.txt gövdesinde User-agent: * ve Disallow: / doğrulandı"
 
