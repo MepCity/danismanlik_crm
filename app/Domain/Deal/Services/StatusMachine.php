@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Deal\Services;
 
-use App\Domain\Access\Services\WorkflowScopeAuthorizer;
 use App\Domain\Collaboration\Services\ActivityRecorder;
 use App\Domain\Crm\Events\LeadStatusChanged;
-use App\Domain\Crm\Services\CompanyConditionDataReader;
 use App\Domain\Crm\Services\LeadWorkflowSubjectGateway;
 use App\Domain\Deal\Events\DealStatusChanged;
 use App\Domain\Deal\Exceptions\StatusTransitionRejected;
@@ -16,8 +14,6 @@ use App\Domain\Deal\Models\StatusHistory;
 use App\Domain\Deal\Models\Transition;
 use App\Domain\Deal\Models\WorkflowRevision;
 use App\Domain\Document\Services\RequiredDocumentDataReader;
-use App\Support\Conditions\ArrayConditionContext;
-use App\Support\Conditions\ConditionEvaluator;
 use App\Support\Conditions\ConditionResult;
 use App\Support\Events\DomainEvent;
 use App\Support\Workflow\StatusTransition;
@@ -32,10 +28,8 @@ final class StatusMachine implements StatusMachineContract
     public function __construct(
         private readonly DealWorkflowSubjectGateway $deals,
         private readonly LeadWorkflowSubjectGateway $leads,
-        private readonly CompanyConditionDataReader $companies,
         private readonly RequiredDocumentDataReader $documents,
-        private readonly WorkflowScopeAuthorizer $authorization,
-        private readonly ConditionEvaluator $conditions,
+        private readonly TransitionGuard $guard,
         private readonly ActivityRecorder $activities,
     ) {}
 
@@ -128,42 +122,22 @@ final class StatusMachine implements StatusMachineContract
 
     private function guard(Transition $transition, int $actorId, WorkflowSubject $subject): void
     {
-        if ($transition->required_permission === null) {
-            return;
-        }
-
-        if (! $this->authorization->allows(
-            $actorId,
-            $transition->required_permission,
-            $subject->type,
-            $subject->id,
-        )) {
-            throw StatusTransitionRejected::permission($transition->required_permission);
+        if (! $this->guard->isPermitted($transition, $actorId, $subject)) {
+            throw StatusTransitionRejected::permission((string) $transition->required_permission);
         }
     }
 
     private function evaluateCondition(Transition $transition, WorkflowSubject $subject): void
     {
-        if ($transition->condition === null) {
+        $result = $this->guard->evaluateCondition($transition, $subject);
+
+        if ($result->passed) {
             return;
         }
 
         $requiredDocuments = $subject->type === SubjectType::Deal
             ? $this->documents->readForDeal($subject->id)
             : [];
-        $context = new ArrayConditionContext([
-            'company' => $this->companies->read($subject->companyId),
-            'deal' => [
-                'requested_amount' => $subject->requestedAmount,
-                'required_documents' => $requiredDocuments,
-            ],
-        ]);
-        $result = $this->conditions->evaluate($transition->condition, $context);
-
-        if ($result->passed) {
-            return;
-        }
-
         $missingDocuments = $this->missingDocumentNames($result, $requiredDocuments);
 
         throw $missingDocuments !== []

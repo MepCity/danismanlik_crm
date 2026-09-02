@@ -19,6 +19,9 @@ return [
             'target_unavailable' => 'Hedef statü kullanım dışı veya özne türüyle uyumsuz.',
             'history_missing' => 'Öznenin açık statü geçmişi bulunamadı.',
             'revision_missing' => 'Yürürlükte bir iş akışı revizyonu bulunamadı.',
+            'path_not_found' => '":from" statüsünden ":to" statüsüne uygun bir geçiş yolu bulunamadı.',
+            'target_not_found' => 'Belirtilen koşullara uygun hedef statü bulunamadı.',
+            'transition_not_found' => '":from" statüsünden uygun bir geçiş bulunamadı.',
         ],
         'workflow' => [
             'orphaned' => 'Değişiklik kaydedilemez. :details ve değişiklikten sonra çıkış geçişi kalmıyor.',

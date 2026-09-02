@@ -10,6 +10,8 @@ use App\Domain\Deal\Services\OrphanTransitionInspector;
 use App\Domain\Deal\Services\OrphanTransitionInspectorContract;
 use App\Domain\Deal\Services\StatusMachine;
 use App\Domain\Deal\Services\StatusMachineContract;
+use App\Domain\Deal\Services\TransitionPathResolver;
+use App\Domain\Deal\Services\TransitionPathResolverContract;
 use Illuminate\Support\ServiceProvider;
 
 final class DealServiceProvider extends ServiceProvider
@@ -18,6 +20,7 @@ final class DealServiceProvider extends ServiceProvider
     {
         $this->app->bind(StatusMachineContract::class, StatusMachine::class);
         $this->app->bind(OrphanTransitionInspectorContract::class, OrphanTransitionInspector::class);
+        $this->app->bind(TransitionPathResolverContract::class, TransitionPathResolver::class);
     }
 
     public function boot(): void

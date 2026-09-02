@@ -70,6 +70,21 @@ final class StatusTransitionRejected extends DomainException
         return new self('domain.errors.status.revision_missing');
     }
 
+    public static function pathNotFound(string $from, string $to): self
+    {
+        return new self('domain.errors.status.path_not_found', compact('from', 'to'));
+    }
+
+    public static function targetNotFound(): self
+    {
+        return new self('domain.errors.status.target_not_found');
+    }
+
+    public static function transitionNotFound(string $from): self
+    {
+        return new self('domain.errors.status.transition_not_found', compact('from'));
+    }
+
     public function translationKey(): string
     {
         return $this->key;
