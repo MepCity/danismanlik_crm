@@ -44,7 +44,7 @@ final class DemoDataSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->environment('production')) {
+        if (app()->environment('production', 'staging') || in_array(config('app.env'), ['production', 'staging'], true)) {
             throw new RuntimeException((string) trans('seeders.demo_production_forbidden'));
         }
 

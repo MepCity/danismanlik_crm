@@ -2,6 +2,8 @@
 .env*
 !.env.example
 !.env.testing
+!.env.staging.example
+!.env.production.example
 auth.json
 
 # --- Geçici kurulum dizini ---

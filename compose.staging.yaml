@@ -1,0 +1,149 @@
+name: tesvik-crm-staging
+
+x-app: &app
+  image: tesvik-crm/app:${APP_IMAGE_TAG:-latest}
+  build:
+    context: .
+    dockerfile: docker/app/Dockerfile
+    target: prod
+  env_file:
+    - .env.staging
+  environment:
+    APP_ENV: staging
+    APP_DEBUG: "false"
+    DOCUMENT_SCANNER: clamav
+    CLAMAV_HOST: clamav
+    DB_HOST: db
+    REDIS_HOST: redis
+  restart: unless-stopped
+  mem_limit: 768m
+  cpus: 1.0
+  pids_limit: 256
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  app:
+    <<: *app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clamav:
+        condition: service_started
+
+  web:
+    image: tesvik-crm/web:${APP_IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+      target: web-prod
+    depends_on:
+      app:
+        condition: service_started
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 128
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost/up"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    # Bilinçli olarak `ports` yoktur. Yalnızca compose içi ağ ve cloudflared tüneli üzerinden erişilir.
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - staging_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    mem_limit: 1024m
+    cpus: 1.0
+    pids_limit: 256
+    shm_size: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - staging_redisdata:/data
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a '${REDIS_PASSWORD}' ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  clamav:
+    image: clamav/clamav-debian:1.4
+    volumes:
+      - staging_clamav_signatures:/var/lib/clamav
+    restart: unless-stopped
+    mem_limit: 2g
+    cpus: 1.5
+    pids_limit: 256
+    healthcheck:
+      test: ["CMD-SHELL", "printf 'PING\\n' | nc 127.0.0.1 3310 | grep -q PONG"]
+      interval: 30s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
+  queue:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "redis", "--sleep=2", "--tries=3", "--timeout=90", "--max-time=3600"]
+    depends_on:
+      app:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      clamav:
+        condition: service_started
+
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      app:
+        condition: service_started
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN}"]
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  staging_pgdata:
+  staging_redisdata:
+  staging_clamav_signatures:
