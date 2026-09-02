@@ -7,7 +7,7 @@ x-app: &app
     dockerfile: docker/app/Dockerfile
     target: prod
   env_file:
-    - .env.staging
+    - ${STAGING_ENV_FILE:-.env.staging}
   environment:
     APP_ENV: staging
     APP_DEBUG: "false"
@@ -63,9 +63,9 @@ services:
   db:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: ${DB_DATABASE}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE:?DB_DATABASE zorunludur}
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME zorunludur}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD zorunludur}
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
       POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
     volumes:
@@ -76,7 +76,7 @@ services:
     pids_limit: 256
     shm_size: 256m
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -84,7 +84,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD zorunludur}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$REDIS_PASSWORD\""]
     volumes:
       - staging_redisdata:/data
     restart: unless-stopped
@@ -92,7 +94,7 @@ services:
     cpus: 0.5
     pids_limit: 128
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a '${REDIS_PASSWORD}' ping | grep -q PONG"]
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
       interval: 10s
       timeout: 3s
       retries: 10
@@ -132,7 +134,9 @@ services:
 
   tunnel:
     image: cloudflare/cloudflared:latest
-    command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN}"]
+    profiles:
+      - tunnel
+    command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN zorunludur}"]
     depends_on:
       web:
         condition: service_healthy
