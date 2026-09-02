@@ -15,6 +15,7 @@ use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Enums\Width;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -58,6 +59,8 @@ final class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make()->label(__('panel.navigation.groups.configuration')),
             ])
             ->viteTheme('resources/css/filament/operations/theme.css')
+            ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn (): string => auth()->check() ? view('filament.components.notification-trigger')->render() : '')
+            ->renderHook(PanelsRenderHook::BODY_START, fn (): string => (app()->environment('staging') || config('app.env') === 'staging') ? view('filament.components.staging-banner')->render() : '')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([OperationsDashboard::class])
