@@ -17,14 +17,13 @@ use App\Domain\Crm\Models\Company;
 use App\Domain\Deal\Actions\AssignDeal;
 use App\Domain\Deal\Actions\UpdateDealAmount;
 use App\Domain\Deal\Models\Status;
-use App\Domain\Deal\Models\Transition;
 use App\Domain\Deal\Services\StatusMachineContract;
+use App\Domain\Deal\Services\TransitionPathResolverContract;
 use App\Domain\Program\Models\Program;
 use App\Models\User;
 use App\Support\Workflow\StatusTransition;
 use App\Support\Workflow\SubjectType;
 use Database\Seeders\ReferenceDataSeeder;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -41,6 +40,7 @@ final readonly class ProvisionStagingEnvironment
         private CreateCompanyOpportunity $createOpportunity,
         private RecordInteraction $recordInteraction,
         private StatusMachineContract $statusMachine,
+        private TransitionPathResolverContract $pathResolver,
         private ConvertLead $convertLead,
         private AssignDeal $assignDeal,
         private UpdateDealAmount $updateDealAmount,
@@ -186,27 +186,19 @@ final readonly class ProvisionStagingEnvironment
                         contactId: $contact->id,
                     );
 
-                    // Statü kodları koda gömülmeden DB geçiş grafiği üzerinden deterministik yol bulunur
-                    $initialLeadStatus = Status::query()
-                        ->where('type', 'lead')
-                        ->where('is_initial', true)
-                        ->where('is_active', true)
-                        ->sole();
-
+                    // converts_to_deal statüsü DB anlamsal alanları üzerinden bulunur
                     $wonLeadStatus = Status::query()
                         ->where('type', 'lead')
                         ->where('converts_to_deal', true)
                         ->where('is_active', true)
                         ->sole();
 
-                    /** @var EloquentCollection<int, Transition> $leadTransitions */
-                    $leadTransitions = Transition::query()
-                        ->where('is_active', true)
-                        ->whereHas('fromStatus', fn ($q) => $q->where('type', 'lead'))
-                        ->whereHas('toStatus', fn ($q) => $q->where('type', 'lead'))
-                        ->get();
-
-                    $path = $this->findShortestPath($leadTransitions, $initialLeadStatus->id, $wonLeadStatus->id);
+                    $path = $this->pathResolver->findShortestPath(
+                        subjectType: SubjectType::Lead,
+                        subjectId: $lead->id,
+                        targetStatusId: $wonLeadStatus->id,
+                        actorId: $marketing->id,
+                    );
 
                     // converts_to_deal öncesindeki ara statü geçişleri yürütülür
                     $pathCount = count($path);
@@ -227,18 +219,13 @@ final readonly class ProvisionStagingEnvironment
                         actorId: $marketing->id,
                     );
 
-                    // Dosyayı PM'e Ata (AssignDeal -> initial deal status'ten 'deal.assign' izni gerektiren hedefe geçiş)
-                    $initialDealStatus = Status::query()
-                        ->where('type', 'deal')
-                        ->where('is_initial', true)
-                        ->where('is_active', true)
-                        ->sole();
-
-                    $pmAssignTransition = Transition::query()
-                        ->where('from_status_id', $initialDealStatus->id)
-                        ->where('required_permission', 'deal.assign')
-                        ->where('is_active', true)
-                        ->firstOrFail();
+                    // Dosyayı PM'e Ata (AssignDeal -> deterministik geçiş çözümü üzerinden)
+                    $pmAssignTransition = $this->pathResolver->findDeterministicTransition(
+                        subjectType: SubjectType::Deal,
+                        subjectId: $dealId,
+                        actorId: $authority->id,
+                        requiredPermission: 'deal.assign',
+                    );
 
                     $this->assignDeal->handle(
                         dealId: $dealId,
@@ -258,45 +245,5 @@ final readonly class ProvisionStagingEnvironment
 
             return $createdUsers;
         });
-    }
-
-    /**
-     * Statü geçiş grafiğinde iki statü arasındaki en kısa yolu bulur.
-     *
-     * @param  EloquentCollection<int, Transition>  $transitions
-     * @return list<int>
-     */
-    private function findShortestPath(EloquentCollection $transitions, int $startId, int $targetId): array
-    {
-        if ($startId === $targetId) {
-            return [$startId];
-        }
-
-        $adjacency = [];
-        foreach ($transitions as $t) {
-            $adjacency[$t->from_status_id][] = $t->to_status_id;
-        }
-
-        /** @var list<list<int>> $queue */
-        $queue = [[$startId]];
-        $visited = [$startId => true];
-
-        while (! empty($queue)) {
-            $currentPath = array_shift($queue);
-            $lastNode = end($currentPath);
-
-            foreach ($adjacency[$lastNode] ?? [] as $neighbor) {
-                if ($neighbor === $targetId) {
-                    return array_merge($currentPath, [$neighbor]);
-                }
-
-                if (! isset($visited[$neighbor])) {
-                    $visited[$neighbor] = true;
-                    $queue[] = array_merge($currentPath, [$neighbor]);
-                }
-            }
-        }
-
-        throw new RuntimeException("Geçiş grafiğinde {$startId} statüsünden {$targetId} statüsüne giden yol bulunamadı.");
     }
 }
