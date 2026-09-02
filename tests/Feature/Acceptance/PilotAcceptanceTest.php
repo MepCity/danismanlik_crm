@@ -37,6 +37,8 @@ beforeEach(function (): void {
 
 it('staging provision komutu 4 ayrı rol ve demo verisini eksiksiz kurar', function (): void {
     /** @var TestCase $this */
+    config(['app.env' => 'staging']);
+
     $secrets = [
         'STAGING_MARKETING_EMAIL' => 'pilot-pazarlama@bizlife.invalid',
         'STAGING_MARKETING_PASSWORD' => 'GucluParolaPzr2026!',
@@ -54,7 +56,7 @@ it('staging provision komutu 4 ayrı rol ve demo verisini eksiksiz kurar', funct
         $_SERVER[$k] = $v;
     }
 
-    $this->artisan('system:provision-staging-demo', ['--force-test-environment' => true])->assertSuccessful();
+    $this->artisan('system:provision-staging-demo')->assertSuccessful();
 
     $marketing = User::query()->where('email', 'pilot-pazarlama@bizlife.invalid')->sole();
     $pm = User::query()->where('email', 'pilot-pm@bizlife.invalid')->sole();
@@ -66,6 +68,8 @@ it('staging provision komutu 4 ayrı rol ve demo verisini eksiksiz kurar', funct
         ->and($authority->data_scope)->toBe('all')
         ->and($admin->data_scope)->toBe('none')
         ->and(Team::query()->where('name', 'Kurgusal Pilot Takımı')->exists())->toBeTrue();
+
+    config(['app.env' => 'testing']);
 });
 
 it('staging ortamında güvenlik başlıkları ve readiness kontrolü çalışır', function (): void {

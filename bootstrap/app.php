@@ -26,9 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 | Request::HEADER_X_FORWARDED_PREFIX,
         );
 
+        $middleware->append([
+            StagingEnvironmentMiddleware::class,
+        ]);
+
         $middleware->web(append: [
             ApplyActorContext::class,
-            StagingEnvironmentMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

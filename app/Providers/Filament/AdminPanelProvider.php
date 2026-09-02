@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\OperationsDashboard;
-use App\Http\Middleware\StagingEnvironmentMiddleware;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
@@ -76,7 +75,6 @@ final class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                StagingEnvironmentMiddleware::class,
             ])
             ->authMiddleware([Authenticate::class]);
     }
