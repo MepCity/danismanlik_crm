@@ -19,6 +19,7 @@ use Database\Seeders\ReferenceDataSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -29,6 +30,9 @@ beforeEach(function (): void {
     $this->disableVite();
     (new ReferenceDataSeeder)->setContainer(app())->run();
     Filament::setCurrentPanel(Filament::getPanel('operations'));
+    Storage::fake('s3');
+    config()->set('filesystems.default', 's3');
+    config(['app.env' => 'testing']);
 });
 
 it('staging provision komutu 4 ayrı rol ve demo verisini eksiksiz kurar', function (): void {
@@ -50,7 +54,7 @@ it('staging provision komutu 4 ayrı rol ve demo verisini eksiksiz kurar', funct
         $_SERVER[$k] = $v;
     }
 
-    $this->artisan('system:provision-staging-demo')->assertSuccessful();
+    $this->artisan('system:provision-staging-demo', ['--force-test-environment' => true])->assertSuccessful();
 
     $marketing = User::query()->where('email', 'pilot-pazarlama@bizlife.invalid')->sole();
     $pm = User::query()->where('email', 'pilot-pm@bizlife.invalid')->sole();
@@ -71,6 +75,8 @@ it('staging ortamında güvenlik başlıkları ve readiness kontrolü çalışı
     $this->get('/robots.txt')->assertSee("User-agent: *\nDisallow: /", false);
     $this->get('/operasyon/login')->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
     $this->getJson('/health')->assertOk()->assertJson(['status' => 'ok']);
+
+    config(['app.env' => 'testing']);
 });
 
 it('pazarlama kullanıcısı kendi panosuna erişir sistem yapılandırmasından 403 alır', function (): void {
