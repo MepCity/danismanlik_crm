@@ -14,33 +14,75 @@ final class NotificationService
     public function unreadCount(User $user): int
     {
         $resolver = app(NotificationUrlResolver::class);
+        $count = 0;
+        $lastId = null;
+        $chunkSize = 100;
 
-        $unread = Notification::query()
-            ->where('user_id', $user->id)
-            ->where('channel', 'in_app')
-            ->whereNull('read_at')
-            ->get();
+        while (true) {
+            $query = Notification::query()
+                ->where('user_id', $user->id)
+                ->where('channel', 'in_app')
+                ->whereNull('read_at')
+                ->orderByDesc('id')
+                ->limit($chunkSize);
 
-        return $unread->filter(fn (Notification $n) => $resolver->isAccessible($user, $n))->count();
+            if ($lastId !== null) {
+                $query->where('id', '<', $lastId);
+            }
+
+            /** @var Collection<int, Notification> $chunk */
+            $chunk = $query->get();
+
+            if ($chunk->isEmpty()) {
+                break;
+            }
+
+            $lastId = (int) $chunk->last()->id;
+            $accessible = $resolver->filterAccessible($user, $chunk);
+            $count += $accessible->count();
+        }
+
+        return $count;
     }
 
     /** @return Collection<int, Notification> */
     public function listForUser(User $user, int $limit = 20): Collection
     {
         $resolver = app(NotificationUrlResolver::class);
+        $result = new Collection;
+        $chunkSize = max($limit, 50);
+        $lastId = null;
 
-        /** @var Collection<int, Notification> $notifications */
-        $notifications = Notification::query()
-            ->where('user_id', $user->id)
-            ->where('channel', 'in_app')
-            ->orderByDesc('id')
-            ->limit($limit * 2)
-            ->get()
-            ->filter(fn (Notification $n) => $resolver->isAccessible($user, $n))
-            ->take($limit)
-            ->values();
+        while ($result->count() < $limit) {
+            $query = Notification::query()
+                ->where('user_id', $user->id)
+                ->where('channel', 'in_app')
+                ->orderByDesc('id')
+                ->limit($chunkSize);
 
-        return $notifications;
+            if ($lastId !== null) {
+                $query->where('id', '<', $lastId);
+            }
+
+            /** @var Collection<int, Notification> $chunk */
+            $chunk = $query->get();
+
+            if ($chunk->isEmpty()) {
+                break;
+            }
+
+            $lastId = (int) $chunk->last()->id;
+            $accessible = $resolver->filterAccessible($user, $chunk);
+
+            foreach ($accessible as $notification) {
+                $result->push($notification);
+                if ($result->count() >= $limit) {
+                    break;
+                }
+            }
+        }
+
+        return $result;
     }
 
     public function markAsRead(User $user, int $notificationId): void
@@ -61,18 +103,36 @@ final class NotificationService
     public function markAllAsRead(User $user): void
     {
         $resolver = app(NotificationUrlResolver::class);
+        $lastId = null;
+        $chunkSize = 100;
 
-        $unread = Notification::query()
-            ->where('user_id', $user->id)
-            ->where('channel', 'in_app')
-            ->whereNull('read_at')
-            ->get()
-            ->filter(fn (Notification $n) => $resolver->isAccessible($user, $n));
+        while (true) {
+            $query = Notification::query()
+                ->where('user_id', $user->id)
+                ->where('channel', 'in_app')
+                ->whereNull('read_at')
+                ->orderByDesc('id')
+                ->limit($chunkSize);
 
-        if ($unread->isNotEmpty()) {
-            Notification::query()
-                ->whereIn('id', $unread->pluck('id')->all())
-                ->update(['read_at' => now()]);
+            if ($lastId !== null) {
+                $query->where('id', '<', $lastId);
+            }
+
+            /** @var Collection<int, Notification> $chunk */
+            $chunk = $query->get();
+
+            if ($chunk->isEmpty()) {
+                break;
+            }
+
+            $lastId = (int) $chunk->last()->id;
+            $accessible = $resolver->filterAccessible($user, $chunk);
+
+            if ($accessible->isNotEmpty()) {
+                Notification::query()
+                    ->whereIn('id', $accessible->pluck('id')->all())
+                    ->update(['read_at' => now()]);
+            }
         }
     }
 

@@ -5,10 +5,15 @@ declare(strict_types=1);
 use App\Domain\Collaboration\Models\Notification;
 use App\Domain\Collaboration\Services\NotificationService;
 use App\Domain\Crm\Models\Company;
+use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
 use App\Domain\Deal\Models\Status;
+use App\Domain\Document\Models\DealDocument;
 use App\Domain\Program\Models\Program;
 use App\Filament\Pages\DealDetail;
+use App\Filament\Pages\LeadDetail;
+use App\Filament\Resources\Companies\CompanyResource;
+use App\Filament\Resources\Programs\ProgramResource;
 use App\Livewire\NotificationCenter;
 use App\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
@@ -219,4 +224,214 @@ it('livewire bildirim merkezi bileşeni etkileşimleri doğru işletir', functio
         ->assertSee('1 yeni')
         ->call('markAsRead', $n->id)
         ->assertDontSee('1 yeni');
+});
+
+it('en yeni 40 kapsam dışı bildirim ve daha eski 1 kapsam içi bildirim senaryosunda limit=20 listesinin o geçerli bildirimi döndürdüğünü doğrular', function (): void {
+    $pm = User::factory()->create(['email' => 'pm-stream@example.invalid', 'data_scope' => 'own']);
+    $pm->assignRole('Proje Yöneticisi');
+
+    $otherUser = User::factory()->create(['email' => 'other-stream@example.invalid']);
+
+    $company = Company::query()->create([
+        'legal_name' => 'Firma A.Ş.',
+        'industry' => 'manufacturing',
+        'owner_user_id' => $otherUser->id,
+        'is_active' => true,
+    ]);
+
+    $program = Program::query()->where('code', 'KOSGEB-YESIL-SANAYI')->firstOrFail();
+    $version = $program->versions()->firstOrFail();
+    $status = Status::query()->where('type', 'deal')->firstOrFail();
+
+    // 1 adet eski ve PM'e ait geçerli dosya
+    $validDeal = Deal::query()->create([
+        'company_id' => $company->id,
+        'program_version_id' => $version->id,
+        'status_id' => $status->id,
+        'status_changed_at' => now(),
+        'opened_by_user_id' => $pm->id,
+        'pm_user_id' => $pm->id,
+        'reference_no' => 'VAL-2026-001',
+    ]);
+
+    $oldValidNotification = Notification::query()->create([
+        'user_id' => $pm->id,
+        'deal_id' => $validDeal->id,
+        'title' => 'Geçerli Eski Bildirim',
+        'body' => 'Bu bildirim PM tarafından görülebilir olmalı.',
+        'channel' => 'in_app',
+        'type' => 'deal.assigned',
+    ]);
+
+    // 40 adet daha yeni fakat PM'in kapsamı dışındaki dosyalara ait bildirim
+    $inaccessibleDeal = Deal::query()->create([
+        'company_id' => $company->id,
+        'program_version_id' => $version->id,
+        'status_id' => $status->id,
+        'status_changed_at' => now(),
+        'opened_by_user_id' => $otherUser->id,
+        'pm_user_id' => $otherUser->id,
+        'reference_no' => 'INA-2026-001',
+    ]);
+
+    for ($i = 1; $i <= 40; $i++) {
+        Notification::query()->create([
+            'user_id' => $pm->id,
+            'deal_id' => $inaccessibleDeal->id,
+            'title' => "Kapsam Dışı Bildirim {$i}",
+            'body' => "Detay {$i}",
+            'channel' => 'in_app',
+            'type' => 'deal.assigned',
+        ]);
+    }
+
+    $service = app(NotificationService::class);
+
+    $list = $service->listForUser($pm, limit: 20);
+
+    expect($list)->toHaveCount(1)
+        ->and($list->first()?->id)->toBe($oldValidNotification->id)
+        ->and($list->first()?->title)->toBe('Geçerli Eski Bildirim');
+});
+
+it('Company, Program, Lead, Deal ve DealDocument hedeflerinin her biri için yetkili ve yetkisiz URL ve içerik görünürlüğünü doğrular', function (): void {
+    $marketing = User::factory()->create(['email' => 'mkt-targets@example.invalid', 'data_scope' => 'own']);
+    $marketing->assignRole('Pazarlama');
+
+    $otherUser = User::factory()->create(['email' => 'oth-targets@example.invalid']);
+
+    $company = Company::query()->create([
+        'legal_name' => 'Hedef Test A.Ş.',
+        'industry' => 'manufacturing',
+        'owner_user_id' => $marketing->id,
+        'is_active' => true,
+    ]);
+
+    $otherCompany = Company::query()->create([
+        'legal_name' => 'Diğer Kapsam Dışı A.Ş.',
+        'industry' => 'manufacturing',
+        'owner_user_id' => $otherUser->id,
+        'is_active' => true,
+    ]);
+
+    $program = Program::query()->where('code', 'KOSGEB-YESIL-SANAYI')->firstOrFail();
+    $version = $program->versions()->firstOrFail();
+    $leadStatus = Status::query()->where('type', 'lead')->firstOrFail();
+    $dealStatus = Status::query()->where('type', 'deal')->firstOrFail();
+
+    $ownLead = Lead::query()->create([
+        'company_id' => $company->id,
+        'owner_user_id' => $marketing->id,
+        'status_id' => $leadStatus->id,
+        'interested_program_version_id' => $version->id,
+    ]);
+
+    $otherLead = Lead::query()->create([
+        'company_id' => $otherCompany->id,
+        'owner_user_id' => $otherUser->id,
+        'status_id' => $leadStatus->id,
+        'interested_program_version_id' => $version->id,
+    ]);
+
+    $ownDeal = Deal::query()->create([
+        'company_id' => $company->id,
+        'program_version_id' => $version->id,
+        'status_id' => $dealStatus->id,
+        'status_changed_at' => now(),
+        'opened_by_user_id' => $marketing->id,
+        'pm_user_id' => null,
+        'reference_no' => 'OWN-DEAL-001',
+    ]);
+
+    $otherDeal = Deal::query()->create([
+        'company_id' => $otherCompany->id,
+        'program_version_id' => $version->id,
+        'status_id' => $dealStatus->id,
+        'status_changed_at' => now(),
+        'opened_by_user_id' => $otherUser->id,
+        'pm_user_id' => $otherUser->id,
+        'reference_no' => 'OTH-DEAL-001',
+    ]);
+
+    $ownDoc = DealDocument::query()->create([
+        'deal_id' => $ownDeal->id,
+        'source_program_version_id' => $version->id,
+        'name_snapshot' => 'İmza Sirküleri',
+        'required_snapshot' => true,
+        'accepted_formats_snapshot' => ['pdf'],
+        'status' => 'to_request',
+    ]);
+
+    $otherDoc = DealDocument::query()->create([
+        'deal_id' => $otherDeal->id,
+        'source_program_version_id' => $version->id,
+        'name_snapshot' => 'Gizli Belge',
+        'required_snapshot' => true,
+        'accepted_formats_snapshot' => ['pdf'],
+        'status' => 'to_request',
+    ]);
+
+    $service = app(NotificationService::class);
+
+    // 1. Company Target
+    $notifCompOwn = Notification::query()->create(['user_id' => $marketing->id, 'channel' => 'in_app', 'type' => 'company.created', 'title' => 'Firma 1', 'body' => 'B']);
+    $notifCompOwn->setAttribute('company_id', $company->id);
+    $notifCompOwn->save();
+
+    $notifCompOther = Notification::query()->create(['user_id' => $marketing->id, 'channel' => 'in_app', 'type' => 'company.created', 'title' => 'Firma 2', 'body' => 'B']);
+    $notifCompOther->setAttribute('company_id', $otherCompany->id);
+    $notifCompOther->save();
+
+    expect($service->targetUrl($marketing, $notifCompOwn))->toBe(CompanyResource::getUrl('view', ['record' => $company->id]))
+        ->and($service->targetUrl($marketing, $notifCompOther))->toBeNull();
+
+    // 2. Lead Target
+    $notifLeadOwn = Notification::query()->create(['user_id' => $marketing->id, 'channel' => 'in_app', 'type' => 'lead.created', 'lead_id' => $ownLead->id, 'title' => 'L1', 'body' => 'B']);
+    $notifLeadOther = Notification::query()->create(['user_id' => $marketing->id, 'channel' => 'in_app', 'type' => 'lead.created', 'lead_id' => $otherLead->id, 'title' => 'L2', 'body' => 'B']);
+
+    expect($service->targetUrl($marketing, $notifLeadOwn))->toBe(LeadDetail::getUrl(['lead' => $ownLead->id]))
+        ->and($service->targetUrl($marketing, $notifLeadOther))->toBeNull();
+
+    // 3. Deal Target
+    $notifDealOwn = Notification::query()->create(['user_id' => $marketing->id, 'channel' => 'in_app', 'type' => 'deal.assigned', 'deal_id' => $ownDeal->id, 'title' => 'D1', 'body' => 'B']);
+    $notifDealOther = Notification::query()->create(['user_id' => $marketing->id, 'channel' => 'in_app', 'type' => 'deal.assigned', 'deal_id' => $otherDeal->id, 'title' => 'D2', 'body' => 'B']);
+
+    expect($service->targetUrl($marketing, $notifDealOwn))->toBe(DealDetail::getUrl(['deal' => $ownDeal->id]))
+        ->and($service->targetUrl($marketing, $notifDealOther))->toBeNull();
+
+    // 4. DealDocument Target
+    $notifDocOwn = Notification::query()->create(['user_id' => $marketing->id, 'channel' => 'in_app', 'type' => 'document.uploaded', 'deal_document_id' => $ownDoc->id, 'title' => 'Doc1', 'body' => 'B']);
+    $notifDocOther = Notification::query()->create(['user_id' => $marketing->id, 'channel' => 'in_app', 'type' => 'document.uploaded', 'deal_document_id' => $otherDoc->id, 'title' => 'Doc2', 'body' => 'B']);
+
+    expect($service->targetUrl($marketing, $notifDocOwn))->toBe(DealDetail::getUrl(['deal' => $ownDeal->id]))
+        ->and($service->targetUrl($marketing, $notifDocOther))->toBeNull();
+});
+
+it('Program bağlantısının yalnız view izni olan kullanıcıyı yetkisiz edit sayfasına göndermeyip view sayfasına yönlendirdiğini doğrular', function (): void {
+    $pm = User::factory()->create(['email' => 'pm-prog@example.invalid']);
+    $pm->assignRole('Proje Yöneticisi'); // has program.view, but not program.manage
+
+    $admin = User::factory()->create(['email' => 'admin-prog@example.invalid']);
+    $admin->assignRole('Sistem Yöneticisi'); // has program.manage
+
+    $program = Program::query()->where('code', 'KOSGEB-YESIL-SANAYI')->firstOrFail();
+
+    $notifPm = Notification::query()->create(['user_id' => $pm->id, 'channel' => 'in_app', 'type' => 'program.updated', 'title' => 'P1', 'body' => 'B']);
+    $notifPm->setAttribute('program_id', $program->id);
+    $notifPm->save();
+
+    $notifAdmin = Notification::query()->create(['user_id' => $admin->id, 'channel' => 'in_app', 'type' => 'program.updated', 'title' => 'P2', 'body' => 'B']);
+    $notifAdmin->setAttribute('program_id', $program->id);
+    $notifAdmin->save();
+
+    $service = app(NotificationService::class);
+
+    // PM yalnız view yapabilir -> view sayfası dönmeli, /duzenle dönmemeli
+    $pmUrl = $service->targetUrl($pm, $notifPm);
+    expect($pmUrl)->toBe(ProgramResource::getUrl('view', ['record' => $program->id]))
+        ->and($pmUrl)->not->toContain('/duzenle');
+
+    // Admin düzenleme yapabilir -> edit sayfası dönmeli
+    $adminUrl = $service->targetUrl($admin, $notifAdmin);
+    expect($adminUrl)->toBe(ProgramResource::getUrl('edit', ['record' => $program->id]));
 });
