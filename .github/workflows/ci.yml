@@ -129,3 +129,114 @@ jobs:
 
       - name: Pest
         run: php artisan test
+
+  staging-verification:
+    name: staging-verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v6
+
+      - name: Staging Compose (tünelsiz) config testi
+        run: |
+          STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=testpass REDIS_PASSWORD=testpass \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml config --quiet
+
+      - name: Tünel override token eksikken kırmızıya düşme testi (fail-fast)
+        run: |
+          if STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=testpass REDIS_PASSWORD=testpass \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.tunnel.yaml config --quiet; then
+            echo "HATA: Tünel tokenı olmadan komut başarılı olmamalıydı!"
+            exit 1
+          else
+            echo "Tünel override'ı token eksikliğinde beklendiği gibi hata verdi."
+          fi
+
+      - name: Tünel override token verildiğinde başarılı olma testi
+        run: |
+          CLOUDFLARE_TUNNEL_TOKEN=test-token STAGING_ENV_FILE=.env.staging.example DB_PASSWORD=testpass REDIS_PASSWORD=testpass \
+            docker compose --env-file .env.staging.example -f compose.staging.yaml -f compose.staging.tunnel.yaml config --quiet
+
+      - name: Production Web ve App Docker imajlarını derle
+        run: |
+          docker build --target prod -f docker/app/Dockerfile -t bizlife-crm-app:staging-test .
+          docker build -f docker/web/Dockerfile -t bizlife-crm-web:staging-test .
+
+      - name: Build edilmiş app imajında entrypoint staging ve production olumlu testleri
+        run: |
+          # Staging olumlu
+          docker run --rm \
+            -e APP_ENV=staging \
+            -e APP_DEBUG=false \
+            -e APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+            -e APP_URL=https://pilot.bizlife.invalid \
+            -e DB_PASSWORD=secret \
+            -e REDIS_PASSWORD=secret \
+            -e AWS_ACCESS_KEY_ID=test \
+            -e AWS_SECRET_ACCESS_KEY=test \
+            -e AWS_BUCKET=test \
+            -e MAIL_HOST=mail.invalid \
+            -e MAIL_FROM_ADDRESS=info@bizlife.invalid \
+            -e ENTRYPOINT_SKIP_CACHE=1 \
+            bizlife-crm-app:staging-test echo "staging_entrypoint_ok"
+
+          # Production olumlu
+          docker run --rm \
+            -e APP_ENV=production \
+            -e APP_DEBUG=false \
+            -e APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+            -e APP_URL=https://pilot.bizlife.invalid \
+            -e DB_PASSWORD=secret \
+            -e REDIS_PASSWORD=secret \
+            -e AWS_ACCESS_KEY_ID=test \
+            -e AWS_SECRET_ACCESS_KEY=test \
+            -e AWS_BUCKET=test \
+            -e MAIL_HOST=mail.invalid \
+            -e MAIL_FROM_ADDRESS=info@bizlife.invalid \
+            -e ENTRYPOINT_SKIP_CACHE=1 \
+            bizlife-crm-app:staging-test echo "production_entrypoint_ok"
+
+      - name: Build edilmiş app imajında local ve APP_DEBUG=true olumsuz testleri (fail-fast)
+        run: |
+          # local ortamı reddetmeli
+          if docker run --rm \
+            -e APP_ENV=local \
+            -e APP_DEBUG=false \
+            -e APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+            -e APP_URL=https://pilot.bizlife.invalid \
+            -e DB_PASSWORD=secret \
+            -e REDIS_PASSWORD=secret \
+            -e AWS_ACCESS_KEY_ID=test \
+            -e AWS_SECRET_ACCESS_KEY=test \
+            -e AWS_BUCKET=test \
+            -e MAIL_HOST=mail.invalid \
+            -e MAIL_FROM_ADDRESS=info@bizlife.invalid \
+            -e ENTRYPOINT_SKIP_CACHE=1 \
+            bizlife-crm-app:staging-test echo "should_fail"; then
+            echo "HATA: APP_ENV=local reddedilmedi!"
+            exit 1
+          else
+            echo "APP_ENV=local beklendiği gibi reddedildi."
+          fi
+
+          # APP_DEBUG=true reddetmeli
+          if docker run --rm \
+            -e APP_ENV=staging \
+            -e APP_DEBUG=true \
+            -e APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+            -e APP_URL=https://pilot.bizlife.invalid \
+            -e DB_PASSWORD=secret \
+            -e REDIS_PASSWORD=secret \
+            -e AWS_ACCESS_KEY_ID=test \
+            -e AWS_SECRET_ACCESS_KEY=test \
+            -e AWS_BUCKET=test \
+            -e MAIL_HOST=mail.invalid \
+            -e MAIL_FROM_ADDRESS=info@bizlife.invalid \
+            -e ENTRYPOINT_SKIP_CACHE=1 \
+            bizlife-crm-app:staging-test echo "should_fail"; then
+            echo "HATA: APP_DEBUG=true reddedilmedi!"
+            exit 1
+          else
+            echo "APP_DEBUG=true beklendiği gibi reddedildi."
+          fi
