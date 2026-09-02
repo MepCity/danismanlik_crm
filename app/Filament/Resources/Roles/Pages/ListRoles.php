@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources\Roles\Pages;
+
+use App\Filament\Concerns\HasConsistentListChrome;
+use App\Filament\Resources\Roles\RoleResource;
+use Filament\Resources\Pages\ListRecords;
+
+final class ListRoles extends ListRecords
+{
+    use HasConsistentListChrome;
+
+    protected static string $resource = RoleResource::class;
+}

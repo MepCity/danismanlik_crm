@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 use App\Filament\Pages\DealBoard;
 use App\Filament\Pages\DealDetail;
 use App\Filament\Pages\LeadBoard;
@@ -14,8 +15,10 @@ use App\Filament\Resources\Customers\CustomerResource;
 use App\Filament\Resources\DocTemplates\DocTemplateResource;
 use App\Filament\Resources\Programs\ProgramResource;
 use App\Filament\Resources\ProgramVersions\ProgramVersionResource;
+use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\ServiceWorkflows\ServiceWorkflowResource;
 use App\Filament\Resources\Statuses\StatusResource;
+use App\Filament\Resources\Teams\TeamResource;
 use App\Filament\Resources\Transitions\TransitionResource;
 use App\Filament\Resources\Users\UserResource;
 
@@ -34,6 +37,6 @@ return [
         'page.programs' => ['label' => 'management.page_access.programs', 'fallback' => 'program.manage', 'classes' => [ProgramResource::class, ProgramVersionResource::class]],
         'page.document_templates' => ['label' => 'management.page_access.document_templates', 'fallback' => 'program.manage', 'classes' => [DocTemplateResource::class]],
         'page.workflow_settings' => ['label' => 'management.page_access.workflow_settings', 'fallback' => 'system.settings', 'classes' => [StatusResource::class, TransitionResource::class]],
-        'page.access_management' => ['label' => 'management.page_access.access_management', 'fallback' => 'system.users', 'classes' => [UserResource::class]],
+        'page.access_management' => ['label' => 'management.page_access.access_management', 'fallback' => 'system.users', 'classes' => [UserResource::class, TeamResource::class, RoleResource::class]],
     ],
 ];
