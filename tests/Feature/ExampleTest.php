@@ -10,7 +10,7 @@ use function Pest\Laravel\get;
 it('boots in Turkish against PostgreSQL', function (): void {
     $response = get('/');
 
-    $response->assertStatus(200);
+    $response->assertRedirect('/operasyon/login');
 
     expect(DB::scalar('select current_database()'))->toBe('tesvik_crm_test')
         ->and((int) DB::scalar("select current_setting('server_version_num')"))->toBeGreaterThanOrEqual(170000)

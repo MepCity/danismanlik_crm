@@ -78,7 +78,9 @@ final class ProvisionStagingDemoCommand extends Command
         }
 
         try {
-            (new ReferenceDataSeeder)->setContainer(app())->run();
+            if (Role::query()->count() === 0) {
+                (new ReferenceDataSeeder)->setContainer(app())->run();
+            }
 
             DB::transaction(function () use ($accounts): void {
                 $createdUsers = [];
@@ -215,7 +217,7 @@ final class ProvisionStagingDemoCommand extends Command
     {
         $value = getenv($key);
         if ($value === false || $value === '') {
-            $value = $_ENV[$key] ?? $_SERVER[$key] ?? env($key);
+            $value = $_ENV[$key] ?? $_SERVER[$key] ?? '';
         }
 
         return (string) $value;

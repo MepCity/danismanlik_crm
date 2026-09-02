@@ -14,6 +14,7 @@ use App\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -153,8 +154,9 @@ it('livewire bildirim merkezi bileşeni etkileşimleri doğru işletir', functio
         'type' => 'deal.assigned',
     ]);
 
-    Livewire::actingAs($user)
-        ->test(NotificationCenter::class)
+    Auth::login($user);
+
+    Livewire::test(NotificationCenter::class)
         ->assertSee('Canlı Bildirim')
         ->assertSee('1 yeni')
         ->call('markAsRead', $n->id)

@@ -19,10 +19,14 @@ it('e-posta şablonu sayfa iznini geri alınabilir biçimde pasifleştirir', fun
         expect(Artisan::call('migrate', ['--database' => $connection, '--force' => true]))->toBe(0)
             ->and(DB::connection($connection)->table('permissions')->where('name', 'page.email_templates')->value('is_active'))->toBeFalse();
 
+        $rollbackSteps = DB::connection($connection)->table('migrations')
+            ->where('migration', '>=', '2026_08_27_090000_retire_email_template_page_permission')
+            ->count();
+
         expect(Artisan::call('migrate:rollback', [
             '--database' => $connection,
             '--force' => true,
-            '--step' => 1,
+            '--step' => $rollbackSteps,
         ]))->toBe(0)
             ->and(DB::connection($connection)->table('permissions')->where('name', 'page.email_templates')->value('is_active'))->toBeTrue();
 
