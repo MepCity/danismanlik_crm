@@ -6,17 +6,20 @@ namespace App\Support\Staging;
 
 use App\Domain\Access\Actions\SaveTeam;
 use App\Domain\Access\Models\Team;
-use App\Domain\Collaboration\Services\ActivityRecorder;
+use App\Domain\Access\Rules\StrongPassword;
+use App\Domain\Crm\Actions\ConvertLead;
+use App\Domain\Crm\Actions\CreateCompanyOpportunity;
+use App\Domain\Crm\Actions\RecordInteraction;
+use App\Domain\Crm\Actions\SaveCompanyDirectoryEntry;
+use App\Domain\Crm\Actions\SaveContact;
 use App\Domain\Crm\Models\Company;
-use App\Domain\Crm\Models\Contact;
-use App\Domain\Crm\Models\Interaction;
-use App\Domain\Crm\Models\Lead;
-use App\Domain\Deal\Models\Deal;
+use App\Domain\Deal\Actions\AssignDeal;
 use App\Domain\Deal\Models\Status;
-use App\Domain\Document\Services\ChecklistGenerator;
+use App\Domain\Deal\Services\StatusMachineContract;
 use App\Domain\Program\Models\Program;
-use App\Domain\Program\Models\ProgramVersion;
 use App\Models\User;
+use App\Support\Workflow\StatusTransition;
+use App\Support\Workflow\SubjectType;
 use Database\Seeders\ReferenceDataSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -27,35 +30,40 @@ use RuntimeException;
 final class ProvisionStagingEnvironment
 {
     public function __construct(
-        private readonly ChecklistGenerator $checklistGenerator,
-        private readonly ActivityRecorder $activities,
         private readonly SaveTeam $saveTeam,
+        private readonly SaveCompanyDirectoryEntry $saveCompany,
+        private readonly SaveContact $saveContact,
+        private readonly CreateCompanyOpportunity $createOpportunity,
+        private readonly RecordInteraction $recordInteraction,
+        private readonly StatusMachineContract $statusMachine,
+        private readonly ConvertLead $convertLead,
+        private readonly AssignDeal $assignDeal,
     ) {}
 
     /**
      * @param  array<string, array{name: string, email: string, password: string, role: string, data_scope: string}>  $accounts
      * @return array<string, User>
      */
-    public function execute(array $accounts, bool $allowTesting = false): array
+    public function execute(array $accounts): array
     {
-        // 1. Ortam Koruması: Production ve Local ortamlarında kesinlikle çalıştırılamaz
+        // 1. Ortam Koruması: Production veya staging dışındaki ortamlarda çalıştırılamaz
         if (app()->environment('production') || config('app.env') === 'production') {
             throw new RuntimeException('Staging provizyonu kesinlikle production ortamında çalıştırılamaz.');
         }
 
-        if (! app()->environment('staging') && config('app.env') !== 'staging' && ! $allowTesting) {
+        if (! app()->environment('staging') && config('app.env') !== 'staging') {
             throw new RuntimeException('Staging provizyonu yalnızca APP_ENV=staging ortamında çalıştırılabilir.');
         }
 
-        // 2. Parola Güvenliği Doğrulaması
+        // 2. Parola ve E-posta Güvenliği Doğrulaması (Ortak StrongPassword kuralı)
         foreach ($accounts as $key => $account) {
             if (! filter_var($account['email'], FILTER_VALIDATE_EMAIL)) {
                 throw new InvalidArgumentException("Geçersiz e-posta adresi: {$key}");
             }
 
-            if (mb_strlen($account['password']) < 12) {
+            if (! StrongPassword::isValid($account['password'])) {
                 throw ValidationException::withMessages([
-                    $key => "{$account['name']} için parola en az 12 karakter olmalıdır.",
+                    $key => __('management.validation.password_strong'),
                 ]);
             }
         }
@@ -109,101 +117,96 @@ final class ProvisionStagingEnvironment
                 );
             }
 
-            // 5. Kurgusal Firma ve İletişim Kişisi Oluştur
+            // 5. Kurgusal Firma, İletişim Kişisi ve İş Akışı (Yalnızca Domain Action'ları ile)
             if ($marketing !== null && $pm !== null && $authority !== null) {
-                $company = Company::query()->firstOrCreate(
-                    ['tax_number' => '1234567890'],
-                    [
-                        'legal_name' => 'Kurgusal Pilot İnovasyon A.Ş.',
-                        'short_name' => 'Pilot İnovasyon',
-                        'industry' => 'manufacturing',
-                        'city' => 'Ankara',
-                        'district' => 'Çankaya',
-                        'address' => 'Kurgusal Teknokent No: 42',
-                        'phone' => '+905550000000',
-                        'email' => 'pilot-firma@example.invalid',
-                        'owner_user_id' => $marketing->id,
-                        'is_active' => true,
-                    ]
-                );
+                $taxNumber = '1234567890';
+                $existingCompany = Company::query()->where('tax_number', $taxNumber)->first();
 
-                $contact = Contact::query()->firstOrCreate(
-                    ['company_id' => $company->id, 'email' => 'pilot-yetkili@example.invalid'],
-                    [
-                        'full_name' => 'Ahmet Kurgusal',
-                        'title' => 'Genel Müdür',
-                        'phone' => '+905550000001',
-                        'data_source' => 'manual',
-                        'is_primary' => true,
-                        'is_active' => true,
-                        'consent_email' => true,
-                    ]
-                );
-
-                // 6. Kurgusal İş Akışı: Lead -> Deal -> Evrak Listesi
-                $program = Program::query()->where('code', 'KOSGEB-YESIL-SANAYI')->first();
-                $version = $program ? ProgramVersion::query()->where('program_id', $program->id)->first() : null;
-
-                $leadStatus = Status::query()
-                    ->where('type', 'lead')
-                    ->where('is_initial', true)
-                    ->where('is_active', true)
-                    ->first();
-
-                $dealStatus = Status::query()
-                    ->where('type', 'deal')
-                    ->where('is_initial', true)
-                    ->where('is_active', true)
-                    ->first();
-
-                if ($version !== null && $leadStatus !== null) {
-                    $lead = Lead::query()->firstOrNew([
-                        'company_id' => $company->id,
-                        'interested_program_version_id' => $version->id,
-                    ]);
-                    $lead->status_id = $leadStatus->id;
-                    $lead->owner_user_id = $marketing->id;
-                    $lead->save();
-
-                    // İlk görüşme kaydı
-                    Interaction::query()->firstOrCreate([
-                        'lead_id' => $lead->id,
-                        'type' => 'call',
-                    ], [
-                        'user_id' => $marketing->id,
-                        'contact_id' => $contact->id,
-                        'direction' => 'outbound',
-                        'occurred_at' => now(),
-                        'note' => 'İlk telefon görüşmesi yapıldı. Firma Yeşil Sanayi Destek Programı ile ilgileniyor.',
-                    ]);
-                }
-
-                if ($version !== null && $dealStatus !== null) {
-                    $deal = Deal::query()->firstOrNew([
-                        'reference_no' => 'PLT-2026-001',
-                    ]);
-                    $deal->company_id = $company->id;
-                    $deal->program_version_id = $version->id;
-                    $deal->status_id = $dealStatus->id;
-                    $deal->status_changed_at = now();
-                    $deal->opened_by_user_id = $marketing->id;
-                    $deal->pm_user_id = $pm->id;
-                    $deal->requested_amount = '6000000.00';
-                    $deal->save();
-
-                    // Evrak kontrol listesi üretimi
-                    $this->checklistGenerator->generate($deal->id, $pm->id);
-
-                    // İşlem geçmişi kaydı
-                    $this->activities->record(
-                        action: 'deal.created',
-                        payload: [
-                            'company' => ['id' => $company->id, 'name' => $company->legal_name],
-                            'program_version_id' => $version->id,
+                if ($existingCompany === null) {
+                    $company = $this->saveCompany->execute(
+                        company: null,
+                        data: [
+                            'legal_name' => 'Kurgusal Pilot İnovasyon A.Ş.',
+                            'industry' => 'manufacturing',
+                            'city' => 'Ankara',
+                            'district' => 'Çankaya',
+                            'tax_number' => $taxNumber,
+                            'is_active' => true,
                         ],
-                        actorId: $marketing->id,
-                        dealId: $deal->id,
+                        actor: $marketing,
                     );
+
+                    $contact = $this->saveContact->create(
+                        companyId: $company->id,
+                        actorId: $marketing->id,
+                        fullName: 'Ahmet Kurgusal',
+                        phone: '+905550000001',
+                        email: 'pilot-yetkili@example.invalid',
+                        title: 'Genel Müdür',
+                        emailConsent: true,
+                        isPrimary: true,
+                        recordSource: 'manual',
+                    );
+
+                    // 6. Kurgusal İş Akışı: Fırsat -> Görüşme -> Teklif -> İş Alındı -> PM Atama
+                    $program = Program::query()->where('code', 'KOSGEB-YESIL-SANAYI')->where('is_active', true)->sole();
+                    $version = $program->latestVersion()->where('is_active', true)->sole();
+
+                    // Fırsat oluştur (CreateCompanyOpportunity -> status: new)
+                    $lead = $this->createOpportunity->execute(
+                        companyId: $company->id,
+                        programVersionId: $version->id,
+                        actor: $marketing,
+                        contactId: $contact->id,
+                        nextCallAt: null,
+                    );
+
+                    // Görüşme kaydı (RecordInteraction)
+                    $this->recordInteraction->forLead(
+                        leadId: $lead->id,
+                        actorId: $marketing->id,
+                        type: 'call',
+                        occurredAt: now(),
+                        outcome: 'interested',
+                        note: 'İlk telefon görüşmesi yapıldı. Firma Yeşil Sanayi Destek Programı ile ilgileniyor.',
+                        contactId: $contact->id,
+                    );
+
+                    // Statü geçişleri (new -> called -> interested -> proposal_sent)
+                    $calledStatus = Status::query()->where('type', 'lead')->where('code', 'called')->where('is_active', true)->sole();
+                    $interestedStatus = Status::query()->where('type', 'lead')->where('code', 'interested')->where('is_active', true)->sole();
+                    $proposalSentStatus = Status::query()->where('type', 'lead')->where('code', 'proposal_sent')->where('is_active', true)->sole();
+                    $wonStatus = Status::query()->where('type', 'lead')->where('code', 'won')->where('is_active', true)->sole();
+
+                    $this->statusMachine->transition(new StatusTransition(SubjectType::Lead, $lead->id, $calledStatus->id, $marketing->id));
+                    $this->statusMachine->transition(new StatusTransition(SubjectType::Lead, $lead->id, $interestedStatus->id, $marketing->id));
+                    $this->statusMachine->transition(new StatusTransition(SubjectType::Lead, $lead->id, $proposalSentStatus->id, $marketing->id));
+
+                    // Fırsatı İşe Dönüştür (ConvertLead -> proposal_sent -> won -> deal created + checklist generated)
+                    $dealId = $this->convertLead->handle(
+                        leadId: $lead->id,
+                        wonStatusId: $wonStatus->id,
+                        programVersionId: $version->id,
+                        actorId: $marketing->id,
+                    );
+
+                    // Dosyayı PM'e Ata (AssignDeal -> awaiting_assignment -> pm_assigned)
+                    $pmAssignedStatus = Status::query()
+                        ->where('type', 'deal')
+                        ->where('code', 'pm_assigned')
+                        ->where('is_active', true)
+                        ->sole();
+
+                    $deal = $this->assignDeal->handle(
+                        dealId: $dealId,
+                        projectManagerId: $pm->id,
+                        targetStatusId: $pmAssignedStatus->id,
+                        actorId: $authority->id,
+                    );
+
+                    $deal->update([
+                        'requested_amount' => '6000000.00',
+                    ]);
                 }
             }
 

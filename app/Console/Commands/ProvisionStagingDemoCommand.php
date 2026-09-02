@@ -4,29 +4,27 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Domain\Access\Rules\StrongPassword;
 use App\Support\Staging\ProvisionStagingEnvironment;
 use Illuminate\Console\Command;
 use Throwable;
 
 final class ProvisionStagingDemoCommand extends Command
 {
-    protected $signature = 'system:provision-staging-demo
-        {--force-test-environment : Yalnızca otomatik testlerde kullanım için kontrollü kanca}';
+    protected $signature = 'system:provision-staging-demo';
 
     protected $description = 'Geçici staging / pilot ortamı için 4 izole rolü ve kurgusal CRM iş akışını hazırlar.';
 
     public function handle(ProvisionStagingEnvironment $provisioner): int
     {
-        $allowTesting = (bool) $this->option('force-test-environment');
-
-        // Ortam Kontrolü: production, local ve testing ortamlarında staging provizyonu reddedilir
+        // Ortam Kontrolü: Yalnızca APP_ENV=staging ortamında çalıştırılabilir
         if (app()->environment('production') || config('app.env') === 'production') {
             $this->error('Staging provizyonu kesinlikle production ortamında çalıştırılamaz.');
 
             return self::FAILURE;
         }
 
-        if (! app()->environment('staging') && config('app.env') !== 'staging' && ! $allowTesting) {
+        if (! app()->environment('staging') && config('app.env') !== 'staging') {
             $this->error('Staging provizyon komutu yalnızca APP_ENV=staging ortamında çalıştırılabilir.');
 
             return self::FAILURE;
@@ -71,15 +69,15 @@ final class ProvisionStagingDemoCommand extends Command
                 return self::FAILURE;
             }
 
-            if (mb_strlen($account['password']) < 12) {
-                $this->error('Güvensiz veya eksik parola (en az 12 karakter olmalı): STAGING_'.strtoupper($key).'_PASSWORD');
+            if (! StrongPassword::isValid($account['password'])) {
+                $this->error('Güvensiz veya eksik parola (en az 12 karakter, büyük/küçük harf, rakam ve sembol içermeli): STAGING_'.strtoupper($key).'_PASSWORD');
 
                 return self::FAILURE;
             }
         }
 
         try {
-            $provisioner->execute($accounts, allowTesting: $allowTesting);
+            $provisioner->execute($accounts);
 
             $this->info('Staging demo hesapları ve kurgusal pilot verisi başarıyla oluşturuldu.');
             $this->table(
