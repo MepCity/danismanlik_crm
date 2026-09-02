@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Access\Actions;
 
 use App\Domain\Access\Models\RolePermissionHistory;
+use App\Domain\Access\Rules\StrongPassword;
 use App\Domain\Access\Services\PageAccess;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -35,15 +36,7 @@ final class BootstrapAdmin
             throw new InvalidArgumentException(__('management.validation.email_invalid'));
         }
 
-        if (
-            mb_strlen($password) < 12
-            || ! preg_match('/[A-Z]/', $password)
-            || ! preg_match('/[a-z]/', $password)
-            || ! preg_match('/[0-9]/', $password)
-            || ! preg_match('/[\W_]/', $password)
-        ) {
-            throw new InvalidArgumentException(__('management.validation.password_strong'));
-        }
+        StrongPassword::ensureValid($password);
 
         $adminRole = Role::query()->where('name', 'Sistem Yöneticisi')->first();
         if ($adminRole === null) {
