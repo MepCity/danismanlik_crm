@@ -6,14 +6,14 @@ Bu belge, Bizlife CRM'nin geçici staging / pilot ortamının kurulumu, dağıt�
 
 ## 1. Mimari Genel Bakış
 
-Staging ortamı, `compose.staging.yaml` ile yönetilen izole bir mikro servis grubudur:
-- **`web`**: Nginx (statik varlıklar, TLS sonlandırma/proxy, güvenlik başlıkları). İnternete açık port barındırmaz.
+Staging ortamı, `compose.staging.yaml` ile yönetilen izole bir servis grubudur:
+- **`web`**: Nginx (statik varlıklar, TLS sonlandırma/proxy, güvenlik başlıkları). İnternete açık doğrudan host portu barındırmaz.
 - **`app`**: PHP 8.4+ FPM (`APP_ENV=staging`, `APP_DEBUG=false`, OPcache devrede).
-- **`db`**: PostgreSQL 17 (SCRAM-SHA-256 kimlik doğrulama).
+- **`db`**: PostgreSQL 17 (SCRAM-SHA-256 kimlik doğrulama, `POSTGRES_DB: tesvik_crm_staging`).
 - **`redis`**: Redis 7 (şifreli oturum, önbellek ve asenkron kuyruk yönetimi).
 - **`clamav`**: Yüklenen evrakların gerçek zamanlı güvenlik/antivirüs taraması.
 - **`queue` & `scheduler`**: Asenkron bildirimler, e-posta kuyrukları ve periyodik görevler.
-- **`tunnel`**: Cloudflare Named Tunnel (`cloudflared`). Sunucunun dışarıya hiçbir gelen port (80/443/5432) açmadan yalnızca tünel üzerinden güvenli HTTPS erişimi sağlamasını temin eder.
+- **`tunnel`** (`profile: tunnel`): Cloudflare Named Tunnel (`cloudflared`). Sunucunun dışarıya hiçbir gelen port (80/443/5432) açmadan yalnızca Cloudflare Zero Trust tüneli üzerinden güvenli HTTPS erişimi sağlamasını temin eder.
 
 ---
 
@@ -29,18 +29,18 @@ Aşağıdaki zorunlu sırlar güçlü rastgele değerlerle doldurulmalıdır:
 
 | Değişken | Açıklama | Güvenlik Kriteri |
 |---|---|---|
-| `APP_KEY` | Laravel şifreleme anahtarı | `php artisan key:generate --show` |
+| `APP_KEY` | Laravel şifreleme anahtarı | `docker compose --env-file .env.staging -f compose.staging.yaml run --rm app php artisan key:generate --show` |
 | `DB_PASSWORD` | PostgreSQL staging kullanıcısı parolası | Rastgele ≥ 24 karakter |
 | `REDIS_PASSWORD` | Redis kimlik doğrulama parolası | Rastgele ≥ 24 karakter |
 | `CLOUDFLARE_TUNNEL_TOKEN` | Cloudflare Zero Trust tünel belirteci | Cloudflare Dashboard'dan temin edilir |
 | `STAGING_MARKETING_EMAIL` | Pilot Pazarlama kullanıcısı e-postası | Geçerli e-posta formatı |
-| `STAGING_MARKETING_PASSWORD` | Pilot Pazarlama parolası | En az 12 karakter |
+| `STAGING_MARKETING_PASSWORD` | Pilot Pazarlama parolası | En az 12 karakter, büyük/küçük harf, rakam, sembol |
 | `STAGING_PM_EMAIL` | Pilot Proje Yöneticisi e-postası | Geçerli e-posta formatı |
-| `STAGING_PM_PASSWORD` | Pilot Proje Yöneticisi parolası | En az 12 karakter |
+| `STAGING_PM_PASSWORD` | Pilot Proje Yöneticisi parolası | En az 12 karakter, büyük/küçük harf, rakam, sembol |
 | `STAGING_COMPANY_AUTHORITY_EMAIL` | Pilot Şirket Yetkilisi e-postası | Geçerli e-posta formatı |
-| `STAGING_COMPANY_AUTHORITY_PASSWORD` | Pilot Şirket Yetkilisi parolası | En az 12 karakter |
+| `STAGING_COMPANY_AUTHORITY_PASSWORD` | Pilot Şirket Yetkilisi parolası | En az 12 karakter, büyük/küçük harf, rakam, sembol |
 | `STAGING_SYSTEM_ADMIN_EMAIL` | Pilot Sistem Yöneticisi e-postası | Geçerli e-posta formatı |
-| `STAGING_SYSTEM_ADMIN_PASSWORD` | Pilot Sistem Yöneticisi parolası | En az 12 karakter |
+| `STAGING_SYSTEM_ADMIN_PASSWORD` | Pilot Sistem Yöneticisi parolası | En az 12 karakter, büyük/küçük harf, rakam, sembol |
 
 > [!WARNING]
 > Şifreler veya sırlar asla kaynak kod deposuna commit edilmez. `DemoDataSeeder` staging ortamında çalıştırılamaz; pilot kullanıcıları ve verileri `system:provision-staging-demo` komutu ile kurulur.
@@ -49,18 +49,29 @@ Aşağıdaki zorunlu sırlar güçlü rastgele değerlerle doldurulmalıdır:
 
 ## 3. İlk Kurulum ve Yayına Alma
 
-```bash
-# 1. Konteyner imajlarını derleyin ve arka planda başlatın
-docker compose -f compose.staging.yaml up -d --build
+### A. Yerel Smoke-Test (Tünelsiz Çekirdek Stack)
+Dış Cloudflare belirteci olmadan yerel/iç ağda konteynerlerin ayağa kalkmasını test etmek için:
 
-# 2. Konteyner durumlarını doğrulayın
-docker compose -f compose.staging.yaml ps
+```bash
+docker compose --env-file .env.staging -f compose.staging.yaml up -d --build
+docker compose --env-file .env.staging -f compose.staging.yaml ps
+```
+
+### B. Gerçek Yayın (Cloudflare Tüneli Dahil)
+Gerçek staging sunucusunda Cloudflare tüneli ile birlikte başlatmak için:
+
+```bash
+# 1. Konteyner imajlarını derleyin ve tünel profiliyle başlatın
+docker compose --env-file .env.staging -f compose.staging.yaml --profile tunnel up -d --build
+
+# 2. Servis durumlarını doğrulayın
+docker compose --env-file .env.staging -f compose.staging.yaml ps
 
 # 3. Veritabanı şemasını oluşturun
-docker compose -f compose.staging.yaml exec app php artisan migrate --force
+docker compose --env-file .env.staging -f compose.staging.yaml exec app php artisan migrate --force
 
-# 4. Güvenli pilot demo kullanıcılarını ve kurgusal verileri kurun
-docker compose -f compose.staging.yaml exec app php artisan system:provision-staging-demo
+# 4. Güvenli pilot demo kullanıcılarını ve kurgusal CRM iş akışını kurun
+docker compose --env-file .env.staging -f compose.staging.yaml exec app php artisan system:provision-staging-demo
 ```
 
 ---
@@ -109,27 +120,40 @@ Pilot ortamında 4 ayrı rol izole biçimde test edilir:
 
 ```bash
 # Bütün servis loglarını canlı izleme
-docker compose -f compose.staging.yaml logs -f --tail=100
+docker compose --env-file .env.staging -f compose.staging.yaml logs -f --tail=100
 
 # Yalnızca uygulama ve kuyruk logları
-docker compose -f compose.staging.yaml logs -f app queue
+docker compose --env-file .env.staging -f compose.staging.yaml logs -f app queue
 ```
 
 ---
 
 ## 7. Güncelleme ve Geri Alma (Rollback)
 
-### Güncelleme:
+### Güvenli Güncelleme Prosedürü:
 ```bash
+# 1. Güncelleme öncesi zorunlu veritabanı yedeği alın
+docker compose --env-file .env.staging -f compose.staging.yaml exec db pg_dump -U staging_app -d tesvik_crm_staging > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# 2. Yeni kodları çekin ve imajları derleyin
 git pull origin main
-docker compose -f compose.staging.yaml build app web
-docker compose -f compose.staging.yaml exec app php artisan migrate --force
-docker compose -f compose.staging.yaml up -d --no-deps app web queue scheduler
+docker compose --env-file .env.staging -f compose.staging.yaml build app web
+
+# 3. Migrationları çalıştırın ve servisleri yeniden başlatın
+docker compose --env-file .env.staging -f compose.staging.yaml exec app php artisan migrate --force
+docker compose --env-file .env.staging -f compose.staging.yaml up -d --no-deps app web queue scheduler
 ```
 
-### Geri Alma:
+### Güvenli Geri Alma Prosedürü:
+> [!IMPORTANT]
+> Kör `migrate:rollback --step=1` komutu production veya staging ortamında veri kaybına yol açabileceğinden yasaktır. Geri alma işlemi her zaman yedekten geri yükleme veya ileriye doğru düzeltme (forward-fix) ile yapılır.
+
 ```bash
-docker compose -f compose.staging.yaml exec app php artisan migrate:rollback --step=1
+# 1. Önceki doğrulanmış imaj sürümünü yayına alın
+APP_IMAGE_TAG=<previous-stable-tag> docker compose --env-file .env.staging -f compose.staging.yaml up -d --no-deps app web queue scheduler
+
+# 2. Gerekirse güncelleme öncesi alınan yedekten geri yükleyin
+cat backup_<timestamp>.sql | docker compose --env-file .env.staging -f compose.staging.yaml exec -T db psql -U staging_app -d tesvik_crm_staging
 ```
 
 ---
@@ -140,7 +164,7 @@ Pilot süreci bittiğinde staging sunucusundaki verilerin tamamen yok edilmesi i
 
 ```bash
 # Konteynerleri ve veritabanı/dosya volume'lerini tamamen silin
-docker compose -f compose.staging.yaml down -v --remove-orphans
+docker compose --env-file .env.staging -f compose.staging.yaml down -v --remove-orphans
 
 # Staging çevre değişkenleri dosyasını güvenli biçimde silin
 shred -u .env.staging || rm -f .env.staging
