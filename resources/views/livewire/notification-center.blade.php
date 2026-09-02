@@ -4,7 +4,7 @@
         type="button"
         wire:click="toggleOpen"
         class="relative flex items-center justify-center w-9 h-9 rounded-full text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition focus:outline-none focus:ring-2 focus:ring-primary-500/50"
-        aria-label="Bildirimler"
+        aria-label="{{ __('collaboration.notification_center.title') }}"
         :aria-expanded="open.toString()"
     >
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -33,10 +33,10 @@
         {{-- Header --}}
         <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50">
             <div class="flex items-center gap-2">
-                <span class="font-semibold text-zinc-900 dark:text-zinc-100">Bildirimler</span>
+                <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ __('collaboration.notification_center.title') }}</span>
                 @if($unreadCount > 0)
                     <span class="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/60 rounded-full tabular-nums">
-                        {{ $unreadCount }} yeni
+                        {{ __('collaboration.notification_center.new_count', ['count' => $unreadCount]) }}
                     </span>
                 @endif
             </div>
@@ -47,7 +47,7 @@
                     wire:click="markAllAsRead"
                     class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium hover:underline transition focus:outline-none"
                 >
-                    Tümünü okundu işaretle
+                    {{ __('collaboration.notification_center.mark_all_read') }}
                 </button>
             @endif
         </div>
@@ -87,7 +87,7 @@
                         <button
                             type="button"
                             wire:click.stop="markAsRead({{ $notification->id }})"
-                            title="Okundu işaretle"
+                            title="{{ __('collaboration.notification_center.mark_as_read') }}"
                             class="flex-shrink-0 p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition"
                         >
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -101,7 +101,7 @@
                     <svg class="w-8 h-8 mx-auto text-zinc-300 dark:text-zinc-700 mb-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                     </svg>
-                    <p class="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Yeni bildiriminiz bulunmuyor.</p>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 font-medium">{{ __('collaboration.notification_center.empty') }}</p>
                 </div>
             @endforelse
         </div>

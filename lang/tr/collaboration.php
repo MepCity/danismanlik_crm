@@ -18,6 +18,13 @@ return [
         'task_reminder_body' => '":task" görevinin son tarihi :due_at.',
         'task_reminder_body_without_due' => '":task" görevi için belirlediğiniz hatırlatma zamanı geldi.',
     ],
+    'notification_center' => [
+        'title' => 'Bildirimler',
+        'new_count' => ':count yeni',
+        'mark_all_read' => 'Tümünü okundu işaretle',
+        'mark_as_read' => 'Okundu işaretle',
+        'empty' => 'Yeni bildiriminiz bulunmuyor.',
+    ],
     'commands' => [
         'reminders' => ':count görev hatırlatması üretildi.',
         'digest' => ':count günlük özet kuyruğa alındı.',

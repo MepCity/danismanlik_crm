@@ -142,6 +142,64 @@ it('bildirim hedef kaydı kullanıcı yetki kapsamındaysa URL üretir aksi hald
     expect($service->targetUrl($pm, $notification))->toBe(DealDetail::getUrl(['deal' => $deal->id]));
 });
 
+it('kapsamı geri alınan veya silinen hedefe ait bildirim listeden ve sayaçtan çıkar içerik sızdırmaz', function (): void {
+    $pm = User::factory()->create(['email' => 'pm-revocation@example.invalid', 'data_scope' => 'own']);
+    $pm->assignRole('Proje Yöneticisi');
+
+    $company = Company::query()->create([
+        'legal_name' => 'Gizli Firma A.Ş.',
+        'industry' => 'manufacturing',
+        'owner_user_id' => $pm->id,
+        'is_active' => true,
+    ]);
+
+    $program = Program::query()->where('code', 'KOSGEB-YESIL-SANAYI')->firstOrFail();
+    $version = $program->versions()->firstOrFail();
+    $status = Status::query()->where('type', 'deal')->firstOrFail();
+
+    $otherUser = User::factory()->create();
+
+    $deal = Deal::query()->create([
+        'company_id' => $company->id,
+        'program_version_id' => $version->id,
+        'status_id' => $status->id,
+        'status_changed_at' => now(),
+        'opened_by_user_id' => $otherUser->id,
+        'pm_user_id' => $pm->id,
+        'reference_no' => 'GZL-2026-001',
+    ]);
+
+    $notification = Notification::query()->create([
+        'user_id' => $pm->id,
+        'deal_id' => $deal->id,
+        'title' => 'Gizli Proje Bildirimi',
+        'body' => 'Gizli Firma A.Ş. için çok özel bilgiler içeren bildirim.',
+        'channel' => 'in_app',
+        'type' => 'deal.assigned',
+    ]);
+
+    $service = app(NotificationService::class);
+
+    // 1. Durum: PM yetkiliyken bildirim görünür, sayılır ve URL üretilir
+    expect($service->unreadCount($pm))->toBe(1)
+        ->and($service->listForUser($pm)->count())->toBe(1)
+        ->and($service->listForUser($pm)->first()?->title)->toBe('Gizli Proje Bildirimi')
+        ->and($service->targetUrl($pm, $notification))->not->toBeNull();
+
+    // 2. Durum: Dosya başka birine atanıp PM'in yetki kapsamından çıktığında içerik ve sayaç sızdırılmaz
+    $otherUser = User::factory()->create();
+    $deal->update(['pm_user_id' => $otherUser->id]);
+
+    expect($service->unreadCount($pm))->toBe(0)
+        ->and($service->listForUser($pm)->count())->toBe(0)
+        ->and($service->targetUrl($pm, $notification))->toBeNull();
+
+    // 3. Durum: Yetki geri geldiğinde tekrar görünür
+    $deal->update(['pm_user_id' => $pm->id]);
+    expect($service->unreadCount($pm))->toBe(1)
+        ->and($service->listForUser($pm)->count())->toBe(1);
+});
+
 it('livewire bildirim merkezi bileşeni etkileşimleri doğru işletir', function (): void {
     $user = User::factory()->create(['email' => 'livewire-user@example.invalid']);
     $user->assignRole('Proje Yöneticisi');
