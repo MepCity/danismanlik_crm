@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Staging;
 
 use App\Domain\Access\Actions\SaveTeam;
+use App\Domain\Access\Actions\UpsertPilotUser;
 use App\Domain\Access\Models\Team;
 use App\Domain\Access\Rules\StrongPassword;
 use App\Domain\Crm\Actions\ConvertLead;
@@ -14,30 +15,35 @@ use App\Domain\Crm\Actions\SaveCompanyDirectoryEntry;
 use App\Domain\Crm\Actions\SaveContact;
 use App\Domain\Crm\Models\Company;
 use App\Domain\Deal\Actions\AssignDeal;
+use App\Domain\Deal\Actions\UpdateDealAmount;
 use App\Domain\Deal\Models\Status;
+use App\Domain\Deal\Models\Transition;
 use App\Domain\Deal\Services\StatusMachineContract;
 use App\Domain\Program\Models\Program;
 use App\Models\User;
 use App\Support\Workflow\StatusTransition;
 use App\Support\Workflow\SubjectType;
 use Database\Seeders\ReferenceDataSeeder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use RuntimeException;
+use Spatie\Permission\Models\Role;
 
-final class ProvisionStagingEnvironment
+final readonly class ProvisionStagingEnvironment
 {
     public function __construct(
-        private readonly SaveTeam $saveTeam,
-        private readonly SaveCompanyDirectoryEntry $saveCompany,
-        private readonly SaveContact $saveContact,
-        private readonly CreateCompanyOpportunity $createOpportunity,
-        private readonly RecordInteraction $recordInteraction,
-        private readonly StatusMachineContract $statusMachine,
-        private readonly ConvertLead $convertLead,
-        private readonly AssignDeal $assignDeal,
+        private UpsertPilotUser $upsertUser,
+        private SaveTeam $saveTeam,
+        private SaveCompanyDirectoryEntry $saveCompany,
+        private SaveContact $saveContact,
+        private CreateCompanyOpportunity $createOpportunity,
+        private RecordInteraction $recordInteraction,
+        private StatusMachineContract $statusMachine,
+        private ConvertLead $convertLead,
+        private AssignDeal $assignDeal,
+        private UpdateDealAmount $updateDealAmount,
     ) {}
 
     /**
@@ -48,17 +54,17 @@ final class ProvisionStagingEnvironment
     {
         // 1. Ortam Koruması: Production veya staging dışındaki ortamlarda çalıştırılamaz
         if (app()->environment('production') || config('app.env') === 'production') {
-            throw new RuntimeException('Staging provizyonu kesinlikle production ortamında çalıştırılamaz.');
+            throw new RuntimeException(__('management.staging_provision.error_production'));
         }
 
         if (! app()->environment('staging') && config('app.env') !== 'staging') {
-            throw new RuntimeException('Staging provizyonu yalnızca APP_ENV=staging ortamında çalıştırılabilir.');
+            throw new RuntimeException(__('management.staging_provision.error_environment'));
         }
 
         // 2. Parola ve E-posta Güvenliği Doğrulaması (Ortak StrongPassword kuralı)
         foreach ($accounts as $key => $account) {
             if (! filter_var($account['email'], FILTER_VALIDATE_EMAIL)) {
-                throw new InvalidArgumentException("Geçersiz e-posta adresi: {$key}");
+                throw new InvalidArgumentException(__('management.staging_provision.invalid_email', ['field' => 'STAGING_'.strtoupper($key).'_EMAIL']));
             }
 
             if (! StrongPassword::isValid($account['password'])) {
@@ -69,28 +75,23 @@ final class ProvisionStagingEnvironment
         }
 
         return DB::transaction(function () use ($accounts): array {
-            // Referans verilerini garantiye al
-            (new ReferenceDataSeeder)->setContainer(app())->run();
+            // Referans verilerini ihtiyaç varsa garantiye al
+            if (Status::query()->where('is_active', true)->doesntExist() || Role::query()->doesntExist()) {
+                (new ReferenceDataSeeder)->setContainer(app())->run();
+            }
 
+            // 3. Kullanıcıları Domain Action ile oluştur veya varsa güncelle (Idempotent)
             $createdUsers = [];
-
-            // 3. Kullanıcıları oluştur ve rolleri/kapsamları ata
             foreach ($accounts as $key => $config) {
-                $user = User::query()->firstOrNew([
-                    'email' => $config['email'],
-                ]);
-
-                $user->name = $config['name'];
-                $user->password = Hash::make($config['password']);
-                $user->is_active = true;
-                $user->data_scope = $config['data_scope'];
-                $user->save();
-
-                $user->syncRoles([$config['role']]);
-
-                if ($config['role'] === 'Sistem Yöneticisi') {
-                    $user->givePermissionTo('page.access_management');
-                }
+                $directPerms = $config['role'] === 'Sistem Yöneticisi' ? ['page.access_management'] : [];
+                $user = $this->upsertUser->execute(
+                    email: $config['email'],
+                    password: $config['password'],
+                    name: $config['name'],
+                    roleName: $config['role'],
+                    dataScope: $config['data_scope'],
+                    directPermissions: $directPerms,
+                );
 
                 $createdUsers[$key] = $user;
             }
@@ -100,21 +101,34 @@ final class ProvisionStagingEnvironment
             $authority = $createdUsers['authority'] ?? null;
             $admin = $createdUsers['admin'] ?? null;
 
-            // 4. Pilot Takımını oluştur (PM -> manager, Marketing -> member)
+            // 4. Pilot Takımını oluştur / güncelle (Idempotent: değişiklik yoksa SaveTeam çağrılmaz)
             if ($pm !== null && $marketing !== null && $admin !== null) {
-                $existingTeam = Team::query()->where('name', 'Kurgusal Pilot Takımı')->first();
+                $teamName = (string) __('management.staging_provision.pilot_data.team_name');
+                $existingTeam = Team::query()->where('name', $teamName)->first();
 
-                $this->saveTeam->execute(
-                    team: $existingTeam,
-                    data: [
-                        'name' => 'Kurgusal Pilot Takımı',
-                        'manager_id' => $pm->id,
-                        'member_ids' => [$marketing->id],
-                        'is_active' => true,
-                        'change_reason' => 'Staging pilot ortamı otomatik provizyonu',
-                    ],
-                    actor: $admin,
-                );
+                $needsTeamSave = true;
+                if ($existingTeam !== null) {
+                    $existingMemberIds = $existingTeam->members()->pluck('users.id')->sort()->values()->all();
+                    $targetMemberIds = collect([$pm->id, $marketing->id])->sort()->values()->all();
+
+                    if ($existingTeam->manager_id === $pm->id && $existingMemberIds === $targetMemberIds && $existingTeam->is_active) {
+                        $needsTeamSave = false;
+                    }
+                }
+
+                if ($needsTeamSave) {
+                    $this->saveTeam->execute(
+                        team: $existingTeam,
+                        data: [
+                            'name' => $teamName,
+                            'manager_id' => $pm->id,
+                            'member_ids' => [$marketing->id],
+                            'is_active' => true,
+                            'change_reason' => __('management.staging_provision.pilot_data.team_reason'),
+                        ],
+                        actor: $admin,
+                    );
+                }
             }
 
             // 5. Kurgusal Firma, İletişim Kişisi ve İş Akışı (Yalnızca Domain Action'ları ile)
@@ -126,10 +140,10 @@ final class ProvisionStagingEnvironment
                     $company = $this->saveCompany->execute(
                         company: null,
                         data: [
-                            'legal_name' => 'Kurgusal Pilot İnovasyon A.Ş.',
+                            'legal_name' => __('management.staging_provision.pilot_data.company_legal_name'),
                             'industry' => 'manufacturing',
-                            'city' => 'Ankara',
-                            'district' => 'Çankaya',
+                            'city' => __('management.staging_provision.pilot_data.company_city'),
+                            'district' => __('management.staging_provision.pilot_data.company_district'),
                             'tax_number' => $taxNumber,
                             'is_active' => true,
                         ],
@@ -139,20 +153,20 @@ final class ProvisionStagingEnvironment
                     $contact = $this->saveContact->create(
                         companyId: $company->id,
                         actorId: $marketing->id,
-                        fullName: 'Ahmet Kurgusal',
-                        phone: '+905550000001',
-                        email: 'pilot-yetkili@example.invalid',
-                        title: 'Genel Müdür',
+                        fullName: (string) __('management.staging_provision.pilot_data.contact_name'),
+                        phone: (string) __('management.staging_provision.pilot_data.contact_phone'),
+                        email: (string) __('management.staging_provision.pilot_data.contact_email'),
+                        title: (string) __('management.staging_provision.pilot_data.contact_title'),
                         emailConsent: true,
                         isPrimary: true,
                         recordSource: 'manual',
                     );
 
-                    // 6. Kurgusal İş Akışı: Fırsat -> Görüşme -> Teklif -> İş Alındı -> PM Atama
-                    $program = Program::query()->where('code', 'KOSGEB-YESIL-SANAYI')->where('is_active', true)->sole();
-                    $version = $program->latestVersion()->where('is_active', true)->sole();
+                    // 6. Kurgusal İş Akışı: Fırsat -> Görüşme -> Statü Geçişleri -> İş Alındı -> PM Atama
+                    $program = Program::query()->where('is_active', true)->firstOrFail();
+                    $version = $program->latestVersion()->where('is_active', true)->firstOrFail();
 
-                    // Fırsat oluştur (CreateCompanyOpportunity -> status: new)
+                    // Fırsat oluştur (CreateCompanyOpportunity -> initial lead status)
                     $lead = $this->createOpportunity->execute(
                         companyId: $company->id,
                         programVersionId: $version->id,
@@ -168,49 +182,121 @@ final class ProvisionStagingEnvironment
                         type: 'call',
                         occurredAt: now(),
                         outcome: 'interested',
-                        note: 'İlk telefon görüşmesi yapıldı. Firma Yeşil Sanayi Destek Programı ile ilgileniyor.',
+                        note: (string) __('management.staging_provision.pilot_data.call_note'),
                         contactId: $contact->id,
                     );
 
-                    // Statü geçişleri (new -> called -> interested -> proposal_sent)
-                    $calledStatus = Status::query()->where('type', 'lead')->where('code', 'called')->where('is_active', true)->sole();
-                    $interestedStatus = Status::query()->where('type', 'lead')->where('code', 'interested')->where('is_active', true)->sole();
-                    $proposalSentStatus = Status::query()->where('type', 'lead')->where('code', 'proposal_sent')->where('is_active', true)->sole();
-                    $wonStatus = Status::query()->where('type', 'lead')->where('code', 'won')->where('is_active', true)->sole();
+                    // Statü kodları koda gömülmeden DB geçiş grafiği üzerinden deterministik yol bulunur
+                    $initialLeadStatus = Status::query()
+                        ->where('type', 'lead')
+                        ->where('is_initial', true)
+                        ->where('is_active', true)
+                        ->sole();
 
-                    $this->statusMachine->transition(new StatusTransition(SubjectType::Lead, $lead->id, $calledStatus->id, $marketing->id));
-                    $this->statusMachine->transition(new StatusTransition(SubjectType::Lead, $lead->id, $interestedStatus->id, $marketing->id));
-                    $this->statusMachine->transition(new StatusTransition(SubjectType::Lead, $lead->id, $proposalSentStatus->id, $marketing->id));
+                    $wonLeadStatus = Status::query()
+                        ->where('type', 'lead')
+                        ->where('converts_to_deal', true)
+                        ->where('is_active', true)
+                        ->sole();
 
-                    // Fırsatı İşe Dönüştür (ConvertLead -> proposal_sent -> won -> deal created + checklist generated)
+                    /** @var EloquentCollection<int, Transition> $leadTransitions */
+                    $leadTransitions = Transition::query()
+                        ->where('is_active', true)
+                        ->whereHas('fromStatus', fn ($q) => $q->where('type', 'lead'))
+                        ->whereHas('toStatus', fn ($q) => $q->where('type', 'lead'))
+                        ->get();
+
+                    $path = $this->findShortestPath($leadTransitions, $initialLeadStatus->id, $wonLeadStatus->id);
+
+                    // converts_to_deal öncesindeki ara statü geçişleri yürütülür
+                    $pathCount = count($path);
+                    for ($i = 1; $i < $pathCount - 1; $i++) {
+                        $this->statusMachine->transition(new StatusTransition(
+                            subjectType: SubjectType::Lead,
+                            subjectId: $lead->id,
+                            targetStatusId: $path[$i],
+                            actorId: $marketing->id,
+                        ));
+                    }
+
+                    // Fırsatı İşe Dönüştür (ConvertLead -> converts_to_deal status -> deal created + checklist generated)
                     $dealId = $this->convertLead->handle(
                         leadId: $lead->id,
-                        wonStatusId: $wonStatus->id,
+                        wonStatusId: $wonLeadStatus->id,
                         programVersionId: $version->id,
                         actorId: $marketing->id,
                     );
 
-                    // Dosyayı PM'e Ata (AssignDeal -> awaiting_assignment -> pm_assigned)
-                    $pmAssignedStatus = Status::query()
+                    // Dosyayı PM'e Ata (AssignDeal -> initial deal status'ten 'deal.assign' izni gerektiren hedefe geçiş)
+                    $initialDealStatus = Status::query()
                         ->where('type', 'deal')
-                        ->where('code', 'pm_assigned')
+                        ->where('is_initial', true)
                         ->where('is_active', true)
                         ->sole();
 
-                    $deal = $this->assignDeal->handle(
+                    $pmAssignTransition = Transition::query()
+                        ->where('from_status_id', $initialDealStatus->id)
+                        ->where('required_permission', 'deal.assign')
+                        ->where('is_active', true)
+                        ->firstOrFail();
+
+                    $this->assignDeal->handle(
                         dealId: $dealId,
                         projectManagerId: $pm->id,
-                        targetStatusId: $pmAssignedStatus->id,
+                        targetStatusId: $pmAssignTransition->to_status_id,
                         actorId: $authority->id,
                     );
 
-                    $deal->update([
-                        'requested_amount' => '6000000.00',
-                    ]);
+                    // Talep tutarını Domain Action üzerinden güncelle
+                    $this->updateDealAmount->execute(
+                        dealId: $dealId,
+                        requestedAmount: '6000000.00',
+                        actor: $authority,
+                    );
                 }
             }
 
             return $createdUsers;
         });
+    }
+
+    /**
+     * Statü geçiş grafiğinde iki statü arasındaki en kısa yolu bulur.
+     *
+     * @param  EloquentCollection<int, Transition>  $transitions
+     * @return list<int>
+     */
+    private function findShortestPath(EloquentCollection $transitions, int $startId, int $targetId): array
+    {
+        if ($startId === $targetId) {
+            return [$startId];
+        }
+
+        $adjacency = [];
+        foreach ($transitions as $t) {
+            $adjacency[$t->from_status_id][] = $t->to_status_id;
+        }
+
+        /** @var list<list<int>> $queue */
+        $queue = [[$startId]];
+        $visited = [$startId => true];
+
+        while (! empty($queue)) {
+            $currentPath = array_shift($queue);
+            $lastNode = end($currentPath);
+
+            foreach ($adjacency[$lastNode] ?? [] as $neighbor) {
+                if ($neighbor === $targetId) {
+                    return array_merge($currentPath, [$neighbor]);
+                }
+
+                if (! isset($visited[$neighbor])) {
+                    $visited[$neighbor] = true;
+                    $queue[] = array_merge($currentPath, [$neighbor]);
+                }
+            }
+        }
+
+        throw new RuntimeException("Geçiş grafiğinde {$startId} statüsünden {$targetId} statüsüne giden yol bulunamadı.");
     }
 }

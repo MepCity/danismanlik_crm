@@ -2,21 +2,28 @@
 
 declare(strict_types=1);
 
+use App\Domain\Access\Models\RolePermissionHistory;
 use App\Domain\Access\Models\Team;
 use App\Domain\Collaboration\Models\Activity;
 use App\Domain\Collaboration\Models\Notification;
+use App\Domain\Crm\Models\CommunicationConsent;
 use App\Domain\Crm\Models\Company;
+use App\Domain\Crm\Models\Contact;
 use App\Domain\Crm\Models\Interaction;
 use App\Domain\Crm\Models\Lead;
 use App\Domain\Deal\Models\Deal;
+use App\Domain\Deal\Models\Status;
 use App\Domain\Deal\Models\StatusHistory;
+use App\Domain\Deal\Models\Transition;
 use App\Domain\Document\Models\DealDocument;
 use App\Livewire\NotificationCenter;
 use App\Models\User;
+use App\Support\Staging\ProvisionStagingEnvironment;
 use Database\Seeders\DemoDataSeeder;
 use Database\Seeders\ReferenceDataSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -166,7 +173,7 @@ it('staging provision komutu 4 ayrı rolü, takımı, firmayı, fırsatı, dosya
     config(['app.env' => 'testing']);
 });
 
-it('staging provision komutu ikinci çalıştırmada idempotence korur ve kayıtları çoğaltmaz', function (): void {
+it('staging provision komutu ikinci çalıştırmada katı yan etki idempotence korur ve hiçbir tablonun sayısını artırmaz', function (): void {
     /** @var TestCase $this */
     config(['app.env' => 'staging']);
 
@@ -190,26 +197,194 @@ it('staging provision komutu ikinci çalıştırmada idempotence korur ve kayıt
     // İlk çalıştırma
     $this->artisan('system:provision-staging-demo')->assertSuccessful();
 
-    $userCount = User::query()->count();
-    $teamCount = Team::query()->count();
-    $companyCount = Company::query()->count();
-    $leadCount = Lead::query()->count();
-    $dealCount = Deal::query()->count();
-    $docCount = DealDocument::query()->count();
-    $historyCount = StatusHistory::query()->count();
-    $activityCount = Activity::query()->count();
+    $marketing = User::query()->where('email', 'pazarlama@pilot.bizlife.invalid')->firstOrFail();
+    $initialMarketingPasswordHash = $marketing->password;
+    $initialMarketingUpdatedAt = (string) $marketing->updated_at;
+
+    $counts = [
+        'users' => User::query()->count(),
+        'teams' => Team::query()->count(),
+        'companies' => Company::query()->count(),
+        'contacts' => Contact::query()->count(),
+        'consents' => CommunicationConsent::query()->count(),
+        'leads' => Lead::query()->count(),
+        'interactions' => Interaction::query()->count(),
+        'deals' => Deal::query()->count(),
+        'deal_documents' => DealDocument::query()->count(),
+        'status_history' => StatusHistory::query()->count(),
+        'activities' => Activity::query()->count(),
+        'notifications' => Notification::query()->count(),
+        'role_permission_history' => RolePermissionHistory::query()->count(),
+        'model_has_roles' => DB::table('model_has_roles')->count(),
+        'model_has_permissions' => DB::table('model_has_permissions')->count(),
+        'team_members' => DB::table('team_members')->count(),
+    ];
 
     // İkinci çalıştırma
     $this->artisan('system:provision-staging-demo')->assertSuccessful();
 
-    expect(User::query()->count())->toBe($userCount)
-        ->and(Team::query()->count())->toBe($teamCount)
-        ->and(Company::query()->count())->toBe($companyCount)
-        ->and(Lead::query()->count())->toBe($leadCount)
-        ->and(Deal::query()->count())->toBe($dealCount)
-        ->and(DealDocument::query()->count())->toBe($docCount)
-        ->and(StatusHistory::query()->count())->toBe($historyCount)
-        ->and(Activity::query()->count())->toBe($activityCount);
+    expect(User::query()->count())->toBe($counts['users'])
+        ->and(Team::query()->count())->toBe($counts['teams'])
+        ->and(Company::query()->count())->toBe($counts['companies'])
+        ->and(Contact::query()->count())->toBe($counts['contacts'])
+        ->and(CommunicationConsent::query()->count())->toBe($counts['consents'])
+        ->and(Lead::query()->count())->toBe($counts['leads'])
+        ->and(Interaction::query()->count())->toBe($counts['interactions'])
+        ->and(Deal::query()->count())->toBe($counts['deals'])
+        ->and(DealDocument::query()->count())->toBe($counts['deal_documents'])
+        ->and(StatusHistory::query()->count())->toBe($counts['status_history'])
+        ->and(Activity::query()->count())->toBe($counts['activities'])
+        ->and(Notification::query()->count())->toBe($counts['notifications'])
+        ->and(RolePermissionHistory::query()->count())->toBe($counts['role_permission_history'])
+        ->and(DB::table('model_has_roles')->count())->toBe($counts['model_has_roles'])
+        ->and(DB::table('model_has_permissions')->count())->toBe($counts['model_has_permissions'])
+        ->and(DB::table('team_members')->count())->toBe($counts['team_members']);
+
+    // Kullanıcı parolası ve updated_at değeri değişmemeli
+    $refreshedMarketing = User::query()->where('email', 'pazarlama@pilot.bizlife.invalid')->firstOrFail();
+    expect($refreshedMarketing->password)->toBe($initialMarketingPasswordHash)
+        ->and((string) $refreshedMarketing->updated_at)->toBe($initialMarketingUpdatedAt);
+
+    config(['app.env' => 'testing']);
+});
+
+it('statü kodları değiştirilmiş veya farklı adlandırılmış veri tabanında provizyon akışı dinamik geçiş grafiğiyle başarıyla çalışır', function (): void {
+    /** @var TestCase $this */
+    config(['app.env' => 'staging']);
+
+    // Mevcut statü ve geçişleri pasifleştir
+    Status::query()->update(['is_active' => false]);
+    Transition::query()->update(['is_active' => false]);
+
+    // Dinamik kurgusal Lead statüleri (kodlar standart dışı)
+    $sInit = Status::query()->create([
+        'code' => 'kurgusal_baslangic',
+        'label' => 'Kurgusal Başlangıç',
+        'type' => 'lead',
+        'color' => 'neutral',
+        'sort_order' => 1,
+        'is_terminal' => false,
+        'is_active' => true,
+        'is_initial' => true,
+        'converts_to_deal' => false,
+        'awaits_customer_response' => false,
+    ]);
+
+    $sStep1 = Status::query()->create([
+        'code' => 'kurgusal_ara_asama',
+        'label' => 'Kurgusal Ara Aşama',
+        'type' => 'lead',
+        'color' => 'waiting',
+        'sort_order' => 2,
+        'is_terminal' => false,
+        'is_active' => true,
+        'is_initial' => false,
+        'converts_to_deal' => false,
+        'awaits_customer_response' => false,
+    ]);
+
+    $sWon = Status::query()->create([
+        'code' => 'kurgusal_kazanildi',
+        'label' => 'Kurgusal Kazanıldı',
+        'type' => 'lead',
+        'color' => 'success',
+        'sort_order' => 3,
+        'is_terminal' => false,
+        'is_active' => true,
+        'is_initial' => false,
+        'converts_to_deal' => true,
+        'awaits_customer_response' => false,
+    ]);
+
+    // Dinamik kurgusal Deal statüleri
+    $sDealInit = Status::query()->create([
+        'code' => 'kurgusal_dosya_baslangic',
+        'label' => 'Dosya Başlangıç',
+        'type' => 'deal',
+        'color' => 'neutral',
+        'sort_order' => 1,
+        'is_terminal' => false,
+        'is_active' => true,
+        'is_initial' => true,
+        'converts_to_deal' => false,
+        'awaits_customer_response' => false,
+    ]);
+
+    $sDealPm = Status::query()->create([
+        'code' => 'kurgusal_dosya_pm_atandi',
+        'label' => 'Dosya PM Atandı',
+        'type' => 'deal',
+        'color' => 'info',
+        'sort_order' => 2,
+        'is_terminal' => false,
+        'is_active' => true,
+        'is_initial' => false,
+        'converts_to_deal' => false,
+        'awaits_customer_response' => false,
+    ]);
+
+    // Geçişler (Transitions)
+    Transition::query()->create([
+        'from_status_id' => $sInit->id,
+        'to_status_id' => $sStep1->id,
+        'required_permission' => 'lead.manage',
+        'is_active' => true,
+    ]);
+
+    Transition::query()->create([
+        'from_status_id' => $sStep1->id,
+        'to_status_id' => $sWon->id,
+        'required_permission' => 'lead.manage',
+        'is_active' => true,
+    ]);
+
+    Transition::query()->create([
+        'from_status_id' => $sDealInit->id,
+        'to_status_id' => $sDealPm->id,
+        'required_permission' => 'deal.assign',
+        'is_active' => true,
+    ]);
+
+    $accounts = [
+        'marketing' => [
+            'name' => 'Dinamik Pazarlama',
+            'email' => 'dinamik-pazarlama@pilot.bizlife.invalid',
+            'password' => 'GucluParolaPzr123!',
+            'role' => 'Pazarlama',
+            'data_scope' => 'own',
+        ],
+        'pm' => [
+            'name' => 'Dinamik PM',
+            'email' => 'dinamik-pm@pilot.bizlife.invalid',
+            'password' => 'GucluParolaPM123!',
+            'role' => 'Proje Yöneticisi',
+            'data_scope' => 'team',
+        ],
+        'authority' => [
+            'name' => 'Dinamik Yetkili',
+            'email' => 'dinamik-yetkili@pilot.bizlife.invalid',
+            'password' => 'GucluParolaYetkili123!',
+            'role' => 'Şirket Yetkilisi',
+            'data_scope' => 'all',
+        ],
+        'admin' => [
+            'name' => 'Dinamik Admin',
+            'email' => 'dinamik-admin@pilot.bizlife.invalid',
+            'password' => 'GucluParolaAdmin123!',
+            'role' => 'Sistem Yöneticisi',
+            'data_scope' => 'none',
+        ],
+    ];
+
+    /** @var ProvisionStagingEnvironment $provisioner */
+    $provisioner = app(ProvisionStagingEnvironment::class);
+
+    $result = $provisioner->execute($accounts);
+    expect($result)->toHaveKeys(['marketing', 'pm', 'authority', 'admin']);
+
+    $deal = Deal::query()->latest('id')->first();
+    expect($deal)->not->toBeNull()
+        ->and($deal->status->code)->toBe('kurgusal_dosya_pm_atandi');
 
     config(['app.env' => 'testing']);
 });
